@@ -84,8 +84,7 @@ export default async function RouteDetailPage({
     : null;
   const elevationGain = route.elevation_gain_meters ?? elevationGainFromPet;
 
-  // スポット固有の写真がある場合のみ表示。gallery_imagesフォールバックは廃止。
-  // 同一ルート内で同じ写真が連続しないよう重複除去。
+  // スポット写真: photo_urlがあれば表示。同一ルート内での重複のみ除去。
   const usedPhotos = new Set<string>();
   const spotsForDisplay = spots.map((spot) => {
     const raw = spot.photo_url ?? null;
@@ -327,6 +326,7 @@ export default async function RouteDetailPage({
                 comment={pin.comment}
                 photoUrl={pin.photo_url}
                 pinType={pin.pin_type}
+                showIndex={false}
               />
             ))}
           </div>
