@@ -84,12 +84,41 @@ export default async function RouteDetailPage({
     : null;
   const elevationGain = route.elevation_gain_meters ?? elevationGainFromPet;
 
-  // スポット写真: photo_urlがあれば表示。同一ルート内での重複のみ除去。
+  // みどころ写真の割り当てロジック:
+  // 1. ピン写真と重複するスポット写真 → gallery写真で置き換え（同じ写真が2回出るのを防ぐ）
+  // 2. スポット独自の写真 → そのまま使用
+  // 3. 写真なし → gallery写真を順番に割り当て（viewpoint/park/cafe等のみ）
+  // 4. 同一ルート内での写真重複は除去
+  const pinPhotoUrls = new Set(
+    pins.flatMap((p) => (p.photo_url ? [p.photo_url] : []))
+  );
+  const thumbnailUrl = route.thumbnail_url ?? "";
+  const galleryPool = (route.gallery_images ?? []).filter(
+    (url) => url && !pinPhotoUrls.has(url) && url !== thumbnailUrl
+  );
+  let galleryIdx = 0;
   const usedPhotos = new Set<string>();
+  const noPhotoCategories = new Set(["restroom", "water_station", "parking"]);
+
   const spotsForDisplay = spots.map((spot) => {
     const raw = spot.photo_url ?? null;
-    const photoUrl = raw && !usedPhotos.has(raw) ? raw : null;
-    if (raw) usedPhotos.add(raw);
+    let photoUrl: string | null = null;
+
+    if (raw && !pinPhotoUrls.has(raw) && !usedPhotos.has(raw)) {
+      // スポット独自の写真（ピンと重複しない）
+      photoUrl = raw;
+    } else if (!noPhotoCategories.has(spot.category ?? "")) {
+      // ピン重複 or 写真なし → gallery写真で補完
+      while (galleryIdx < galleryPool.length && usedPhotos.has(galleryPool[galleryIdx])) {
+        galleryIdx++;
+      }
+      if (galleryIdx < galleryPool.length) {
+        photoUrl = galleryPool[galleryIdx];
+        galleryIdx++;
+      }
+    }
+
+    if (photoUrl) usedPhotos.add(photoUrl);
     return { spot, photoUrl };
   });
 
