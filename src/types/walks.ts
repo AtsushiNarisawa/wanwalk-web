@@ -58,7 +58,7 @@ export interface RouteSpot {
   id: string;
   route_id: string;
   spot_order: number;
-  spot_type: "start" | "landscape" | "photo_spot" | "facility" | "end";
+  spot_type: "start" | "waypoint" | "end";
   name: string;
   description: string | null;
   landscape_feature: string | null;
@@ -71,6 +71,12 @@ export interface RouteSpot {
   tips: string | null;
   distance_from_start: number | null;
   estimated_time_from_start: number | null;
+  category: string | null;
+  dog_policy: Record<string, unknown> | null;
+  photo_url: string | null;
+  website_url: string | null;
+  phone: string | null;
+  price_range: string | null;
 }
 
 export interface RouteWithArea extends OfficialRoute {

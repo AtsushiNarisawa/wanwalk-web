@@ -84,11 +84,9 @@ export default async function RouteDetailPage({
     : null;
   const elevationGain = route.elevation_gain_meters ?? elevationGainFromPet;
 
-  // 施策②: route_spots を PinCard UI で表示。写真は gallery_images[order-1] をフォールバック。
-  // TODO(Phase 1.5): route_spots.photo_url / route_pin_photos 近接マッチへ段階的に差し替え
-  const gallery = route.gallery_images ?? [];
-  const spotsForDisplay = spots.map((spot, i) => {
-    const photoUrl = gallery[spot.spot_order - 1] ?? gallery[i] ?? null;
+  // スポット固有の写真がある場合のみ表示。gallery_imagesフォールバックは廃止。
+  const spotsForDisplay = spots.map((spot) => {
+    const photoUrl = spot.photo_url ?? null;
     return { spot, photoUrl };
   });
 
