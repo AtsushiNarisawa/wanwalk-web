@@ -85,8 +85,12 @@ export default async function RouteDetailPage({
   const elevationGain = route.elevation_gain_meters ?? elevationGainFromPet;
 
   // スポット固有の写真がある場合のみ表示。gallery_imagesフォールバックは廃止。
+  // 同一ルート内で同じ写真が連続しないよう重複除去。
+  const usedPhotos = new Set<string>();
   const spotsForDisplay = spots.map((spot) => {
-    const photoUrl = spot.photo_url ?? null;
+    const raw = spot.photo_url ?? null;
+    const photoUrl = raw && !usedPhotos.has(raw) ? raw : null;
+    if (raw) usedPhotos.add(raw);
     return { spot, photoUrl };
   });
 

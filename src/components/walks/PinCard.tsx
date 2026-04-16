@@ -31,19 +31,19 @@ export default function PinCard({ index, title, comment, photoUrl, pinType }: Pr
         marginBottom: 32,
       }}
     >
-      <div
-        className="pin-card-image"
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          borderRadius: "var(--radius-ww-sm)",
-          backgroundColor: "var(--color-ww-bg-secondary)",
-          flexShrink: 0,
-          aspectRatio: "4 / 3",
-          width: "100%",
-        }}
-      >
-        {photoUrl ? (
+      {photoUrl && (
+        <div
+          className="pin-card-image"
+          style={{
+            position: "relative",
+            overflow: "hidden",
+            borderRadius: "var(--radius-ww-sm)",
+            backgroundColor: "var(--color-ww-bg-secondary)",
+            flexShrink: 0,
+            aspectRatio: "4 / 3",
+            width: "100%",
+          }}
+        >
           <Image
             src={photoUrl}
             alt={title}
@@ -51,24 +51,8 @@ export default function PinCard({ index, title, comment, photoUrl, pinType }: Pr
             sizes="(max-width: 768px) 100vw, 280px"
             className="object-cover"
           />
-        ) : (
-          <div
-            style={{
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontFamily: "var(--font-ww-serif)",
-              fontSize: 40,
-              fontWeight: 700,
-              color: "var(--color-ww-accent)",
-              backgroundColor: "var(--color-ww-accent-soft)",
-            }}
-          >
-            {numberLabel}
-          </div>
-        )}
-      </div>
+        </div>
+      )}
       <div
         className="pin-card-body"
         style={{
