@@ -34,55 +34,43 @@ export default function PinCard({
 
   return (
     <article
-      className={`pin-card ${hasPhoto ? "pin-card--has-photo" : "pin-card--text-only"}`}
       style={{
-        display: "flex",
-        flexDirection: "column",
-        marginBottom: 32,
+        marginBottom: hasPhoto ? 40 : 0,
+        paddingBottom: hasPhoto ? 40 : 20,
         borderBottom: "1px solid var(--color-ww-border, #e8e5e0)",
-        paddingBottom: 32,
       }}
     >
       {hasPhoto && (
         <div
-          className="pin-card-image"
           style={{
             position: "relative",
             overflow: "hidden",
             borderRadius: "var(--radius-ww-sm)",
             backgroundColor: "var(--color-ww-bg-secondary)",
-            flexShrink: 0,
-            aspectRatio: "4 / 3",
+            aspectRatio: "16 / 9",
             width: "100%",
+            marginBottom: 20,
           }}
         >
           <Image
             src={photoUrl!}
             alt={title}
             fill
-            sizes="(max-width: 768px) 100vw, 280px"
+            sizes="(max-width: 896px) 100vw, 896px"
             className="object-cover"
           />
         </div>
       )}
-      <div
-        className="pin-card-body"
-        style={{
-          paddingTop: hasPhoto ? 16 : 0,
-          flex: 1,
-        }}
-      >
+      <div style={{ paddingTop: hasPhoto ? 0 : 20 }}>
         {showIndex && (
           <div
-            className="ww-numeric"
             style={{
               fontFamily: "var(--font-ww-sans)",
               fontSize: 12,
               fontWeight: 500,
               letterSpacing: "0.1em",
-              textTransform: "uppercase",
               color: "var(--color-ww-accent)",
-              marginBottom: 6,
+              marginBottom: 4,
             }}
           >
             {numberLabel}
@@ -92,11 +80,11 @@ export default function PinCard({
         <h3
           style={{
             fontFamily: "var(--font-ww-sans)",
-            fontSize: hasPhoto ? 20 : 17,
+            fontSize: hasPhoto ? 22 : 17,
             fontWeight: 600,
             color: "var(--color-ww-text)",
             lineHeight: 1.5,
-            marginBottom: comment ? 10 : 0,
+            marginBottom: comment ? 8 : 0,
           }}
         >
           {title}
@@ -116,25 +104,6 @@ export default function PinCard({
           </p>
         )}
       </div>
-      <style>{`
-        @media (min-width: 768px) {
-          .pin-card--has-photo {
-            flex-direction: row !important;
-            gap: 32px;
-            align-items: flex-start;
-          }
-          .pin-card--has-photo .pin-card-image {
-            width: 280px !important;
-            aspect-ratio: 1 / 1 !important;
-          }
-          .pin-card--has-photo .pin-card-body {
-            padding-top: 8px !important;
-          }
-          .pin-card--text-only {
-            flex-direction: column !important;
-          }
-        }
-      `}</style>
     </article>
   );
 }
