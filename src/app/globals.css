@@ -1,26 +1,52 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* WanWalk Design Tokens (Phase 1 / 2026-04-15)
+   * Source: DESIGN_TOKENS.md */
+  --color-ww-bg: #FFFFFF;
+  --color-ww-bg-secondary: #F8F6F2;
+  --color-ww-bg-tertiary: #EFECE5;
+  --color-ww-text: #2A2A2A;
+  --color-ww-text-secondary: #6B6B6B;
+  --color-ww-text-tertiary: #A0A0A0;
+  --color-ww-text-inverse: #FFFFFF;
+  --color-ww-border-subtle: #E8E4DE;
+  --color-ww-border-strong: #D4CFC4;
+  --color-ww-accent: #6B7F5B;
+  --color-ww-accent-hover: #556649;
+  --color-ww-accent-soft: #E8EDE1;
+  --color-ww-accent-gold: #B8905C;
+  --color-ww-success: #5B7F6B;
+  --color-ww-warning: #B8905C;
+  --color-ww-error: #A84A3D;
+  --color-ww-info: #5B728A;
+  --color-ww-level-easy: #8BA885;
+  --color-ww-level-moderate: #B8905C;
+  --color-ww-level-hard: #A84A3D;
+
+  --font-ww-serif: "Noto Serif JP", serif;
+  --font-ww-sans: "Inter", "Noto Sans JP", system-ui, sans-serif;
+
+  --radius-ww-sm: 4px;
+  --radius-ww-md: 8px;
+  --radius-ww-lg: 12px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* WanWalk global styles */
+.walks-root {
+  font-family: var(--font-ww-sans);
+  color: var(--color-ww-text);
+  background-color: var(--color-ww-bg);
+  line-height: 1.75;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.walks-root h1,
+.walks-root h2,
+.walks-root .ww-serif {
+  font-family: var(--font-ww-serif);
+  letter-spacing: 0.01em;
+  color: var(--color-ww-text);
 }
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.walks-root .ww-numeric {
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
 }
