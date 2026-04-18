@@ -45,10 +45,10 @@ export async function generateMetadata({
     `${route.areas.name}の犬連れ散歩コース「${route.name}」。距離${distanceKm}km、所要${route.estimated_minutes}分。${route.description?.slice(0, 80) ?? ""}`;
 
   return {
-    title: `${route.name} - ${route.areas.name}の犬連れ散歩コース | DogHub`,
+    title: `${route.name} - ${route.areas.name}の犬連れ散歩コース`,
     description,
     openGraph: {
-      title: `${route.name} | DogHub`,
+      title: `${route.name} - ${route.areas.name}の犬連れ散歩コース`,
       description,
       images: route.thumbnail_url ? [route.thumbnail_url] : undefined,
     },

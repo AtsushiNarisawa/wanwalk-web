@@ -28,10 +28,10 @@ export async function generateMetadata({
   if (!area) return {};
 
   return {
-    title: `${area.name}で犬と歩けるおすすめ散歩コース | DogHub`,
+    title: `${area.name}で犬と歩けるおすすめ散歩コース`,
     description: `${area.name}（${area.prefecture}）の犬連れ散歩コースを紹介。${area.description ?? ""}`,
     openGraph: {
-      title: `${area.name}で犬と歩けるおすすめ散歩コース | DogHub`,
+      title: `${area.name}で犬と歩けるおすすめ散歩コース`,
       description: `${area.name}（${area.prefecture}）の犬連れ散歩コースを紹介。`,
     },
   };

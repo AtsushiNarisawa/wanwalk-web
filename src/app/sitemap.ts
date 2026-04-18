@@ -1,0 +1,42 @@
+import type { MetadataRoute } from "next";
+import { getAllPublishedRoutes, getAreas } from "@/lib/walks/data";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = "https://wanwalk.jp";
+
+  const [routes, areas] = await Promise.all([
+    getAllPublishedRoutes(),
+    getAreas(),
+  ]);
+
+  const staticPages: MetadataRoute.Sitemap = [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/areas`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+  ];
+
+  const routePages: MetadataRoute.Sitemap = routes.map((route) => ({
+    url: `${baseUrl}/routes/${route.slug}`,
+    lastModified: route.updated_at ? new Date(route.updated_at) : new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  const areaPages: MetadataRoute.Sitemap = areas.map((area) => ({
+    url: `${baseUrl}/areas/${area.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
+
+  return [...staticPages, ...routePages, ...areaPages];
+}
