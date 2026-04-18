@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getAreas, getAreaBySlug, getRoutesByAreaId } from "@/lib/walks/data";
-import RouteCard from "@/components/walks/RouteCard";
+import SeasonFilter from "@/components/walks/SeasonFilter";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import Link from "next/link";
 
-// ISR: 30分ごとに再検証（ルート追加時のキャッシュ更新を早める）
+// ISR: 30分ごとに再検証
 export const revalidate = 1800;
 
 export async function generateStaticParams() {
@@ -50,39 +50,94 @@ export default async function AreaDetailPage({
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
-      <nav className="text-sm text-gray-400 mb-6">
-        <Link href="/" className="hover:text-amber-600">トップ</Link>
-        <span className="mx-2">/</span>
-        <Link href="/" className="hover:text-amber-600">散歩コース</Link>
-        <span className="mx-2">/</span>
-        <Link href="/areas" className="hover:text-amber-600">エリア一覧</Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-600">{area.name}</span>
+      <nav
+        style={{
+          fontSize: 13,
+          color: "var(--color-ww-text-tertiary)",
+          marginBottom: 24,
+        }}
+      >
+        <Link href="/" style={{ color: "inherit" }}>トップ</Link>
+        <span style={{ margin: "0 8px" }}>/</span>
+        <Link href="/" style={{ color: "inherit" }}>散歩コース</Link>
+        <span style={{ margin: "0 8px" }}>/</span>
+        <Link href="/areas" style={{ color: "inherit" }}>エリア一覧</Link>
+        <span style={{ margin: "0 8px" }}>/</span>
+        <span style={{ color: "var(--color-ww-text-secondary)" }}>{area.name}</span>
       </nav>
 
-      <h1 className="text-3xl font-bold mb-2">
+      <h1
+        style={{
+          fontFamily: "var(--font-ww-serif)",
+          fontSize: 32,
+          fontWeight: 700,
+          color: "var(--color-ww-text)",
+          letterSpacing: "0.01em",
+          lineHeight: 1.35,
+          marginBottom: 8,
+        }}
+      >
         {area.name}で犬と歩けるおすすめ散歩コース
       </h1>
-      <p className="text-gray-500 mb-2">{area.prefecture}</p>
+      <p
+        style={{
+          fontSize: 14,
+          color: "var(--color-ww-text-secondary)",
+          marginBottom: 8,
+        }}
+      >
+        {area.prefecture}
+      </p>
       {area.description && (
-        <p className="text-gray-600 mb-8 leading-relaxed max-w-3xl">{area.description}</p>
+        <p
+          style={{
+            fontSize: 16,
+            lineHeight: 1.75,
+            color: "var(--color-ww-text-secondary)",
+            marginBottom: 32,
+            maxWidth: 768,
+          }}
+        >
+          {area.description}
+        </p>
       )}
 
       {routes.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {routes.map((route) => (
-            <RouteCard key={route.id} route={route} />
-          ))}
+        <div style={{ marginBottom: 48 }}>
+          <SeasonFilter routes={routes} />
         </div>
       ) : (
-        <div className="text-center py-16 text-gray-400">
+        <div
+          className="text-center py-16"
+          style={{ color: "var(--color-ww-text-tertiary)" }}
+        >
           <p>このエリアにはまだ公開ルートがありません。</p>
-          <p className="text-sm mt-2">近日公開予定です！</p>
+          <p style={{ fontSize: 14, marginTop: 8 }}>近日公開予定です</p>
         </div>
       )}
 
       <WalksAppCTA />
       <SupportedBadge />
+
+      {/* 構造化データ: TouristDestination */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "TouristDestination",
+            name: area.name,
+            description: area.description ?? `${area.name}の犬連れ散歩コース`,
+            touristType: ["犬連れ", "ペット同伴"],
+            containsPlace: routes.map((route) => ({
+              "@type": "TouristTrip",
+              name: route.name,
+              description: route.description,
+              url: `https://wanwalk.jp/routes/${route.slug}`,
+            })),
+          }),
+        }}
+      />
     </div>
   );
 }

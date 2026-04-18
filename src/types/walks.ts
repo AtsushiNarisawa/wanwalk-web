@@ -35,11 +35,14 @@ export interface OfficialRoute {
   total_walks: number;
   start_lat: number;
   start_lng: number;
+  cart_friendly: boolean;
   created_at: string;
   updated_at: string;
   // joined
   areas?: Area;
 }
+
+export type Season = "spring" | "summer" | "autumn" | "winter";
 
 export interface PetInfo {
   parking?: string;
@@ -49,9 +52,31 @@ export interface PetInfo {
   pet_facilities?: string;
   pet_friendly_cafes?: boolean;
   best_season?: string;
+  best_season_tags?: Season[];
   stairs?: string;
   elevation_gain?: string;
   others?: string;
+}
+
+export type SpotCategory =
+  | "cafe"
+  | "restaurant"
+  | "park"
+  | "dog_run"
+  | "water_station"
+  | "restroom"
+  | "parking"
+  | "viewpoint"
+  | "shop";
+
+export interface DogPolicy {
+  size?: "all" | "small_medium" | "small_only";
+  indoor?: boolean;
+  terrace?: boolean;
+  leash_required?: boolean;
+  carrier_required?: boolean;
+  dog_fee?: string;
+  notes?: string;
 }
 
 export interface RouteSpot {
@@ -71,12 +96,14 @@ export interface RouteSpot {
   tips: string | null;
   distance_from_start: number | null;
   estimated_time_from_start: number | null;
-  category: string | null;
-  dog_policy: Record<string, unknown> | null;
+  category: SpotCategory | null;
+  dog_policy: DogPolicy | null;
   photo_url: string | null;
   website_url: string | null;
   phone: string | null;
   price_range: string | null;
+  lat: number | null;
+  lng: number | null;
 }
 
 export interface RouteWithArea extends OfficialRoute {

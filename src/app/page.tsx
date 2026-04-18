@@ -3,7 +3,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { Path, Camera, DeviceMobile, ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { getAreasWithRouteCount, getAllPublishedRoutes, getFeaturedRoute } from "@/lib/walks/data";
-import RouteCard from "@/components/walks/RouteCard";
+import SeasonFilter from "@/components/walks/SeasonFilter";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 
@@ -83,11 +83,6 @@ export default async function WalksTopPage() {
   const featuredAreas = [...activeAreas]
     .sort((a, b) => b.route_count - a.route_count)
     .slice(0, 8);
-
-  const latestRoutes = routes
-    .filter((r) => !pickupRoute || r.id !== pickupRoute.id)
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 6);
 
   return (
     <>
@@ -342,14 +337,10 @@ export default async function WalksTopPage() {
           </section>
         )}
 
-        {/* 最新のルート */}
+        {/* 散歩コース（季節フィルター付き） */}
         <section className="py-12 md:py-16">
-          <SectionHeading title="最新のルート" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {latestRoutes.map((route) => (
-              <RouteCard key={route.id} route={route} />
-            ))}
-          </div>
+          <SectionHeading title="散歩コース" />
+          <SeasonFilter routes={routes} />
         </section>
 
         {/* WanWalkとは */}
@@ -412,6 +403,27 @@ export default async function WalksTopPage() {
 
         <SupportedBadge />
       </div>
+
+      {/* 構造化データ: ItemList（全ルート一覧） */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            name: "WanWalk 犬連れ散歩コース一覧",
+            description:
+              "箱根・鎌倉・伊豆など、愛犬と歩きたくなる散歩コースを厳選。",
+            numberOfItems: routes.length,
+            itemListElement: routes.map((route, i) => ({
+              "@type": "ListItem",
+              position: i + 1,
+              url: `https://wanwalk.jp/routes/${route.slug}`,
+              name: route.name,
+            })),
+          }),
+        }}
+      />
     </>
   );
 }

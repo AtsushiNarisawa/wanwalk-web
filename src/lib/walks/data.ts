@@ -48,7 +48,7 @@ export async function getRoutesByAreaId(
   const { data, error } = await supabase
     .from("official_routes")
     .select(
-      "id, area_id, name, slug, description, difficulty_level, distance_meters, estimated_minutes, thumbnail_url, pet_info, total_pins, total_walks, is_published, start_location"
+      "id, area_id, name, slug, description, difficulty_level, distance_meters, estimated_minutes, thumbnail_url, pet_info, total_pins, total_walks, is_published, cart_friendly, start_location"
     )
     .eq("area_id", areaId)
     .eq("is_published", true)
@@ -62,7 +62,7 @@ export async function getAllPublishedRoutes(): Promise<RouteWithArea[]> {
   const { data, error } = await supabase
     .from("official_routes")
     .select(
-      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
+      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
     )
     .eq("is_published", true)
     .order("name");
@@ -80,7 +80,7 @@ export async function getRouteBySlug(
   const { data, error } = await supabase
     .from("official_routes")
     .select(
-      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
+      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
     )
     .eq("slug", slug)
     .eq("is_published", true)
@@ -101,7 +101,20 @@ export async function getRouteSpots(routeId: string): Promise<RouteSpot[]> {
     .order("spot_order");
 
   if (error) return [];
-  return data ?? [];
+  return (data ?? []).map((s) => {
+    const loc = s.location as string | null;
+    let lat: number | null = null;
+    let lng: number | null = null;
+    if (loc && typeof loc === "string") {
+      const m = loc.match(/POINT\(([^ ]+) ([^)]+)\)/);
+      if (m) {
+        lng = parseFloat(m[1]);
+        lat = parseFloat(m[2]);
+      }
+    }
+    const { location: _loc, ...rest } = s;
+    return { ...rest, lat, lng } as RouteSpot;
+  });
 }
 
 export async function getRouteLineCoordinates(

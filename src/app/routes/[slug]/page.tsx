@@ -17,6 +17,7 @@ import SpecBar from "@/components/walks/SpecBar";
 import PinCard from "@/components/walks/PinCard";
 import PetInfoGrid from "@/components/walks/PetInfoGrid";
 import RouteActions from "@/components/walks/RouteActions";
+import SpotSection from "@/components/walks/SpotSection";
 
 // ISR: 30分ごとに再検証
 export const revalidate = 1800;
@@ -84,15 +85,7 @@ export default async function RouteDetailPage({
     : null;
   const elevationGain = route.elevation_gain_meters ?? elevationGainFromPet;
 
-  // みどころ写真: スポット固有のphoto_urlをそのまま使用。同一ルート内での重複のみ除去。
-  // gallery写真の自動割り当てはしない（写真品質が保証できないため）。
-  const usedPhotos = new Set<string>();
-  const spotsForDisplay = spots.map((spot) => {
-    const raw = spot.photo_url ?? null;
-    const photoUrl = raw && !usedPhotos.has(raw) ? raw : null;
-    if (raw) usedPhotos.add(raw);
-    return { spot, photoUrl };
-  });
+  // spotsForDisplay は SpotSection 内で写真重複除去を行うため不要
 
   return (
     <article
@@ -270,11 +263,12 @@ export default async function RouteDetailPage({
           startLat={route.start_lat}
           startLng={route.start_lng}
           routeName={route.name}
+          spots={spots}
         />
       </section>
 
-      {/* 施策②: コースのみどころ（写真インライン） */}
-      {spotsForDisplay.length > 0 && (
+      {/* コースのみどころ（カテゴリ別グルーピング） */}
+      {spots.length > 0 && (
         <section style={{ marginBottom: 48 }}>
           <h2
             style={{
@@ -288,18 +282,7 @@ export default async function RouteDetailPage({
           >
             コースのみどころ
           </h2>
-          <div>
-            {spotsForDisplay.map(({ spot, photoUrl }, i) => (
-              <PinCard
-                key={spot.id}
-                index={i + 1}
-                title={spot.name}
-                comment={spot.description}
-                photoUrl={photoUrl}
-                pinType={spot.spot_type}
-              />
-            ))}
-          </div>
+          <SpotSection spots={spots} />
         </section>
       )}
 
@@ -417,7 +400,22 @@ export default async function RouteDetailPage({
             "@type": "TouristTrip",
             name: route.name,
             description: route.description,
-            touristType: "犬連れ",
+            touristType: ["犬連れ", "ペット同伴"],
+            additionalType: "DogFriendlyRoute",
+            image: route.thumbnail_url ?? undefined,
+            geo: route.start_lat && route.start_lng
+              ? {
+                  "@type": "GeoCoordinates",
+                  latitude: route.start_lat,
+                  longitude: route.start_lng,
+                }
+              : undefined,
+            offers: {
+              "@type": "Offer",
+              price: "0",
+              priceCurrency: "JPY",
+              availability: "https://schema.org/InStock",
+            },
             itinerary: {
               "@type": "ItemList",
               itemListElement: spots.map((spot, i) => ({
@@ -425,6 +423,19 @@ export default async function RouteDetailPage({
                 position: i + 1,
                 name: spot.name,
                 description: spot.description,
+                ...(spot.lat && spot.lng
+                  ? {
+                      item: {
+                        "@type": "Place",
+                        name: spot.name,
+                        geo: {
+                          "@type": "GeoCoordinates",
+                          latitude: spot.lat,
+                          longitude: spot.lng,
+                        },
+                      },
+                    }
+                  : {}),
               })),
             },
           }),
