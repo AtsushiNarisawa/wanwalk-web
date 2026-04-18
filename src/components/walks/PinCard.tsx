@@ -40,28 +40,7 @@ export default function PinCard({
         borderBottom: "1px solid var(--color-ww-border, #e8e5e0)",
       }}
     >
-      {hasPhoto && (
-        <div
-          style={{
-            position: "relative",
-            overflow: "hidden",
-            borderRadius: "var(--radius-ww-sm)",
-            backgroundColor: "var(--color-ww-bg-secondary)",
-            aspectRatio: "16 / 9",
-            width: "100%",
-            marginBottom: 20,
-          }}
-        >
-          <Image
-            src={photoUrl!}
-            alt={title}
-            fill
-            sizes="(max-width: 896px) 100vw, 896px"
-            className="object-cover"
-          />
-        </div>
-      )}
-      <div style={{ paddingTop: hasPhoto ? 0 : 20 }}>
+      <div style={{ paddingTop: 20 }}>
         {showIndex && (
           <div
             style={{
@@ -104,6 +83,27 @@ export default function PinCard({
           </p>
         )}
       </div>
+      {hasPhoto && (
+        <div
+          style={{
+            position: "relative",
+            overflow: "hidden",
+            borderRadius: "var(--radius-ww-sm)",
+            backgroundColor: "var(--color-ww-bg-secondary)",
+            aspectRatio: "16 / 9",
+            width: "100%",
+            marginTop: 16,
+          }}
+        >
+          <Image
+            src={photoUrl!}
+            alt={title}
+            fill
+            sizes="(max-width: 896px) 100vw, 896px"
+            className="object-cover"
+          />
+        </div>
+      )}
     </article>
   );
 }
