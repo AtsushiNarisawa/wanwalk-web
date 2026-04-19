@@ -7,7 +7,7 @@ import SupportedBadge from "@/components/walks/SupportedBadge";
 export const metadata: Metadata = {
   title: "WanWalkについて - 愛犬との散歩をもっと豊かに",
   description:
-    "WanWalkは、犬連れに特化した日本初の散歩ルート体験プラットフォームです。83本のルートと556件の犬連れスポットを、体験ストーリーと写真でお届けします。",
+    "WanWalkは、犬連れに特化した日本初の散歩ルート体験プラットフォームです。83本のルートと589件の犬連れスポットを、体験ストーリーと写真でお届けします。",
   openGraph: {
     title: "WanWalkについて",
     description:
@@ -119,7 +119,7 @@ export default function AboutPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <StatCard icon={<Path size={24} weight="regular" />} value="83" label="散歩ルート" />
             <StatCard icon={<MapPin size={24} weight="regular" />} value="26" label="対応エリア" />
-            <StatCard icon={<Dog size={24} weight="regular" />} value="556" label="犬連れスポット" />
+            <StatCard icon={<Dog size={24} weight="regular" />} value="589" label="犬連れスポット" />
             <StatCard icon={<Camera size={24} weight="regular" />} value="100%" label="体験ストーリー" />
           </div>
         </section>
@@ -199,7 +199,75 @@ export default function AboutPage() {
           <WalksAppCTA />
         </div>
 
-        {/* 運営情報（控えめに下部） */}
+        {/* WanWalkが生まれた理由 */}
+        <section style={{ marginBottom: 48 }}>
+          <h2
+            className="ww-serif"
+            style={{
+              fontFamily: "var(--font-ww-serif)",
+              fontSize: 22,
+              fontWeight: 600,
+              color: "var(--color-ww-accent)",
+              marginBottom: 24,
+            }}
+          >
+            WanWalkが生まれた理由
+          </h2>
+          <p
+            style={{
+              fontSize: 16,
+              lineHeight: 2,
+              color: "var(--color-ww-text)",
+            }}
+          >
+            箱根仙石原で犬のホテル&カフェ「DogHub」を運営する中で、
+            愛犬と旅行に来られたお客様から何度も同じ相談を受けました。
+          </p>
+          <blockquote
+            style={{
+              margin: "24px 0",
+              padding: "20px 24px",
+              borderLeft: "3px solid var(--color-ww-accent)",
+              backgroundColor: "var(--color-ww-bg-secondary)",
+              borderRadius: "0 var(--radius-ww-sm) var(--radius-ww-sm) 0",
+              fontSize: 16,
+              lineHeight: 1.8,
+              color: "var(--color-ww-text)",
+              fontStyle: "italic",
+            }}
+          >
+            「この辺りで、犬と一緒に歩ける散歩ルートはありますか？」
+          </blockquote>
+          <p
+            style={{
+              fontSize: 16,
+              lineHeight: 2,
+              color: "var(--color-ww-text)",
+              marginTop: 16,
+            }}
+          >
+            普段の散歩なら道に迷うことはありません。
+            でも、旅先やお出かけ先では話が違います。
+            犬と一緒に安心して歩けるルートがどこにあるのか、
+            道の状態はどうか、トイレや水飲み場はあるか。
+            そうした情報は、どこを探しても見つかりません。
+          </p>
+          <p
+            style={{
+              fontSize: 16,
+              lineHeight: 2,
+              color: "var(--color-ww-text)",
+              marginTop: 16,
+            }}
+          >
+            スタッフが景色の良い散歩ルートをご案内すると、
+            お客様はとても喜んでくださいました。
+            この体験を、箱根だけでなく全国の愛犬家に届けたい。
+            そう考えて生まれたのがWanWalkです。
+          </p>
+        </section>
+
+        {/* 運営情報 */}
         <section
           style={{
             marginTop: 48,
@@ -207,15 +275,38 @@ export default function AboutPage() {
             borderTop: "1px solid var(--color-ww-border-subtle)",
           }}
         >
+          <h2
+            className="ww-serif"
+            style={{
+              fontFamily: "var(--font-ww-serif)",
+              fontSize: 18,
+              fontWeight: 600,
+              color: "var(--color-ww-text)",
+              marginBottom: 16,
+            }}
+          >
+            運営
+          </h2>
           <p
             style={{
-              fontSize: 13,
-              color: "var(--color-ww-text-tertiary)",
+              fontSize: 14,
+              color: "var(--color-ww-text-secondary)",
               lineHeight: 1.8,
             }}
           >
-            WanWalkは、箱根仙石原で犬のホテル&カフェ「DogHub」を運営するDogHub株式会社が提供しています。
-            実店舗での犬の散歩案内の経験をもとに、全国の犬連れ散歩ルートを体験ストーリー付きで紹介しています。
+            DogHub株式会社（箱根仙石原）
+          </p>
+          <p
+            style={{
+              fontSize: 14,
+              color: "var(--color-ww-text-secondary)",
+              lineHeight: 1.8,
+              marginTop: 4,
+            }}
+          >
+            犬のホテル&カフェ「DogHub箱根仙石原」を運営。
+            実店舗での犬の散歩案内の経験をもとに、
+            全国の犬連れ散歩ルートを体験ストーリー付きで紹介しています。
           </p>
         </section>
 

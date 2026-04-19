@@ -467,6 +467,43 @@ export default async function RouteDetailPage({
           }),
         }}
       />
+
+      {/* FAQ構造化データ */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: [
+              {
+                "@type": "Question",
+                name: `${route.name}は犬連れで散歩できますか？`,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: `はい、${route.name}は犬連れで散歩できるルートです。距離${distanceKm}km、所要約${route.estimated_minutes}分のコースです。${petInfo?.surface ? `路面は${petInfo.surface}です。` : ""}${petInfo?.others ?? "リード着用でお楽しみいただけます。"}`,
+                },
+              },
+              {
+                "@type": "Question",
+                name: `${route.name}に駐車場はありますか？`,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: petInfo?.parking ?? "詳細は現地でご確認ください。",
+                },
+              },
+              {
+                "@type": "Question",
+                name: `${route.name}にトイレはありますか？`,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: petInfo?.restroom ?? "詳細は現地でご確認ください。",
+                },
+              },
+            ],
+          }),
+        }}
+      />
     </article>
   );
 }
