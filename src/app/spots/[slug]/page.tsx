@@ -74,7 +74,14 @@ export async function generateMetadata({
     openGraph: {
       title: `${spot.name} - ${spot.area_name}の犬連れスポット`,
       description: desc,
-      images: spot.photo_url ? [spot.photo_url] : undefined,
+      images: [
+        {
+          url: `/api/og/spots/${slug}`,
+          width: 1200,
+          height: 630,
+          alt: `${spot.name} - ${spot.area_name}`,
+        },
+      ],
     },
   };
 }
