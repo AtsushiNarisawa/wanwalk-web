@@ -14,10 +14,10 @@ import SupportedBadge from "@/components/walks/SupportedBadge";
 import RouteFeedback from "@/components/walks/RouteFeedback";
 import RouteMapWrapper from "@/components/walks/RouteMapWrapper";
 import SpecBar from "@/components/walks/SpecBar";
-import PinCard from "@/components/walks/PinCard";
 import PetInfoGrid from "@/components/walks/PetInfoGrid";
 import RouteActions from "@/components/walks/RouteActions";
-import SpotSection from "@/components/walks/SpotSection";
+import RouteTimeline from "@/components/walks/RouteTimeline";
+import FeaturedSpots from "@/components/walks/FeaturedSpots";
 
 // ISR: 30分ごとに再検証
 export const revalidate = 1800;
@@ -91,8 +91,6 @@ export default async function RouteDetailPage({
     ? Number(String(petInfo.elevation_gain).replace(/[^0-9.-]/g, "")) || null
     : null;
   const elevationGain = route.elevation_gain_meters ?? elevationGainFromPet;
-
-  // spotsForDisplay は SpotSection 内で写真重複除去を行うため不要
 
   return (
     <article
@@ -293,7 +291,7 @@ export default async function RouteDetailPage({
         />
       </section>
 
-      {/* コースのみどころ（カテゴリ別グルーピング） */}
+      {/* コースガイド（番号付きタイムライン） */}
       {spots.length > 0 && (
         <section style={{ marginBottom: 48 }}>
           <h2
@@ -306,42 +304,28 @@ export default async function RouteDetailPage({
               marginBottom: 24,
             }}
           >
-            コースのみどころ
+            コースガイド
           </h2>
-          <SpotSection spots={spots} />
+          <RouteTimeline spots={spots} />
         </section>
       )}
 
-      {/* 愛犬家のおすすめスポット（route_pins） */}
-      {pins.length > 0 && (
-        <section style={{ marginBottom: 48 }}>
-          <h2
-            style={{
-              fontFamily: "var(--font-ww-serif)",
-              fontSize: 28,
-              fontWeight: 600,
-              color: "var(--color-ww-text)",
-              letterSpacing: "0.01em",
-              marginBottom: 24,
-            }}
-          >
-            愛犬家のおすすめスポット
-          </h2>
-          <div>
-            {pins.map((pin, i) => (
-              <PinCard
-                key={pin.id}
-                index={i + 1}
-                title={pin.title}
-                comment={pin.comment}
-                photoUrl={pin.photo_url}
-                pinType={pin.pin_type}
-                showIndex={false}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* おすすめスポット（spots + pins 統合） */}
+      <section style={{ marginBottom: 48 }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-ww-serif)",
+            fontSize: 28,
+            fontWeight: 600,
+            color: "var(--color-ww-text)",
+            letterSpacing: "0.01em",
+            marginBottom: 24,
+          }}
+        >
+          おすすめスポット
+        </h2>
+        <FeaturedSpots spots={spots} pins={pins} />
+      </section>
 
       {/* 犬連れメモ（施策④ アイコングリッド） */}
       {petInfo && (
