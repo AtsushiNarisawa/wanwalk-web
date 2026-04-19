@@ -109,3 +109,10 @@ export interface RouteSpot {
 export interface RouteWithArea extends OfficialRoute {
   areas: Area;
 }
+
+export interface SpotWithRoute extends RouteSpot {
+  route_name: string;
+  route_slug: string;
+  area_name: string;
+  area_slug: string;
+}

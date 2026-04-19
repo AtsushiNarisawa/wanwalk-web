@@ -51,7 +51,14 @@ export async function generateMetadata({
     openGraph: {
       title: `${route.name} - ${route.areas.name}の犬連れ散歩コース`,
       description,
-      images: route.thumbnail_url ? [route.thumbnail_url] : undefined,
+      images: [
+        {
+          url: `/api/og/${slug}`,
+          width: 1200,
+          height: 630,
+          alt: `${route.name} - ${route.areas.name}`,
+        },
+      ],
     },
   };
 }
@@ -213,6 +220,25 @@ export default async function RouteDetailPage({
           difficulty={route.difficulty_level}
         />
       </header>
+
+      {/* 直接回答型冒頭文（AI Overview / GEO最適化） */}
+      <p
+        style={{
+          fontSize: 15,
+          lineHeight: 1.8,
+          color: "var(--color-ww-text-secondary)",
+          marginBottom: 32,
+          padding: "16px 20px",
+          backgroundColor: "var(--color-ww-bg-secondary)",
+          borderRadius: "var(--radius-ww-md)",
+        }}
+      >
+        「{route.name}」は、{route.areas.name}にある距離{distanceKm}km・所要約{route.estimated_minutes}分の犬連れ散歩コースです。
+        {difficultyLabels[route.difficulty_level]}コースで、
+        {route.cart_friendly ? "カート走行可。" : ""}
+        {petInfo?.parking ? `駐車場: ${petInfo.parking}。` : ""}
+        {spots.length > 0 ? `コース上に${spots.length}件の犬連れスポットがあります。` : ""}
+      </p>
 
       {/* 体験ストーリー */}
       {route.description && (

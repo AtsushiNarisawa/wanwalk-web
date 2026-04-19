@@ -1,5 +1,5 @@
 import { wanwalkSupabase as supabase } from "./supabase";
-import type { Area, OfficialRoute, RouteSpot, RouteWithArea } from "@/types/walks";
+import type { Area, OfficialRoute, RouteSpot, RouteWithArea, SpotWithRoute } from "@/types/walks";
 
 export async function getFeaturedRoute(): Promise<RouteWithArea | null> {
   const { data, error } = await supabase
@@ -214,4 +214,106 @@ export async function getRoutePinsWithPhotos(
       photo_url: sorted[0]?.photo_url ?? null,
     };
   });
+}
+
+// --- Spot functions ---
+
+function parseSpotLocation(s: Record<string, unknown>): RouteSpot {
+  const loc = s.location as string | null;
+  let lat: number | null = null;
+  let lng: number | null = null;
+  if (loc && typeof loc === "string") {
+    const m = loc.match(/POINT\(([^ ]+) ([^)]+)\)/);
+    if (m) {
+      lng = parseFloat(m[1]);
+      lat = parseFloat(m[2]);
+    }
+  }
+  const { location: _loc, ...rest } = s;
+  return { ...rest, lat, lng } as RouteSpot;
+}
+
+export async function getAllSpots(): Promise<
+  (RouteSpot & { slug: string; route_name: string; route_slug: string; area_name: string; area_slug: string })[]
+> {
+  const { data, error } = await supabase
+    .from("route_spots")
+    .select(
+      "*, official_routes!inner(name, slug, areas!inner(name, slug))"
+    )
+    .not("slug", "is", null)
+    .order("name");
+
+  if (error) return [];
+  return (data ?? []).map((s) => {
+    const route = s.official_routes as unknown as {
+      name: string;
+      slug: string;
+      areas: { name: string; slug: string };
+    };
+    const parsed = parseSpotLocation(s as Record<string, unknown>);
+    return {
+      ...parsed,
+      slug: s.slug as string,
+      route_name: route.name,
+      route_slug: route.slug,
+      area_name: route.areas.name,
+      area_slug: route.areas.slug,
+    };
+  });
+}
+
+export async function getSpotBySlug(slug: string): Promise<SpotWithRoute | null> {
+  const { data, error } = await supabase
+    .from("route_spots")
+    .select(
+      "*, official_routes!inner(name, slug, cart_friendly, areas!inner(name, slug))"
+    )
+    .eq("slug", slug)
+    .limit(1)
+    .single();
+
+  if (error || !data) return null;
+  const route = data.official_routes as unknown as {
+    name: string;
+    slug: string;
+    cart_friendly: boolean;
+    areas: { name: string; slug: string };
+  };
+  const parsed = parseSpotLocation(data as Record<string, unknown>);
+  return {
+    ...parsed,
+    slug: data.slug as string,
+    route_name: route.name,
+    route_slug: route.slug,
+    area_name: route.areas.name,
+    area_slug: route.areas.slug,
+  } as SpotWithRoute;
+}
+
+export async function getRoutesBySpotRouteId(
+  routeId: string
+): Promise<{ name: string; slug: string; area_name: string }[]> {
+  const { data, error } = await supabase
+    .from("official_routes")
+    .select("name, slug, areas!inner(name)")
+    .eq("id", routeId)
+    .eq("is_published", true);
+
+  if (error || !data) return [];
+  return data.map((r) => ({
+    name: r.name,
+    slug: r.slug,
+    area_name: (r.areas as unknown as { name: string }).name,
+  }));
+}
+
+export async function getAllSpotSlugs(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("route_spots")
+    .select("slug")
+    .not("slug", "is", null);
+
+  if (error) return [];
+  return (data ?? []).map((s) => s.slug as string);
 }

@@ -138,6 +138,37 @@ export default async function AreaDetailPage({
           }),
         }}
       />
+
+      {/* FAQ構造化データ（GEO/AIO最適化） */}
+      {routes.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: [
+                {
+                  "@type": "Question",
+                  name: `${area.name}で犬と散歩できる場所はありますか？`,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: `はい、${area.name}には${routes.length}本の犬連れ散歩コースがあります。${routes.slice(0, 3).map((r) => `「${r.name}」`).join("・")}など、愛犬と楽しめるルートを紹介しています。`,
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: `${area.name}の犬連れおすすめルートは？`,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: `${area.name}のおすすめは${routes[0] ? `「${routes[0].name}」（距離${(routes[0].distance_meters / 1000).toFixed(1)}km・所要${routes[0].estimated_minutes}分）` : ""}です。すべてのルートに駐車場情報・犬連れスポット・体験ストーリーが完備されています。`,
+                  },
+                },
+              ],
+            }),
+          }}
+        />
+      )}
     </div>
   );
 }

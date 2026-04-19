@@ -424,6 +424,43 @@ export default async function WalksTopPage() {
           }),
         }}
       />
+
+      {/* FAQ構造化データ（GEO/AIO最適化） */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: [
+              {
+                "@type": "Question",
+                name: "WanWalkとは何ですか？",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "WanWalkは、犬連れに特化した日本初の散歩ルート体験プラットフォームです。箱根・鎌倉・伊豆など全国26エリアで、83本の散歩ルートと556件の犬連れスポットを体験ストーリー付きで紹介しています。",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "愛犬と散歩できるルートはいくつありますか？",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: `現在${routes.length}本の犬連れ散歩ルートを掲載しています。すべてのルートに体験ストーリー、犬連れ情報、季節情報が完備されています。`,
+                },
+              },
+              {
+                "@type": "Question",
+                name: "どのエリアに対応していますか？",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: `全${activeAreas.length}エリアに対応しています。箱根（芦ノ湖・仙石原・強羅・宮ノ下・湯本）、鎌倉、横浜、伊豆、軽井沢、河口湖、三浦半島、湘南、秩父など。順次拡大中です。`,
+                },
+              },
+            ],
+          }),
+        }}
+      />
     </>
   );
 }
