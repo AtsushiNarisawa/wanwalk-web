@@ -139,22 +139,6 @@ export default function RouteTimeline({ spots }: RouteTimelineProps) {
                   </span>
                 )}
               </div>
-              {spot.description && (
-                <p
-                  style={{
-                    fontFamily: "var(--font-ww-sans)",
-                    fontSize: 13,
-                    lineHeight: 1.6,
-                    color: "var(--color-ww-text-tertiary)",
-                    marginTop: 2,
-                    paddingLeft: 24,
-                  }}
-                >
-                  {spot.description.length > 60
-                    ? spot.description.slice(0, 60) + "..."
-                    : spot.description}
-                </p>
-              )}
             </div>
           </div>
         );
