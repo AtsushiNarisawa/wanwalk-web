@@ -1,7 +1,6 @@
 import Image from "next/image";
-import type { RouteSpot, RoutePinWithPhoto, DogPolicy } from "@/types/walks";
+import type { RouteSpot, DogPolicy } from "@/types/walks";
 
-/** dog_policy が付与されたカテゴリだけバッジ表示 */
 const SIZE_LABELS: Record<string, string> = {
   all: "全犬種OK",
   small_medium: "中型犬以下",
@@ -64,105 +63,29 @@ const FEATURED_CATEGORIES = new Set([
   "dog_run",
 ]);
 
-interface MergedSpot {
-  id: string;
-  title: string;
-  description: string | null;
-  photoUrl: string | null;
-  dogPolicy: DogPolicy | null;
-  source: "spot" | "pin" | "merged";
-}
-
-function normalizeTitle(s: string): string {
-  return s.replace(/[\s　]+/g, "").toLowerCase();
-}
-
-/** spots と pins を統合し、名前の重複を排除 */
-function mergeSpots(
-  spots: RouteSpot[],
-  pins: RoutePinWithPhoto[]
-): MergedSpot[] {
-  const result: MergedSpot[] = [];
-  const usedPinIds = new Set<string>();
-
-  // 1. おすすめカテゴリの spots を追加
-  const featuredSpots = spots.filter(
-    (s) => s.category && FEATURED_CATEGORIES.has(s.category)
-  );
-
-  for (const spot of featuredSpots) {
-    const normalizedName = normalizeTitle(spot.name);
-    // 同名 pin を探す
-    const matchingPin = pins.find(
-      (p) =>
-        normalizeTitle(p.title).includes(normalizedName) ||
-        normalizedName.includes(normalizeTitle(p.title))
-    );
-
-    if (matchingPin) {
-      usedPinIds.add(matchingPin.id);
-      result.push({
-        id: spot.id,
-        title: matchingPin.title,
-        // pin の体験文を優先、なければ spot
-        description: matchingPin.comment || spot.description,
-        // pin の写真を優先、なければ spot
-        photoUrl: matchingPin.photo_url || spot.photo_url,
-        dogPolicy: spot.dog_policy,
-        source: "merged",
-      });
-    } else if (spot.photo_url || spot.description) {
-      result.push({
-        id: spot.id,
-        title: spot.name,
-        description: spot.description,
-        photoUrl: spot.photo_url,
-        dogPolicy: spot.dog_policy,
-        source: "spot",
-      });
-    }
-  }
-
-  // 2. spots に含まれなかった pins を追加
-  for (const pin of pins) {
-    if (!usedPinIds.has(pin.id)) {
-      result.push({
-        id: pin.id,
-        title: pin.title,
-        description: pin.comment,
-        photoUrl: pin.photo_url,
-        dogPolicy: null,
-        source: "pin",
-      });
-    }
-  }
-
-  // 写真ありを先に、なしを後に
-  result.sort((a, b) => {
-    if (a.photoUrl && !b.photoUrl) return -1;
-    if (!a.photoUrl && b.photoUrl) return 1;
-    return 0;
-  });
-
-  return result;
-}
-
 interface FeaturedSpotsProps {
   spots: RouteSpot[];
-  pins: RoutePinWithPhoto[];
 }
 
-export default function FeaturedSpots({ spots, pins }: FeaturedSpotsProps) {
-  const merged = mergeSpots(spots, pins);
-  if (merged.length === 0) return null;
+export default function FeaturedSpots({ spots }: FeaturedSpotsProps) {
+  const featured = spots
+    .filter((s) => s.category && FEATURED_CATEGORIES.has(s.category))
+    .filter((s) => s.photo_url || s.description)
+    .sort((a, b) => {
+      // 写真ありを先、なしを後
+      if (a.photo_url && !b.photo_url) return -1;
+      if (!a.photo_url && b.photo_url) return 1;
+      return (a.spot_order ?? 0) - (b.spot_order ?? 0);
+    });
 
-  // 写真の重複除去
+  if (featured.length === 0) return null;
+
   const usedPhotos = new Set<string>();
 
   return (
     <div>
-      {merged.map((item) => {
-        let photoUrl = item.photoUrl;
+      {featured.map((spot) => {
+        let photoUrl = spot.photo_url;
         if (photoUrl && usedPhotos.has(photoUrl)) {
           photoUrl = null;
         }
@@ -171,7 +94,7 @@ export default function FeaturedSpots({ spots, pins }: FeaturedSpotsProps) {
 
         return (
           <article
-            key={item.id}
+            key={spot.id}
             style={{
               marginBottom: hasPhoto ? 40 : 0,
               paddingBottom: hasPhoto ? 40 : 20,
@@ -186,12 +109,12 @@ export default function FeaturedSpots({ spots, pins }: FeaturedSpotsProps) {
                   fontWeight: 600,
                   color: "var(--color-ww-text)",
                   lineHeight: 1.5,
-                  marginBottom: item.description ? 8 : 0,
+                  marginBottom: spot.description ? 8 : 0,
                 }}
               >
-                {item.title}
+                {spot.name}
               </h3>
-              {item.description && (
+              {spot.description && (
                 <p
                   style={{
                     fontFamily: "var(--font-ww-sans)",
@@ -202,10 +125,10 @@ export default function FeaturedSpots({ spots, pins }: FeaturedSpotsProps) {
                     whiteSpace: "pre-line",
                   }}
                 >
-                  {item.description}
+                  {spot.description}
                 </p>
               )}
-              {item.dogPolicy && <DogPolicyBadge policy={item.dogPolicy} />}
+              {spot.dog_policy && <DogPolicyBadge policy={spot.dog_policy} />}
             </div>
             {hasPhoto && (
               <div
@@ -221,7 +144,7 @@ export default function FeaturedSpots({ spots, pins }: FeaturedSpotsProps) {
               >
                 <Image
                   src={photoUrl!}
-                  alt={item.title}
+                  alt={spot.name}
                   fill
                   sizes="(max-width: 896px) 100vw, 896px"
                   className="object-cover"

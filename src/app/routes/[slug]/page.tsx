@@ -7,7 +7,6 @@ import {
   getRouteBySlug,
   getRouteSpots,
   getRouteLineCoordinates,
-  getRoutePinsWithPhotos,
 } from "@/lib/walks/data";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
@@ -82,10 +81,9 @@ export default async function RouteDetailPage({
   const route = await getRouteBySlug(slug);
   if (!route) notFound();
 
-  const [spots, coordinates, pins] = await Promise.all([
+  const [spots, coordinates] = await Promise.all([
     getRouteSpots(route.id),
     getRouteLineCoordinates(route.id),
-    getRoutePinsWithPhotos(route.id),
   ]);
 
   const distanceKm = (route.distance_meters / 1000).toFixed(1);
@@ -311,7 +309,7 @@ export default async function RouteDetailPage({
         </section>
       )}
 
-      {/* おすすめスポット（spots + pins 統合） */}
+      {/* おすすめスポット（route_spotsのみ、公式ピンは統合済み） */}
       <section style={{ marginBottom: 48 }}>
         <h2
           style={{
@@ -325,7 +323,7 @@ export default async function RouteDetailPage({
         >
           おすすめスポット
         </h2>
-        <FeaturedSpots spots={spots} pins={pins} />
+        <FeaturedSpots spots={spots} />
       </section>
 
       {/* 犬連れメモ（施策④ アイコングリッド） */}

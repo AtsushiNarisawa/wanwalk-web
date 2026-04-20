@@ -37,9 +37,13 @@ interface RouteTimelineProps {
 }
 
 export default function RouteTimeline({ spots }: RouteTimelineProps) {
-  const sorted = [...spots].sort(
-    (a, b) => (a.distance_from_start ?? 0) - (b.distance_from_start ?? 0)
-  );
+  // コースガイドは「流れ・時間・距離の俯瞰」に特化。
+  // ピン由来の補助spots（is_optional=true）は FeaturedSpots 側で表示する。
+  const sorted = [...spots]
+    .filter((s) => !s.is_optional)
+    .sort(
+      (a, b) => (a.distance_from_start ?? 0) - (b.distance_from_start ?? 0)
+    );
 
   return (
     <div>
