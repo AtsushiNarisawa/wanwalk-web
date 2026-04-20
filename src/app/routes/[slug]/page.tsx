@@ -48,6 +48,9 @@ export async function generateMetadata({
   return {
     title: `${route.name} - ${route.areas.name}の犬連れ散歩コース`,
     description,
+    alternates: {
+      canonical: `/routes/${slug}`,
+    },
     openGraph: {
       title: `${route.name} - ${route.areas.name}の犬連れ散歩コース`,
       description,

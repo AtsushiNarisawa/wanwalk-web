@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: "WanWalkについて - 愛犬との散歩をもっと豊かに",
   description:
     "WanWalkは、犬連れに特化した日本初の散歩ルート体験プラットフォームです。83本のルートと589件の犬連れスポットを、体験ストーリーと写真でお届けします。",
+  alternates: {
+    canonical: "/about",
+  },
   openGraph: {
     title: "WanWalkについて",
     description:

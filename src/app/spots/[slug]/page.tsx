@@ -71,6 +71,9 @@ export async function generateMetadata({
   return {
     title: `${spot.name} - ${spot.area_name}の犬連れスポット`,
     description: desc,
+    alternates: {
+      canonical: `/spots/${slug}`,
+    },
     openGraph: {
       title: `${spot.name} - ${spot.area_name}の犬連れスポット`,
       description: desc,

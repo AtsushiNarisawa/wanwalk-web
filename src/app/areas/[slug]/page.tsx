@@ -30,6 +30,9 @@ export async function generateMetadata({
   return {
     title: `${area.name}で犬と歩けるおすすめ散歩コース`,
     description: `${area.name}（${area.prefecture}）の犬連れ散歩コースを紹介。${area.description ?? ""}`,
+    alternates: {
+      canonical: `/areas/${slug}`,
+    },
     openGraph: {
       title: `${area.name}で犬と歩けるおすすめ散歩コース`,
       description: `${area.name}（${area.prefecture}）の犬連れ散歩コースを紹介。`,

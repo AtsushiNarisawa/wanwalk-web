@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   title: "次の休日、どこ歩く？ 愛犬との散歩コース | WanWalk by DogHub",
   description:
     "箱根・鎌倉・伊豆など、愛犬と歩きたくなる散歩コースを厳選。駐車場・犬可カフェ・トイレ情報も完備。",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "次の休日、どこ歩く？ | WanWalk",
     description: "箱根・鎌倉・伊豆…愛犬と歩きたくなる散歩コースを厳選。",

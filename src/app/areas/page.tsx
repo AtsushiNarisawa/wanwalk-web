@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: "エリア一覧 - 犬と歩ける散歩コース",
   description:
     "箱根・鎌倉・湘南・横浜など、愛犬と一緒に楽しめる散歩コースのあるエリア一覧。犬連れに必要な情報つきで紹介。",
+  alternates: {
+    canonical: "/areas",
+  },
 };
 
 export default async function AreasPage() {
