@@ -57,10 +57,6 @@ export default async function AreasPage() {
           トップ
         </Link>
         <span style={{ margin: "0 8px" }}>/</span>
-        <Link href="/" style={{ color: "inherit" }}>
-          散歩コース
-        </Link>
-        <span style={{ margin: "0 8px" }}>/</span>
         <span style={{ color: "var(--color-ww-text-secondary)" }}>
           エリア一覧
         </span>

@@ -11,7 +11,7 @@ import SupportedBadge from "@/components/walks/SupportedBadge";
 export const revalidate = 1800;
 
 export const metadata: Metadata = {
-  title: "次の休日、どこ歩く？ 愛犬との散歩コース | WanWalk by DogHub",
+  title: "次の休日、どこ歩く？ 愛犬との散歩コース | WanWalk",
   description:
     "箱根・鎌倉・伊豆など、愛犬と歩きたくなる散歩コースを厳選。駐車場・犬可カフェ・トイレ情報も完備。",
   alternates: {
