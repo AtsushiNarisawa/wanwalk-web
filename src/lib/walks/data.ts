@@ -1,5 +1,5 @@
 import { wanwalkSupabase as supabase } from "./supabase";
-import type { Area, OfficialRoute, RouteSpot, RouteWithArea, SpotWithRoute } from "@/types/walks";
+import type { Area, OfficialRoute, RouteSpot, RouteWithArea, SpotWithRoute, RouteAreaInfo } from "@/types/walks";
 
 export async function getFeaturedRoute(): Promise<RouteWithArea | null> {
   const { data, error } = await supabase
@@ -62,7 +62,7 @@ export async function getAllPublishedRoutes(): Promise<RouteWithArea[]> {
   const { data, error } = await supabase
     .from("official_routes")
     .select(
-      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
+      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, route_type, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
     )
     .eq("is_published", true)
     .order("name");
@@ -80,7 +80,7 @@ export async function getRouteBySlug(
   const { data, error } = await supabase
     .from("official_routes")
     .select(
-      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
+      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, route_type, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
     )
     .eq("slug", slug)
     .eq("is_published", true)
@@ -94,26 +94,17 @@ export async function getRouteBySlug(
 }
 
 export async function getRouteSpots(routeId: string): Promise<RouteSpot[]> {
+  // PostgRESTはgeography型をEWKB hexで返すため、view経由で数値lat/lngを取得
   const { data, error } = await supabase
-    .from("route_spots")
+    .from("route_spots_with_latlng")
     .select("*")
     .eq("route_id", routeId)
     .order("spot_order");
 
   if (error) return [];
   return (data ?? []).map((s) => {
-    const loc = s.location as string | null;
-    let lat: number | null = null;
-    let lng: number | null = null;
-    if (loc && typeof loc === "string") {
-      const m = loc.match(/POINT\(([^ ]+) ([^)]+)\)/);
-      if (m) {
-        lng = parseFloat(m[1]);
-        lat = parseFloat(m[2]);
-      }
-    }
-    const { location: _loc, ...rest } = s;
-    return { ...rest, lat, lng } as RouteSpot;
+    const { location: _loc, ...rest } = s as Record<string, unknown>;
+    return rest as unknown as RouteSpot;
   });
 }
 
@@ -126,6 +117,42 @@ export async function getRouteLineCoordinates(
 
   if (error || !data) return [];
   return data;
+}
+
+// area型ルートの追加情報を取得。line型でも呼び出し可能（route_type='line'が返る）
+export async function getRouteAreaInfo(
+  routeId: string
+): Promise<RouteAreaInfo | null> {
+  const { data, error } = await supabase.rpc("get_route_area_geojson", {
+    p_route_id: routeId,
+  });
+
+  if (error || !data) return null;
+  const raw = data as {
+    route_type: "line" | "area";
+    area_center_lat: number | null;
+    area_center_lng: number | null;
+    area_radius_m: number | null;
+    area_polygon: { type: string; coordinates: number[][][] } | null;
+    area_source: string | null;
+  };
+
+  // GeoJSON Polygon: coordinates[0] が外環リング。[lng, lat] → [lat, lng] に変換
+  let polygonLatLng: [number, number][] | null = null;
+  if (raw.area_polygon?.coordinates?.[0]) {
+    polygonLatLng = raw.area_polygon.coordinates[0].map(
+      ([lng, lat]) => [lat, lng] as [number, number]
+    );
+  }
+
+  return {
+    route_type: raw.route_type,
+    area_center_lat: raw.area_center_lat,
+    area_center_lng: raw.area_center_lng,
+    area_radius_m: raw.area_radius_m,
+    area_polygon: polygonLatLng,
+    area_source: raw.area_source,
+  };
 }
 
 function parseRouteLocation(route: Record<string, unknown>): OfficialRoute {

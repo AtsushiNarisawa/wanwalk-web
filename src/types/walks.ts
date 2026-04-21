@@ -16,6 +16,8 @@ export interface RoutePinWithPhoto {
   photo_url: string | null;
 }
 
+export type RouteType = "line" | "area";
+
 export interface OfficialRoute {
   id: string;
   area_id: string;
@@ -36,10 +38,22 @@ export interface OfficialRoute {
   start_lat: number;
   start_lng: number;
   cart_friendly: boolean;
+  route_type: RouteType;
   created_at: string;
   updated_at: string;
   // joined
   areas?: Area;
+}
+
+// area型ルートの追加情報（RPC経由で取得）
+export interface RouteAreaInfo {
+  route_type: RouteType;
+  area_center_lat: number | null;
+  area_center_lng: number | null;
+  area_radius_m: number | null;
+  // [lat, lng][] (Leafletの順序に変換済み)
+  area_polygon: [number, number][] | null;
+  area_source: string | null;
 }
 
 export type Season = "spring" | "summer" | "autumn" | "winter";

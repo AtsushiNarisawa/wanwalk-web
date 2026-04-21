@@ -5,6 +5,7 @@ type Props = {
   minutes: number;
   elevationGain: number | null;
   difficulty: "easy" | "moderate" | "hard";
+  isArea?: boolean;
 };
 
 const difficultyMap = {
@@ -18,6 +19,7 @@ export default function SpecBar({
   minutes,
   elevationGain,
   difficulty,
+  isArea = false,
 }: Props) {
   const diff = difficultyMap[difficulty];
 
@@ -34,8 +36,16 @@ export default function SpecBar({
         margin: "24px 0 40px 0",
       }}
     >
-      <SpecItem icon={<Path size={24} weight="regular" />} value={`${distanceKm} km`} label="距離" />
-      <SpecItem icon={<Clock size={24} weight="regular" />} value={`約${minutes}分`} label="所要時間" />
+      <SpecItem
+        icon={<Path size={24} weight="regular" />}
+        value={`${distanceKm} km`}
+        label={isArea ? "園内距離" : "距離"}
+      />
+      <SpecItem
+        icon={<Clock size={24} weight="regular" />}
+        value={`約${minutes}分`}
+        label={isArea ? "滞在目安" : "所要時間"}
+      />
       <SpecItem
         icon={<Mountains size={24} weight="regular" />}
         value={elevationGain != null ? `+${elevationGain}m` : "—"}

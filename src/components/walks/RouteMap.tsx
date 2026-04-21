@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Polyline, Polygon, Circle, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { RouteSpot, DogPolicy } from "@/types/walks";
+import type { RouteSpot, DogPolicy, RouteType } from "@/types/walks";
 
 // DESIGN_TOKENS.md §12-A
 const ACCENT = "#6B7F5B";
@@ -103,6 +103,34 @@ function formatDogPolicySummary(policy: DogPolicy): string {
   return parts.join(" / ");
 }
 
+// 半径円の外周上を8方位にサンプリング（fitBounds計算用）
+function circleBoundary(
+  lat: number,
+  lng: number,
+  radiusM: number
+): [number, number][] {
+  const R = 6378137; // 地球半径 [m]
+  const d = radiusM / R;
+  const points: [number, number][] = [];
+  for (let i = 0; i < 8; i++) {
+    const brng = (i * Math.PI * 2) / 8;
+    const lat1 = (lat * Math.PI) / 180;
+    const lng1 = (lng * Math.PI) / 180;
+    const lat2 = Math.asin(
+      Math.sin(lat1) * Math.cos(d) +
+        Math.cos(lat1) * Math.sin(d) * Math.cos(brng)
+    );
+    const lng2 =
+      lng1 +
+      Math.atan2(
+        Math.sin(brng) * Math.sin(d) * Math.cos(lat1),
+        Math.cos(d) - Math.sin(lat1) * Math.sin(lat2)
+      );
+    points.push([(lat2 * 180) / Math.PI, (lng2 * 180) / Math.PI]);
+  }
+  return points;
+}
+
 function FitBoundsOnMount({ coordinates }: { coordinates: [number, number][] }) {
   const map = useMap();
   useEffect(() => {
@@ -119,9 +147,24 @@ interface RouteMapProps {
   startLng: number;
   routeName: string;
   spots?: RouteSpot[];
+  routeType?: RouteType;
+  areaPolygon?: [number, number][] | null;
+  areaCenterLat?: number | null;
+  areaCenterLng?: number | null;
+  areaRadiusM?: number | null;
 }
 
-export default function RouteMap({ coordinates, startLat, startLng, spots = [] }: RouteMapProps) {
+export default function RouteMap({
+  coordinates,
+  startLat,
+  startLng,
+  spots = [],
+  routeType = "line",
+  areaPolygon = null,
+  areaCenterLat = null,
+  areaCenterLng = null,
+  areaRadiusM = null,
+}: RouteMapProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -136,7 +179,16 @@ export default function RouteMap({ coordinates, startLat, startLng, spots = [] }
     );
   }
 
-  const hasLine = coordinates.length > 0;
+  const isArea = routeType === "area";
+  const hasPolygon = isArea && areaPolygon && areaPolygon.length >= 3;
+  const hasCircle =
+    isArea &&
+    !hasPolygon &&
+    areaCenterLat != null &&
+    areaCenterLng != null &&
+    areaRadiusM != null;
+
+  const hasLine = !isArea && coordinates.length > 0;
   const start = hasLine ? coordinates[0] : ([startLat, startLng] as [number, number]);
   const goal = hasLine ? coordinates[coordinates.length - 1] : null;
   const sameStartGoal =
@@ -146,18 +198,30 @@ export default function RouteMap({ coordinates, startLat, startLng, spots = [] }
     (s) => s.lat != null && s.lng != null
   );
 
-  // fitBounds用: ルートライン + スポット座標を含める
+  // fitBounds用: ルートタイプ別に境界点を集める
+  const boundaryPoints: [number, number][] = isArea
+    ? hasPolygon
+      ? areaPolygon!
+      : hasCircle
+        ? circleBoundary(areaCenterLat!, areaCenterLng!, areaRadiusM!)
+        : []
+    : coordinates;
+
   const allPoints: [number, number][] = [
-    ...coordinates,
+    ...boundaryPoints,
     ...spotsWithCoords.map((s) => [s.lat!, s.lng!] as [number, number]),
   ];
 
-  const initialCenter: [number, number] = hasLine
-    ? [
-        coordinates.reduce((sum, c) => sum + c[0], 0) / coordinates.length,
-        coordinates.reduce((sum, c) => sum + c[1], 0) / coordinates.length,
-      ]
-    : [startLat, startLng];
+  const initialCenter: [number, number] = isArea
+    ? areaCenterLat != null && areaCenterLng != null
+      ? [areaCenterLat, areaCenterLng]
+      : [startLat, startLng]
+    : hasLine
+      ? [
+          coordinates.reduce((sum, c) => sum + c[0], 0) / coordinates.length,
+          coordinates.reduce((sum, c) => sum + c[1], 0) / coordinates.length,
+        ]
+      : [startLat, startLng];
 
   return (
     <div className="w-full h-[400px] rounded-2xl overflow-hidden border border-gray-100">
@@ -196,6 +260,33 @@ export default function RouteMap({ coordinates, startLat, startLng, spots = [] }
             />
           </>
         )}
+        {hasPolygon && (
+          <Polygon
+            positions={areaPolygon!}
+            pathOptions={{
+              color: ACCENT,
+              weight: 1.5,
+              opacity: 0.6,
+              fillColor: ACCENT,
+              fillOpacity: 0.2,
+              lineCap: "round",
+              lineJoin: "round",
+            }}
+          />
+        )}
+        {hasCircle && (
+          <Circle
+            center={[areaCenterLat!, areaCenterLng!]}
+            radius={areaRadiusM!}
+            pathOptions={{
+              color: ACCENT,
+              weight: 1.5,
+              opacity: 0.6,
+              fillColor: ACCENT,
+              fillOpacity: 0.2,
+            }}
+          />
+        )}
         {/* スポットマーカー */}
         {spotsWithCoords.map((spot) => {
           const cat = CATEGORY_ICONS[spot.category ?? ""] ?? DEFAULT_ICON;
@@ -233,9 +324,9 @@ export default function RouteMap({ coordinates, startLat, startLng, spots = [] }
             </Marker>
           );
         })}
-        {/* Start / Goal マーカー */}
-        <Marker position={start} icon={buildPinIcon(ACCENT)} />
-        {!sameStartGoal && goal && (
+        {/* Start / Goal マーカー（area型ではspotsのみ表示するため非表示） */}
+        {!isArea && <Marker position={start} icon={buildPinIcon(ACCENT)} />}
+        {!isArea && !sameStartGoal && goal && (
           <Marker position={goal} icon={buildPinIcon(ACCENT_HOVER)} />
         )}
       </MapContainer>

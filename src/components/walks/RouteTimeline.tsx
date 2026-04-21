@@ -34,10 +34,16 @@ function formatDistance(meters: number): string {
 
 interface RouteTimelineProps {
   spots: RouteSpot[];
+  isArea?: boolean;
 }
 
-export default function RouteTimeline({ spots }: RouteTimelineProps) {
-  // コースガイドは「流れ・時間・距離の俯瞰」に特化。
+export default function RouteTimeline({ spots, isArea = false }: RouteTimelineProps) {
+  // area型: 全スポット並列（番号・距離なし、is_optional は視覚区別）
+  if (isArea) {
+    return <AreaHighlights spots={spots} />;
+  }
+
+  // line型: コースガイドは「流れ・時間・距離の俯瞰」に特化。
   // ピン由来の補助spots（is_optional=true）は FeaturedSpots 側で表示する。
   const sorted = [...spots]
     .filter((s) => !s.is_optional)
@@ -148,5 +154,114 @@ export default function RouteTimeline({ spots }: RouteTimelineProps) {
         );
       })}
     </div>
+  );
+}
+
+// area型: 番号・距離なしの見どころ一覧。is_optionalは視覚で区別
+function AreaHighlights({ spots }: { spots: RouteSpot[] }) {
+  const ordered = [...spots].sort((a, b) => {
+    if (a.is_optional !== b.is_optional) return a.is_optional ? 1 : -1;
+    return (a.spot_order ?? 0) - (b.spot_order ?? 0);
+  });
+
+  return (
+    <ul
+      style={{
+        listStyle: "none",
+        padding: 0,
+        margin: 0,
+        display: "grid",
+        gridTemplateColumns: "1fr",
+        gap: 12,
+      }}
+    >
+      {ordered.map((spot) => {
+        const category = (spot.category ?? "viewpoint") as SpotCategory;
+        const IconComponent = CATEGORY_ICONS[category] ?? MapPin;
+        const isOptional = spot.is_optional;
+        return (
+          <li
+            key={spot.id}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "12px 14px",
+              borderRadius: "var(--radius-ww-sm)",
+              backgroundColor: isOptional
+                ? "transparent"
+                : "var(--color-ww-bg-secondary)",
+              border: isOptional
+                ? "1px dashed var(--color-ww-border-subtle)"
+                : "1px solid transparent",
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                width: isOptional ? 24 : 32,
+                height: isOptional ? 24 : 32,
+                borderRadius: "9999px",
+                backgroundColor: isOptional
+                  ? "var(--color-ww-bg)"
+                  : "var(--color-ww-bg)",
+                border: `1.5px solid ${
+                  isOptional
+                    ? "var(--color-ww-border-subtle)"
+                    : "var(--color-ww-accent)"
+                }`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <IconComponent
+                size={isOptional ? 13 : 16}
+                weight="regular"
+                style={{
+                  color: isOptional
+                    ? "var(--color-ww-text-tertiary)"
+                    : "var(--color-ww-accent)",
+                }}
+              />
+            </span>
+            <span
+              style={{
+                fontFamily: "var(--font-ww-sans)",
+                fontSize: isOptional ? 13 : 15,
+                fontWeight: isOptional ? 400 : 500,
+                color: isOptional
+                  ? "var(--color-ww-text-tertiary)"
+                  : "var(--color-ww-text)",
+                lineHeight: 1.4,
+                flex: 1,
+                minWidth: 0,
+              }}
+            >
+              {spot.name}
+            </span>
+            {isOptional && (
+              <span
+                style={{
+                  fontFamily: "var(--font-ww-sans)",
+                  fontSize: 10,
+                  fontWeight: 500,
+                  letterSpacing: "0.08em",
+                  color: "var(--color-ww-text-tertiary)",
+                  textTransform: "uppercase",
+                  padding: "2px 6px",
+                  borderRadius: 4,
+                  border: "1px solid var(--color-ww-border-subtle)",
+                  flexShrink: 0,
+                }}
+              >
+                Optional
+              </span>
+            )}
+          </li>
+        );
+      })}
+    </ul>
   );
 }

@@ -7,6 +7,7 @@ import {
   getRouteBySlug,
   getRouteSpots,
   getRouteLineCoordinates,
+  getRouteAreaInfo,
 } from "@/lib/walks/data";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
@@ -39,19 +40,23 @@ export async function generateMetadata({
   const route = await getRouteBySlug(slug);
   if (!route) return {};
 
+  const isArea = route.route_type === "area";
   const distanceKm = (route.distance_meters / 1000).toFixed(1);
+  const titleSuffix = isArea ? "犬連れ散策コース" : "犬連れ散歩コース";
   const description =
     route.meta_description ??
-    `${route.areas.name}の犬連れ散歩コース「${route.name}」。距離${distanceKm}km、所要${route.estimated_minutes}分。${route.description?.slice(0, 80) ?? ""}`;
+    (isArea
+      ? `${route.areas.name}の犬連れ散策コース「${route.name}」。園内散策、滞在目安${route.estimated_minutes}分。${route.description?.slice(0, 80) ?? ""}`
+      : `${route.areas.name}の犬連れ散歩コース「${route.name}」。距離${distanceKm}km、所要${route.estimated_minutes}分。${route.description?.slice(0, 80) ?? ""}`);
 
   return {
-    title: `${route.name} - ${route.areas.name}の犬連れ散歩コース`,
+    title: `${route.name} - ${route.areas.name}の${titleSuffix}`,
     description,
     alternates: {
       canonical: `/routes/${slug}`,
     },
     openGraph: {
-      title: `${route.name} - ${route.areas.name}の犬連れ散歩コース`,
+      title: `${route.name} - ${route.areas.name}の${titleSuffix}`,
       description,
       images: [
         {
@@ -81,11 +86,13 @@ export default async function RouteDetailPage({
   const route = await getRouteBySlug(slug);
   if (!route) notFound();
 
-  const [spots, coordinates] = await Promise.all([
+  const [spots, coordinates, areaInfo] = await Promise.all([
     getRouteSpots(route.id),
     getRouteLineCoordinates(route.id),
+    getRouteAreaInfo(route.id),
   ]);
 
+  const isArea = route.route_type === "area";
   const distanceKm = (route.distance_meters / 1000).toFixed(1);
   const petInfo = route.pet_info;
   const elevationGainFromPet = petInfo?.elevation_gain
@@ -215,6 +222,7 @@ export default async function RouteDetailPage({
           minutes={route.estimated_minutes}
           elevationGain={elevationGain}
           difficulty={route.difficulty_level}
+          isArea={isArea}
         />
       </header>
 
@@ -230,11 +238,24 @@ export default async function RouteDetailPage({
           borderRadius: "var(--radius-ww-md)",
         }}
       >
-        「{route.name}」は、{route.areas.name}にある距離{distanceKm}km・所要約{route.estimated_minutes}分の犬連れ散歩コースです。
-        {difficultyLabels[route.difficulty_level]}コースで、
-        {route.cart_friendly ? "カート走行可。" : ""}
-        {petInfo?.parking ? `駐車場: ${petInfo.parking}。` : ""}
-        {spots.length > 0 ? `コース上に${spots.length}件の犬連れスポットがあります。` : ""}
+        {isArea ? (
+          <>
+            「{route.name}」は、{route.areas.name}にある園内散策コースです。
+            滞在目安は約{route.estimated_minutes}分、
+            {difficultyLabels[route.difficulty_level]}コースで、
+            {route.cart_friendly ? "カート走行可。" : ""}
+            {petInfo?.parking ? `駐車場: ${petInfo.parking}。` : ""}
+            {spots.length > 0 ? `園内に${spots.length}件の見どころがあります。` : ""}
+          </>
+        ) : (
+          <>
+            「{route.name}」は、{route.areas.name}にある距離{distanceKm}km・所要約{route.estimated_minutes}分の犬連れ散歩コースです。
+            {difficultyLabels[route.difficulty_level]}コースで、
+            {route.cart_friendly ? "カート走行可。" : ""}
+            {petInfo?.parking ? `駐車場: ${petInfo.parking}。` : ""}
+            {spots.length > 0 ? `コース上に${spots.length}件の犬連れスポットがあります。` : ""}
+          </>
+        )}
       </p>
 
       {/* 体験ストーリー */}
@@ -287,10 +308,15 @@ export default async function RouteDetailPage({
           startLng={route.start_lng}
           routeName={route.name}
           spots={spots}
+          routeType={route.route_type}
+          areaPolygon={areaInfo?.area_polygon ?? null}
+          areaCenterLat={areaInfo?.area_center_lat ?? null}
+          areaCenterLng={areaInfo?.area_center_lng ?? null}
+          areaRadiusM={areaInfo?.area_radius_m ?? null}
         />
       </section>
 
-      {/* コースガイド（番号付きタイムライン） */}
+      {/* コースガイド / 見どころ */}
       {spots.length > 0 && (
         <section style={{ marginBottom: 48 }}>
           <h2
@@ -303,9 +329,9 @@ export default async function RouteDetailPage({
               marginBottom: 24,
             }}
           >
-            コースガイド
+            {isArea ? "見どころ" : "コースガイド"}
           </h2>
-          <RouteTimeline spots={spots} />
+          <RouteTimeline spots={spots} isArea={isArea} />
         </section>
       )}
 
@@ -406,47 +432,68 @@ export default async function RouteDetailPage({
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "TouristTrip",
+            "@type": isArea ? "TouristAttraction" : "TouristTrip",
             name: route.name,
             description: route.description,
             touristType: ["犬連れ", "ペット同伴"],
-            additionalType: "DogFriendlyRoute",
+            additionalType: isArea ? "DogFriendlyArea" : "DogFriendlyRoute",
             image: route.thumbnail_url ?? undefined,
-            geo: route.start_lat && route.start_lng
-              ? {
-                  "@type": "GeoCoordinates",
-                  latitude: route.start_lat,
-                  longitude: route.start_lng,
-                }
-              : undefined,
+            // area型は施設中心座標、line型は出発地点
+            geo:
+              isArea && areaInfo?.area_center_lat != null && areaInfo?.area_center_lng != null
+                ? {
+                    "@type": "GeoCoordinates",
+                    latitude: areaInfo.area_center_lat,
+                    longitude: areaInfo.area_center_lng,
+                  }
+                : route.start_lat && route.start_lng
+                  ? {
+                      "@type": "GeoCoordinates",
+                      latitude: route.start_lat,
+                      longitude: route.start_lng,
+                    }
+                  : undefined,
             offers: {
               "@type": "Offer",
               price: "0",
               priceCurrency: "JPY",
               availability: "https://schema.org/InStock",
             },
-            itinerary: {
-              "@type": "ItemList",
-              itemListElement: spots.map((spot, i) => ({
-                "@type": "ListItem",
-                position: i + 1,
-                name: spot.name,
-                description: spot.description,
-                ...(spot.lat && spot.lng
-                  ? {
-                      item: {
-                        "@type": "Place",
-                        name: spot.name,
-                        geo: {
-                          "@type": "GeoCoordinates",
-                          latitude: spot.lat,
-                          longitude: spot.lng,
-                        },
-                      },
-                    }
-                  : {}),
-              })),
-            },
+            // area型: 順序なし見どころList / line型: 番号付きitinerary
+            ...(isArea
+              ? {
+                  amenityFeature: spots
+                    .filter((s) => s.lat != null && s.lng != null)
+                    .map((spot) => ({
+                      "@type": "LocationFeatureSpecification",
+                      name: spot.name,
+                      value: spot.description ?? undefined,
+                    })),
+                }
+              : {
+                  itinerary: {
+                    "@type": "ItemList",
+                    itemListElement: spots.map((spot, i) => ({
+                      "@type": "ListItem",
+                      position: i + 1,
+                      name: spot.name,
+                      description: spot.description,
+                      ...(spot.lat && spot.lng
+                        ? {
+                            item: {
+                              "@type": "Place",
+                              name: spot.name,
+                              geo: {
+                                "@type": "GeoCoordinates",
+                                latitude: spot.lat,
+                                longitude: spot.lng,
+                              },
+                            },
+                          }
+                        : {}),
+                    })),
+                  },
+                }),
           }),
         }}
       />
@@ -464,7 +511,9 @@ export default async function RouteDetailPage({
                 name: `${route.name}は犬連れで散歩できますか？`,
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: `はい、${route.name}は犬連れで散歩できるルートです。距離${distanceKm}km、所要約${route.estimated_minutes}分のコースです。${petInfo?.surface ? `路面は${petInfo.surface}です。` : ""}${petInfo?.others ?? "リード着用でお楽しみいただけます。"}`,
+                  text: isArea
+                    ? `はい、${route.name}は犬連れで散策できる施設です。滞在目安は約${route.estimated_minutes}分、園内を自由に散策できます。${petInfo?.surface ? `路面は${petInfo.surface}です。` : ""}${petInfo?.others ?? "リード着用でお楽しみいただけます。"}`
+                    : `はい、${route.name}は犬連れで散歩できるルートです。距離${distanceKm}km、所要約${route.estimated_minutes}分のコースです。${petInfo?.surface ? `路面は${petInfo.surface}です。` : ""}${petInfo?.others ?? "リード着用でお楽しみいただけます。"}`,
                 },
               },
               {
