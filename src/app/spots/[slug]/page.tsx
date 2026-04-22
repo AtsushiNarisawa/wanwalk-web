@@ -24,7 +24,8 @@ import type { SpotCategory, DogPolicy } from "@/types/walks";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 
-export const revalidate = 1800;
+// ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
+export const revalidate = 86400;
 
 const CATEGORY_CONFIG: Record<SpotCategory, { icon: Icon; label: string }> = {
   cafe: { icon: Coffee, label: "カフェ" },

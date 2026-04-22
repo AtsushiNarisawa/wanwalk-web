@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+// 完全静的ページ（DB参照なし）
+export const dynamic = "force-static";
+
 export const metadata: Metadata = {
   title: "利用規約",
   description:

@@ -4,6 +4,9 @@ import { Path, MapPin, Dog, Camera } from "@phosphor-icons/react/dist/ssr";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 
+// 完全静的ページ（DB参照なし）
+export const dynamic = "force-static";
+
 export const metadata: Metadata = {
   title: "WanWalkについて - 愛犬との散歩をもっと豊かに",
   description:

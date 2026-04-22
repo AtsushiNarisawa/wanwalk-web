@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 import { getAllPublishedRoutes, getAreas, getAllSpotSlugs } from "@/lib/walks/data";
 
+// ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
+export const revalidate = 86400;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://wanwalk.jp";
 

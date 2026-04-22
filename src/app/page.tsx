@@ -7,8 +7,8 @@ import SeasonFilter from "@/components/walks/SeasonFilter";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 
-// ISR: 30分ごとに再検証
-export const revalidate = 1800;
+// ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "次の休日、どこ歩く？ 愛犬との散歩コース | WanWalk",
