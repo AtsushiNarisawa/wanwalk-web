@@ -53,7 +53,7 @@ function DogPolicyBadge({ policy }: { policy: DogPolicy }) {
   );
 }
 
-/** おすすめスポットに表示するカテゴリ（infrastructure系は除外） */
+/** おすすめスポット／見どころに表示するカテゴリ（infrastructure系は除外） */
 const FEATURED_CATEGORIES = new Set([
   "viewpoint",
   "cafe",
@@ -61,6 +61,7 @@ const FEATURED_CATEGORIES = new Set([
   "park",
   "shop",
   "dog_run",
+  "shrine_temple",
 ]);
 
 interface FeaturedSpotsProps {

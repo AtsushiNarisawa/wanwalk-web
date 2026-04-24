@@ -316,8 +316,8 @@ export default async function RouteDetailPage({
         />
       </section>
 
-      {/* コースガイド / 見どころ */}
-      {spots.length > 0 && (
+      {/* コースガイド（line型のみ。area型は順序がないため見どころ1本に統合） */}
+      {!isArea && spots.length > 0 && (
         <section style={{ marginBottom: 48 }}>
           <h2
             style={{
@@ -329,13 +329,13 @@ export default async function RouteDetailPage({
               marginBottom: 24,
             }}
           >
-            {isArea ? "見どころ" : "コースガイド"}
+            コースガイド
           </h2>
-          <RouteTimeline spots={spots} isArea={isArea} />
+          <RouteTimeline spots={spots} isArea={false} />
         </section>
       )}
 
-      {/* おすすめスポット（route_spotsのみ、公式ピンは統合済み） */}
+      {/* おすすめスポット（line型）/ 見どころ（area型） */}
       <section style={{ marginBottom: 48 }}>
         <h2
           style={{
@@ -347,7 +347,7 @@ export default async function RouteDetailPage({
             marginBottom: 24,
           }}
         >
-          おすすめスポット
+          {isArea ? "見どころ" : "おすすめスポット"}
         </h2>
         <FeaturedSpots spots={spots} />
       </section>
