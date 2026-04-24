@@ -25,7 +25,8 @@ function isAllowedPath(path: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const secret = process.env.REVALIDATE_SECRET;
+  // 防御的に trim。vercel env add で stdin 入力すると末尾改行が混入するため
+  const secret = process.env.REVALIDATE_SECRET?.trim();
   if (!secret) {
     return NextResponse.json(
       { ok: false, error: "REVALIDATE_SECRET is not configured" },
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "invalid JSON" }, { status: 400 });
   }
 
-  if (body.secret !== secret) {
+  if (body.secret?.trim() !== secret) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 
