@@ -72,12 +72,7 @@ export default function FeaturedSpots({ spots }: FeaturedSpotsProps) {
   const featured = spots
     .filter((s) => s.category && FEATURED_CATEGORIES.has(s.category))
     .filter((s) => s.photo_url || s.description)
-    .sort((a, b) => {
-      // 写真ありを先、なしを後
-      if (a.photo_url && !b.photo_url) return -1;
-      if (!a.photo_url && b.photo_url) return 1;
-      return (a.spot_order ?? 0) - (b.spot_order ?? 0);
-    });
+    .sort((a, b) => (a.spot_order ?? 0) - (b.spot_order ?? 0));
 
   if (featured.length === 0) return null;
 
