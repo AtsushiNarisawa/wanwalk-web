@@ -191,6 +191,7 @@ export async function getAreasWithRouteCount(): Promise<
     .select(
       "id, name, slug, prefecture, description, hero_image_url, official_routes(count)"
     )
+    .eq("official_routes.is_published", true)
     .not("slug", "is", null)
     .order("name");
 
