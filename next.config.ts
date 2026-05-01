@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   images: {
     loader: "custom",
     loaderFile: "./src/lib/supabase-image-loader.ts",
+    deviceSizes: [640, 1080, 1920],
+    imageSizes: [400, 640],
     remotePatterns: [
       {
         protocol: "https",
