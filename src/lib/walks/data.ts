@@ -58,6 +58,45 @@ export async function getRoutesByAreaId(
   return (data ?? []).map(parseRouteLocation);
 }
 
+export async function getFeaturedRoutesForTop(
+  limit: number = 12,
+): Promise<RouteWithArea[]> {
+  const [allRoutes, areasWithCount] = await Promise.all([
+    getAllPublishedRoutes(),
+    getAreasWithRouteCount(),
+  ]);
+
+  const orderedAreas = areasWithCount
+    .filter((a) => a.route_count > 0)
+    .sort((a, b) => b.route_count - a.route_count);
+
+  const byArea = new Map<string, RouteWithArea[]>();
+  for (const r of allRoutes) {
+    if (!r.thumbnail_url) continue;
+    const list = byArea.get(r.area_id) ?? [];
+    list.push(r);
+    byArea.set(r.area_id, list);
+  }
+
+  const featured: RouteWithArea[] = [];
+  let round = 0;
+  while (featured.length < limit) {
+    let added = false;
+    for (const area of orderedAreas) {
+      const list = byArea.get(area.id) ?? [];
+      if (list[round]) {
+        featured.push(list[round]);
+        added = true;
+        if (featured.length >= limit) break;
+      }
+    }
+    if (!added) break;
+    round++;
+  }
+
+  return featured;
+}
+
 export async function getAllPublishedRoutes(): Promise<RouteWithArea[]> {
   const { data, error } = await supabase
     .from("official_routes")

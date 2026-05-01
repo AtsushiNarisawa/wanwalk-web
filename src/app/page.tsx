@@ -2,8 +2,12 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { Path, Camera, DeviceMobile, ArrowRight } from "@phosphor-icons/react/dist/ssr";
-import { getAreasWithRouteCount, getAllPublishedRoutes, getFeaturedRoute } from "@/lib/walks/data";
-import SeasonFilter from "@/components/walks/SeasonFilter";
+import {
+  getAreasWithRouteCount,
+  getFeaturedRoute,
+  getFeaturedRoutesForTop,
+} from "@/lib/walks/data";
+import RouteCard from "@/components/walks/RouteCard";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 
@@ -76,13 +80,14 @@ function SectionHeading({
 }
 
 export default async function WalksTopPage() {
-  const [areas, routes, pickupRoute] = await Promise.all([
+  const [areas, featuredRoutes, pickupRoute] = await Promise.all([
     getAreasWithRouteCount(),
-    getAllPublishedRoutes(),
+    getFeaturedRoutesForTop(12),
     getFeaturedRoute(),
   ]);
 
   const activeAreas = areas.filter((a) => a.route_count > 0);
+  const totalRoutes = activeAreas.reduce((sum, a) => sum + a.route_count, 0);
   const featuredAreas = [...activeAreas]
     .sort((a, b) => b.route_count - a.route_count)
     .slice(0, 8);
@@ -193,7 +198,7 @@ export default async function WalksTopPage() {
 
             {/* 統計カード: 背景なし・境界線のみ・tabular-nums */}
             <div className="flex items-center justify-center gap-8 md:gap-12 mt-10 mb-10">
-              <StatItem value={routes.length.toString()} label="COURSES" />
+              <StatItem value={totalRoutes.toString()} label="COURSES" />
               <StatDivider />
               <StatItem value={activeAreas.length.toString()} label="AREAS" />
               <StatDivider />
@@ -224,7 +229,7 @@ export default async function WalksTopPage() {
               }}
             >
               <span className="ww-numeric">全{activeAreas.length}エリア</span>・
-              <span className="ww-numeric">{routes.length}コース</span>
+              <span className="ww-numeric">{totalRoutes}コース</span>
             </p>
           </div>
         </div>
@@ -340,10 +345,31 @@ export default async function WalksTopPage() {
           </section>
         )}
 
-        {/* 散歩コース（季節フィルター付き） */}
+        {/* 注目の散歩コース（12件・エリア多様性ピックアップ）*/}
         <section className="py-12 md:py-16">
-          <SectionHeading title="散歩コース" />
-          <SeasonFilter routes={routes} />
+          <SectionHeading title="注目の散歩コース" seeAllHref="/routes" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredRoutes.map((route) => (
+              <RouteCard key={route.id} route={route} />
+            ))}
+          </div>
+          <div className="text-center mt-10">
+            <Link
+              href="/routes"
+              className="inline-flex items-center gap-2 transition-colors"
+              style={{
+                fontSize: 14,
+                color: "var(--color-ww-accent)",
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                borderBottom: "1px solid var(--color-ww-accent)",
+                paddingBottom: 2,
+              }}
+            >
+              すべての散歩コース（<span className="ww-numeric">{totalRoutes}</span>件）を見る
+              <ArrowRight size={14} weight="regular" />
+            </Link>
+          </div>
         </section>
 
         {/* WanWalkとは */}
@@ -407,26 +433,7 @@ export default async function WalksTopPage() {
         <SupportedBadge />
       </div>
 
-      {/* 構造化データ: ItemList（全ルート一覧） */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ItemList",
-            name: "WanWalk 犬連れ散歩コース一覧",
-            description:
-              "箱根・鎌倉・伊豆など、愛犬と歩きたくなる散歩コースを厳選。",
-            numberOfItems: routes.length,
-            itemListElement: routes.map((route, i) => ({
-              "@type": "ListItem",
-              position: i + 1,
-              url: `https://wanwalk.jp/routes/${route.slug}`,
-              name: route.name,
-            })),
-          }),
-        }}
-      />
+      {/* ItemList 構造化データは /routes 一覧ページに移行済み */}
 
       {/* FAQ構造化データ（GEO/AIO最適化） */}
       <script
@@ -449,7 +456,7 @@ export default async function WalksTopPage() {
                 name: "愛犬と散歩できるルートはいくつありますか？",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: `現在${routes.length}本の犬連れ散歩ルートを掲載しています。すべてのルートに体験ストーリー、犬連れ情報、季節情報が完備されています。`,
+                  text: `現在${totalRoutes}本の犬連れ散歩ルートを掲載しています。すべてのルートに体験ストーリー、犬連れ情報、季節情報が完備されています。`,
                 },
               },
               {
