@@ -16,6 +16,7 @@ const ALLOWED_PATH_PATTERNS: RegExp[] = [
   /^\/areas\/[a-z0-9-]+$/,
   /^\/spots$/,
   /^\/spots\/[a-z0-9-]+$/,
+  /^\/routes$/,
   /^\/routes\/[a-z0-9-]+$/,
   /^\/sitemap\.xml$/,
 ];
