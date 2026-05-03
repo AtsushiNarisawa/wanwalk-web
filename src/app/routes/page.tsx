@@ -6,7 +6,7 @@ import SeasonFilter from "@/components/walks/SeasonFilter";
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: "散歩コース一覧 | WanWalk",
+  title: "散歩コース一覧",
   description:
     "WanWalk掲載の全散歩コースを一覧で。箱根・鎌倉・伊豆など全エリアから、季節やカート走行可で絞り込めます。",
   alternates: {
