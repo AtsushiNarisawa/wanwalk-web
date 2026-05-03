@@ -134,7 +134,7 @@ export default async function RouteDetailPage({
         <div
           className="relative overflow-hidden mb-8"
           style={{
-            aspectRatio: "16 / 9",
+            aspectRatio: "4 / 3",
             borderRadius: "var(--radius-ww-sm)",
             backgroundColor: "var(--color-ww-bg-secondary)",
           }}

@@ -37,7 +37,7 @@ export default function RouteCard({ route }: { route: OfficialRoute }) {
       }}
     >
       <div
-        className="aspect-[16/10] relative overflow-hidden"
+        className="aspect-[4/3] relative overflow-hidden"
         style={{ backgroundColor: "var(--color-ww-bg-tertiary)" }}
       >
         {route.thumbnail_url ? (
