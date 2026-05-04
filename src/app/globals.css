@@ -50,3 +50,14 @@
   font-feature-settings: "tnum";
   font-variant-numeric: tabular-nums;
 }
+.walks-root .ww-spot-link {
+  text-decoration: underline;
+  text-decoration-color: var(--color-ww-border-subtle);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color 150ms ease, color 150ms ease;
+}
+.walks-root .ww-spot-link:hover {
+  color: var(--color-ww-accent);
+  text-decoration-color: var(--color-ww-accent);
+}

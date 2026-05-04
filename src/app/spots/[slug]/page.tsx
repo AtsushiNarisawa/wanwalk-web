@@ -20,6 +20,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
 import { getAllSpotSlugs, getSpotBySlug } from "@/lib/walks/data";
+import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
 import type { SpotCategory, DogPolicy } from "@/types/walks";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
@@ -98,6 +99,12 @@ export default async function SpotDetailPage({
   const { slug } = await params;
   const spot = await getSpotBySlug(slug);
   if (!spot) notFound();
+
+  // インフラ系（駐車場・トイレ・水飲み場）は SEO ランディング対象外。
+  // ルート上の地図マーカー・コースガイドとしては表示するが、独立ページは生成しない。
+  if (spot.category && NON_SEO_SPOT_CATEGORIES.has(spot.category as SpotCategory)) {
+    notFound();
+  }
 
   const catConfig = spot.category
     ? CATEGORY_CONFIG[spot.category as SpotCategory]

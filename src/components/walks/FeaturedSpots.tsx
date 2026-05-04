@@ -1,5 +1,14 @@
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
+import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
 import type { RouteSpot, DogPolicy } from "@/types/walks";
+
+function isLinkable(spot: RouteSpot): boolean {
+  if (!spot.slug) return false;
+  if (spot.category && NON_SEO_SPOT_CATEGORIES.has(spot.category)) return false;
+  return true;
+}
 
 const SIZE_LABELS: Record<string, string> = {
   all: "全犬種OK",
@@ -88,6 +97,8 @@ export default function FeaturedSpots({ spots }: FeaturedSpotsProps) {
         if (photoUrl) usedPhotos.add(photoUrl);
         const hasPhoto = !!photoUrl;
 
+        const linkable = isLinkable(spot);
+
         return (
           <article
             key={spot.id}
@@ -108,7 +119,17 @@ export default function FeaturedSpots({ spots }: FeaturedSpotsProps) {
                   marginBottom: spot.description ? 8 : 0,
                 }}
               >
-                {spot.name}
+                {linkable ? (
+                  <Link
+                    href={`/spots/${spot.slug}`}
+                    className="ww-spot-link"
+                    style={{ color: "inherit" }}
+                  >
+                    {spot.name}
+                  </Link>
+                ) : (
+                  spot.name
+                )}
               </h3>
               {spot.description && (
                 <p
@@ -126,26 +147,69 @@ export default function FeaturedSpots({ spots }: FeaturedSpotsProps) {
               )}
               {spot.dog_policy && <DogPolicyBadge policy={spot.dog_policy} />}
             </div>
-            {hasPhoto && (
-              <div
+            {hasPhoto &&
+              (linkable ? (
+                <Link
+                  href={`/spots/${spot.slug}`}
+                  className="group"
+                  style={{
+                    position: "relative",
+                    overflow: "hidden",
+                    borderRadius: "var(--radius-ww-sm)",
+                    backgroundColor: "var(--color-ww-bg-secondary)",
+                    aspectRatio: "16 / 9",
+                    width: "100%",
+                    marginTop: 16,
+                    display: "block",
+                  }}
+                >
+                  <Image
+                    src={photoUrl!}
+                    alt={spot.name}
+                    fill
+                    sizes="(max-width: 896px) 100vw, 896px"
+                    className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                  />
+                </Link>
+              ) : (
+                <div
+                  style={{
+                    position: "relative",
+                    overflow: "hidden",
+                    borderRadius: "var(--radius-ww-sm)",
+                    backgroundColor: "var(--color-ww-bg-secondary)",
+                    aspectRatio: "16 / 9",
+                    width: "100%",
+                    marginTop: 16,
+                  }}
+                >
+                  <Image
+                    src={photoUrl!}
+                    alt={spot.name}
+                    fill
+                    sizes="(max-width: 896px) 100vw, 896px"
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            {linkable && (
+              <Link
+                href={`/spots/${spot.slug}`}
                 style={{
-                  position: "relative",
-                  overflow: "hidden",
-                  borderRadius: "var(--radius-ww-sm)",
-                  backgroundColor: "var(--color-ww-bg-secondary)",
-                  aspectRatio: "16 / 9",
-                  width: "100%",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
                   marginTop: 16,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: "var(--color-ww-accent)",
+                  letterSpacing: "0.02em",
                 }}
+                className="hover:underline underline-offset-4"
               >
-                <Image
-                  src={photoUrl!}
-                  alt={spot.name}
-                  fill
-                  sizes="(max-width: 896px) 100vw, 896px"
-                  className="object-cover"
-                />
-              </div>
+                スポット詳細を見る
+                <ArrowRight size={14} weight="regular" />
+              </Link>
             )}
           </article>
         );

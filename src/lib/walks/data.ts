@@ -1,5 +1,8 @@
 import { wanwalkSupabase as supabase } from "./supabase";
+import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
 import type { Area, OfficialRoute, RouteSpot, RouteWithArea, SpotWithRoute, RouteAreaInfo } from "@/types/walks";
+
+const NON_SEO_CATEGORIES_ARR = Array.from(NON_SEO_SPOT_CATEGORIES);
 
 export async function getFeaturedRoute(): Promise<RouteWithArea | null> {
   const { data, error } = await supabase
@@ -309,6 +312,7 @@ export async function getAllSpots(): Promise<
       "*, official_routes!inner(name, slug, areas!inner(name, slug))"
     )
     .not("slug", "is", null)
+    .not("category", "in", `(${NON_SEO_CATEGORIES_ARR.join(",")})`)
     .order("name");
 
   if (error) return [];
@@ -375,11 +379,14 @@ export async function getRoutesBySpotRouteId(
   }));
 }
 
+// SEOランディング対象のスポットの slug のみ返す（インフラ系を除外）。
+// generateStaticParams / sitemap で使用。
 export async function getAllSpotSlugs(): Promise<string[]> {
   const { data, error } = await supabase
     .from("route_spots")
     .select("slug")
-    .not("slug", "is", null);
+    .not("slug", "is", null)
+    .not("category", "in", `(${NON_SEO_CATEGORIES_ARR.join(",")})`);
 
   if (error) return [];
   return (data ?? []).map((s) => s.slug as string);

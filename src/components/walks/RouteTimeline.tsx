@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
 import type { RouteSpot, SpotCategory } from "@/types/walks";
 import {
   Coffee,
@@ -12,6 +14,13 @@ import {
   MapPin,
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
+
+// SEO対象カテゴリかつ slug がある場合のみ詳細ページにリンクできる
+function isLinkable(spot: RouteSpot): boolean {
+  if (!spot.slug) return false;
+  if (spot.category && NON_SEO_SPOT_CATEGORIES.has(spot.category)) return false;
+  return true;
+}
 
 const CATEGORY_ICONS: Record<SpotCategory, Icon> = {
   cafe: Coffee,
@@ -123,17 +132,38 @@ export default function RouteTimeline({ spots, isArea = false }: RouteTimelinePr
                   weight="regular"
                   style={{ color: "var(--color-ww-text-tertiary)", flexShrink: 0 }}
                 />
-                <span
-                  style={{
-                    fontFamily: "var(--font-ww-sans)",
-                    fontSize: 15,
-                    fontWeight: 500,
-                    color: "var(--color-ww-text)",
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {spot.name}
-                </span>
+                {isLinkable(spot) ? (
+                  <Link
+                    href={`/spots/${spot.slug}`}
+                    style={{
+                      fontFamily: "var(--font-ww-sans)",
+                      fontSize: 15,
+                      fontWeight: 500,
+                      color: "var(--color-ww-text)",
+                      lineHeight: 1.4,
+                      textDecorationLine: "underline",
+                      textDecorationColor: "var(--color-ww-border-subtle)",
+                      textDecorationThickness: "1px",
+                      textUnderlineOffset: "3px",
+                      transition: "color 150ms ease",
+                    }}
+                    className="hover:!text-[color:var(--color-ww-accent)]"
+                  >
+                    {spot.name}
+                  </Link>
+                ) : (
+                  <span
+                    style={{
+                      fontFamily: "var(--font-ww-sans)",
+                      fontSize: 15,
+                      fontWeight: 500,
+                      color: "var(--color-ww-text)",
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {spot.name}
+                  </span>
+                )}
                 {spot.distance_from_start != null && (
                   <span
                     style={{
@@ -226,21 +256,46 @@ function AreaHighlights({ spots }: { spots: RouteSpot[] }) {
                 }}
               />
             </span>
-            <span
-              style={{
-                fontFamily: "var(--font-ww-sans)",
-                fontSize: isOptional ? 13 : 15,
-                fontWeight: isOptional ? 400 : 500,
-                color: isOptional
-                  ? "var(--color-ww-text-tertiary)"
-                  : "var(--color-ww-text)",
-                lineHeight: 1.4,
-                flex: 1,
-                minWidth: 0,
-              }}
-            >
-              {spot.name}
-            </span>
+            {isLinkable(spot) ? (
+              <Link
+                href={`/spots/${spot.slug}`}
+                style={{
+                  fontFamily: "var(--font-ww-sans)",
+                  fontSize: isOptional ? 13 : 15,
+                  fontWeight: isOptional ? 400 : 500,
+                  color: isOptional
+                    ? "var(--color-ww-text-tertiary)"
+                    : "var(--color-ww-text)",
+                  lineHeight: 1.4,
+                  flex: 1,
+                  minWidth: 0,
+                  textDecorationLine: "underline",
+                  textDecorationColor: "var(--color-ww-border-subtle)",
+                  textDecorationThickness: "1px",
+                  textUnderlineOffset: "3px",
+                  transition: "color 150ms ease",
+                }}
+                className="hover:!text-[color:var(--color-ww-accent)]"
+              >
+                {spot.name}
+              </Link>
+            ) : (
+              <span
+                style={{
+                  fontFamily: "var(--font-ww-sans)",
+                  fontSize: isOptional ? 13 : 15,
+                  fontWeight: isOptional ? 400 : 500,
+                  color: isOptional
+                    ? "var(--color-ww-text-tertiary)"
+                    : "var(--color-ww-text)",
+                  lineHeight: 1.4,
+                  flex: 1,
+                  minWidth: 0,
+                }}
+              >
+                {spot.name}
+              </span>
+            )}
             {isOptional && (
               <span
                 style={{

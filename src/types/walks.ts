@@ -83,6 +83,16 @@ export type SpotCategory =
   | "viewpoint"
   | "shop";
 
+// SEOランディングページとして個別ページを生成しないカテゴリ。
+// ルート上の地図マーカー・コースガイドとしては表示するが、/spots/[slug] は生成しない・sitemapからも除外。
+// Why: 「○○の駐車場」「公衆トイレ」というクエリで検索する人はおらず、薄いページとして
+// サイト全体の品質シグナルを下げるため（GSC 90日: parking CTR 1.4%, restroom 0%）。
+export const NON_SEO_SPOT_CATEGORIES = new Set<SpotCategory>([
+  "parking",
+  "restroom",
+  "water_station",
+]);
+
 export interface DogPolicy {
   size?: "all" | "small_medium" | "small_only";
   indoor?: boolean;
@@ -98,6 +108,7 @@ export interface RouteSpot {
   route_id: string;
   spot_order: number;
   spot_type: "start" | "waypoint" | "end";
+  slug: string | null;
   name: string;
   description: string | null;
   landscape_feature: string | null;

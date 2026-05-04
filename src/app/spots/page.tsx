@@ -51,6 +51,7 @@ const CATEGORY_CONFIG: Record<
   shop: { icon: Storefront, label: "ショップ" },
 };
 
+// SEO ランディング対象のカテゴリのみ表示（インフラ系は getAllSpots 側で既に除外済み）
 const CATEGORY_ORDER: SpotCategory[] = [
   "cafe",
   "restaurant",
@@ -58,9 +59,6 @@ const CATEGORY_ORDER: SpotCategory[] = [
   "dog_run",
   "viewpoint",
   "shop",
-  "parking",
-  "restroom",
-  "water_station",
 ];
 
 export default async function SpotsListPage() {
