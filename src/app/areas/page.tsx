@@ -14,6 +14,19 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/areas",
   },
+  openGraph: {
+    title: "エリア一覧 - 犬と歩ける散歩コース | WanWalk",
+    description:
+      "箱根・鎌倉・湘南・横浜など、愛犬と一緒に楽しめる散歩コースのあるエリア一覧。",
+    images: [
+      {
+        url: "https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/render/image/public/route-photos/yamanakako-lakeside/refetch_20260422/01.jpg?width=1200&height=630&resize=cover&quality=80",
+        width: 1200,
+        height: 630,
+        alt: "エリア一覧 - 犬と歩ける散歩コース",
+      },
+    ],
+  },
 };
 
 export default async function AreasPage() {

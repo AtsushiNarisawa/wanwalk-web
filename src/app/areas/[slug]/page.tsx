@@ -27,6 +27,14 @@ export async function generateMetadata({
   const area = await getAreaBySlug(slug);
   if (!area) return {};
 
+  const ogImageBase =
+    area.hero_image_url ??
+    "https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/object/public/route-photos/yamanakako-lakeside/refetch_20260422/01.jpg";
+  const ogImageUrl = ogImageBase.includes("/render/image/")
+    ? ogImageBase
+    : ogImageBase.replace("/object/", "/render/image/") +
+      "?width=1200&height=630&resize=cover&quality=80";
+
   return {
     title: `${area.name}で犬と歩けるおすすめ散歩コース`,
     description: `${area.name}（${area.prefecture}）の犬連れ散歩コースを紹介。${area.description ?? ""}`,
@@ -36,6 +44,14 @@ export async function generateMetadata({
     openGraph: {
       title: `${area.name}で犬と歩けるおすすめ散歩コース`,
       description: `${area.name}（${area.prefecture}）の犬連れ散歩コースを紹介。`,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${area.name} - 犬と歩けるおすすめ散歩コース`,
+        },
+      ],
     },
   };
 }

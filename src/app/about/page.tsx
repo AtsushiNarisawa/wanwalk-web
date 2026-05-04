@@ -18,6 +18,14 @@ export const metadata: Metadata = {
     title: "WanWalkについて",
     description:
       "犬連れに特化した日本初の散歩ルート体験プラットフォーム。",
+    images: [
+      {
+        url: "https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/render/image/public/route-photos/yamanakako-lakeside/refetch_20260422/01.jpg?width=1200&height=630&resize=cover&quality=80",
+        width: 1200,
+        height: 630,
+        alt: "WanWalkについて",
+      },
+    ],
   },
 };
 

@@ -24,6 +24,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "次の休日、どこ歩く？ | WanWalk",
     description: "箱根・鎌倉・伊豆…愛犬と歩きたくなる散歩コースを厳選。",
+    images: [
+      {
+        url: "https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/render/image/public/route-photos/yamanakako-lakeside/refetch_20260422/01.jpg?width=1200&height=630&resize=cover&quality=80",
+        width: 1200,
+        height: 630,
+        alt: "WanWalk - 愛犬との散歩コース",
+      },
+    ],
   },
 };
 

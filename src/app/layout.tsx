@@ -3,6 +3,9 @@ import "./globals.css";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID?.trim();
 
+const DEFAULT_OG_IMAGE =
+  "https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/render/image/public/route-photos/yamanakako-lakeside/refetch_20260422/01.jpg?width=1200&height=630&resize=cover&quality=80";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://wanwalk.jp"),
   title: {
@@ -10,6 +13,23 @@ export const metadata: Metadata = {
     template: "%s | WanWalk",
   },
   description: "箱根・鎌倉・伊豆…愛犬と歩きたくなる散歩コースを厳選。駐車場・犬可カフェ・トイレ情報つき。",
+  openGraph: {
+    type: "website",
+    siteName: "WanWalk",
+    locale: "ja_JP",
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "WanWalk - 愛犬との散歩コース",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [DEFAULT_OG_IMAGE],
+  },
 };
 
 export default function RootLayout({

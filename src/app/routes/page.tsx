@@ -15,6 +15,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "散歩コース一覧 | WanWalk",
     description: "全エリアの愛犬散歩コースを一覧で。季節フィルター付き。",
+    images: [
+      {
+        url: "https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/render/image/public/route-photos/yamanakako-lakeside/refetch_20260422/01.jpg?width=1200&height=630&resize=cover&quality=80",
+        width: 1200,
+        height: 630,
+        alt: "散歩コース一覧 | WanWalk",
+      },
+    ],
   },
 };
 
