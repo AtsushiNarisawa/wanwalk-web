@@ -4,6 +4,29 @@ import { wanwalkSupabase as supabase } from "@/lib/walks/supabase";
 
 export const runtime = "edge";
 
+const SUPABASE_PUBLIC_PREFIX = "/storage/v1/object/public/";
+const SUPABASE_RENDER_PREFIX = "/storage/v1/render/image/public/";
+
+function toRenderUrl(src: string | null | undefined): string | null {
+  if (!src) return null;
+  let target = src;
+  if (target.includes(SUPABASE_PUBLIC_PREFIX)) {
+    target = target.replace(SUPABASE_PUBLIC_PREFIX, SUPABASE_RENDER_PREFIX);
+  } else if (!target.includes(SUPABASE_RENDER_PREFIX)) {
+    return src;
+  }
+  try {
+    const url = new URL(target);
+    url.searchParams.set("width", "1200");
+    url.searchParams.set("height", "630");
+    url.searchParams.set("resize", "cover");
+    url.searchParams.set("quality", "80");
+    return url.toString();
+  } catch {
+    return src;
+  }
+}
+
 const CATEGORY_LABELS: Record<string, string> = {
   cafe: "カフェ",
   restaurant: "レストラン",
@@ -17,7 +40,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
@@ -44,6 +67,7 @@ export async function GET(
     ? CATEGORY_LABELS[spot.category] ?? ""
     : "";
   const dogOk = spot.pet_friendly ? "犬連れOK" : "";
+  const photoUrl = toRenderUrl(spot.photo_url);
 
   return new ImageResponse(
     (
@@ -57,9 +81,9 @@ export async function GET(
         }}
       >
         {/* Background photo */}
-        {spot.photo_url && (
+        {photoUrl && (
           <img
-            src={spot.photo_url}
+            src={photoUrl}
             alt=""
             style={{
               position: "absolute",
@@ -80,7 +104,7 @@ export async function GET(
             left: 0,
             width: "1200px",
             height: "630px",
-            background: spot.photo_url
+            background: photoUrl
               ? "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.65) 100%)"
               : "#2A2A2A",
             display: "flex",
@@ -218,6 +242,9 @@ export async function GET(
     {
       width: 1200,
       height: 630,
+      headers: {
+        "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
+      },
     }
   );
 }
