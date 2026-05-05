@@ -37,12 +37,12 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "hakone-gora-koen-seimon-hakone-gora",
   "hakone-sekisho-shiryo-kan-mae",
   "hakone-shime-nama-hanazono-ideguchi",
-  "hase-tera-noajisai-shamen",
+  // "hase-tera-noajisai-shamen", → RENAMED_SPOT_SLUGS で 301 redirect 化（2026-05-05）
   "hayakawa-soi-no-sansaku-michi",
   "hayakawa-zoi-sansaku-ro",
   "hikawamaru-to-umi-no-byuu",
   "hitsuji-yama-koen-chusha-jo-chichibu-hitsujiyama",
-  "hojo-beach",
+  // "hojo-beach", → RENAMED_SPOT_SLUGS で 301 redirect 化（2026-05-05）
   "hojo-kaigan-toilet",
   "hokugan-no-shizen-michi",
   "hotarusupotto",
@@ -77,7 +77,7 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "koke-musu-bake-jizou",
   "kokudo-134-go-zoi-yuhodo",
   "komen-no-kyouzou",
-  "komyou-tera-no-yamato",
+  // "komyou-tera-no-yamato", → RENAMED_SPOT_SLUGS で 301 redirect 化（2026-05-05）
   "korai-san-haikingu-kosu",
   "koyou-no-tonneru",
   "kugenumakaigan-sunahama-sampomichi",
@@ -115,7 +115,7 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "owakudani-funen-byuu",
   "popiikosumosu-no-hanahata",
   "raisu-boru",
-  "reinbooburijji-yuukei",
+  // "reinbooburijji-yuukei", → RENAMED_SPOT_SLUGS で 301 redirect 化（2026-05-05）
   "rinko-paku-yokohama-minatomirai",
   "roopuuei-karano-ashi-no-mizuumi",
   "ryousen-karano-fujisan",
@@ -137,7 +137,7 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "shuzenji-onsenba-toilet",
   "sukumogawa-no-keiryuu",
   "taigan-no-dotemichi-mizu-asobi-supotto",
-  "taikan-ran-kuruma-to-shibafuhiroba",
+  // "taikan-ran-kuruma-to-shibafuhiroba", → RENAMED_SPOT_SLUGS で 301 redirect 化（2026-05-05）
   "taisa-n-hashi-karano-yokohama-zenkei",
   "takitsubo-sawamei-kawa-seiryuu",
   "tariasen-chusha-jo",
@@ -152,7 +152,7 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "yama-no-hoteru-teien-fukin",
   "yamashita-koen-2",
   "yamashita-koen-koshu-toire-yokohama-yamashita",
-  "yamashita-koen-yokohama-yamashita",
+  // "yamashita-koen-yokohama-yamashita", → RENAMED_SPOT_SLUGS で 301 redirect 化（2026-05-05）
   "yuhodo-susuki-ni-kakoma-reru-eria",
   "yui-ga-hama-no-sunahama",
   "yuigahama-chika-chusha-jo",
@@ -199,9 +199,17 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
 // gone-slugs（410）に入れるより、こちらで 301 化して新 slug に検索インプレッションを引き継ぐべき。
 // 抽出条件: gone-slugs に含まれる slug のうち、現 DB に同一 spot の新 slug が存在しているもの。
 //
-// 2026-05-05 初版: GSC 90日 31 imp / 1 click（小田原城 犬）の流入を新 slug に移行するため。
-// 同パターンで他に 6件候補あり（hase-tera-noajisai-shamen / hojo-beach / komyou-tera-no-yamato /
-// reinbooburijji-yuukei / taikan-ran-kuruma-to-shibafuhiroba / yamashita-koen-yokohama-yamashita）→ CEO 確認後に追加予定。
+// 2026-05-05 初版: GSC 90日 31 imp / 1 click（小田原城 犬）の流入を新 slug に移行するため odawara-shiro 1件で開始。
+// 2026-05-05 拡充: CEO 承認で更に 6件追加（手動 LIKE マッチで検出した同パターン）。
+//   全7件とも DB の新 slug が is_published=true・SEO 残留カテゴリ（viewpoint/park）に存在することを確認済み。
+//   GSC 検索クエリ（「○○ 犬連れ」等）の検索意図に新 slug が応答できる妥当性も確認済み。
+// 残り 167 gone slug の網羅検出は別タスク（簡易類似マッチング SQL は project_pecorino_delete_and_301_redirect_2026_05_05.md 参照）。
 export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
   ["odawara-shiro-tenshukaku", "odawara-jo-tenshukaku"],
+  ["hase-tera-noajisai-shamen", "hasedera-monzen"],
+  ["hojo-beach", "hojo-sanbashi"],
+  ["komyou-tera-no-yamato", "komyoji-hasuike-sekitei"],
+  ["reinbooburijji-yuukei", "reimbo-burijji-tembo-dekki"],
+  ["taikan-ran-kuruma-to-shibafuhiroba", "daiya-to-hana-no-dai-kanran-sha"],
+  ["yamashita-koen-yokohama-yamashita", "yamashita-koen-iriguchi"],
 ]);
