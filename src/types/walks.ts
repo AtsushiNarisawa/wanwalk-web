@@ -85,12 +85,18 @@ export type SpotCategory =
 
 // SEOランディングページとして個別ページを生成しないカテゴリ。
 // ルート上の地図マーカー・コースガイドとしては表示するが、/spots/[slug] は生成しない・sitemapからも除外。
-// Why: 「○○の駐車場」「公衆トイレ」というクエリで検索する人はおらず、薄いページとして
-// サイト全体の品質シグナルを下げるため（GSC 90日: parking CTR 1.4%, restroom 0%）。
+// Why:
+// - parking/restroom/water_station: 「○○の駐車場」「公衆トイレ」で検索されないインフラ系（GSC 90日: parking CTR 1.4%, restroom 0%）
+// - cafe/restaurant/shop: 食べログ等の専門サイトと棲み分け。GSC 90日実データで店舗系 spot ページは 9 imp / 0 click（CTR 0%）と
+//   投資価値ゼロが裏付けられた。店舗関係性のリスク（無断紹介・閉業追従負担・ペコリーノ閉業実例）も避ける。
+//   検索ユーザーは「○○ 犬連れ」「エリア × カテゴリ」で公共スポットに来ており、店舗名ピンポイントは検索ボリュームほぼゼロ。
 export const NON_SEO_SPOT_CATEGORIES = new Set<SpotCategory>([
   "parking",
   "restroom",
   "water_station",
+  "cafe",
+  "restaurant",
+  "shop",
 ]);
 
 export interface DogPolicy {

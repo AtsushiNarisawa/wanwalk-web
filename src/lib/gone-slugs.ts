@@ -1,7 +1,10 @@
-// GSC でインデックスされているが現 DB には存在しないスポット URL（過去の slug）。
-// これらに対しては middleware で 410 Gone を返し、Google から削除されやすくする。
-// 抽出: 2026-05-04 GSC 過去90日 × DB JOIN で missing 151件確定。
-// 削除されないスポットを誤って入れないように、追加・削除時は再抽出を実施。
+// /spots/{slug} に 410 Gone を返す対象 slug 台帳。
+// 用途は 2 系統:
+// (1) 過去にインデックスされていたが現 DB に存在しない slug（5/4 抽出 151件）
+// (2) DB には存在するが SEO 戦略上ランディングページを持たないカテゴリの slug
+//     - 5/5: cafe/restaurant/shop 32件追加（NON_SEO_SPOT_CATEGORIES に統合・GSC 90日 0 click で投資価値ゼロ確定）
+// 410 は 404 より「明示的に削除された」とみなされ Google から早く削除される。
+// 追加・削除時は再抽出を実施。
 export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "aka-renga-soko-no-shibafu",
   "aka-renga-soko-shibafuhiroba",
@@ -154,4 +157,38 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "yuigahama-chika-chusha-jo",
   "zeniarai-benten-houmen-no-kudari",
   "zou-no-hana-paaku",
+  // --- 2026-05-05 追加: 店舗系 32件 (cafe 25 + restaurant 3 + shop 4) ---
+  // GSC 90日実データで店舗系 spot ページは 9 imp / 0 click。食べログ等と棲み分け。
+  "aoi-bekari-kafe-hakone-sengokuhara",
+  "bakery-table-hakone",
+  "bees-sunday",
+  "dai-wakuya-kuro-tama-go-kan",
+  "daikanyama-t-site",
+  "days-kugenuma-shonan-kugenuma",
+  "hakonature-base-yumoto",
+  "hotcake-parlor-little-tree",
+  "ikemoto-chaya",
+  "inu-zure-kafe-eria",
+  "ishigama-gaden-terasu",
+  "isshoku-dou-sarou-terasu-seki",
+  "kafe-za-rozu",
+  "kaigan-benchi-eria",
+  "keishoku-tokoro-sanga",
+  "kinjiro-kafe",
+  "kyukei-sho-baiten-eria",
+  "loncafe-shonan-enoshima-shonan",
+  "milk-hall",
+  "motosu-kan-kohan-kafue",
+  "nakameguro-koka-ka",
+  "naraya-cafe",
+  "omuro-keishoku-dou",
+  "pecorino-market-and-restaurant",
+  "resutoran-kosui-terasu",
+  "sasuke-cafe",
+  "sasuke-cafe-kamakura",
+  "terasu-inshoku-eria",
+  "terrace-cafe-ippekiko",
+  "the-park",
+  "watanabe-bekari",
+  "zaimokuza-cafe-75-th",
 ]);
