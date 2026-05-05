@@ -106,7 +106,8 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "nishi-no-kawara-koen-no-yu-damari",
   "nogawa-gouryuuchiten",
   "o-daiba-kaihin-koen",
-  "odawara-shiro-tenshukaku",
+  // odawara-shiro-tenshukaku は RENAMED_SPOT_SLUGS で 301 redirect 化（2026-05-05）
+  // "odawara-shiro-tenshukaku",
   "oka-no-ue-no-tembo",
   "omuroyama-rifuto-noriba-izu-omuroyama",
   "onshi-hakone-koen-chusha-jo-hakone-ashinoko",
@@ -157,6 +158,7 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "yuigahama-chika-chusha-jo",
   "zeniarai-benten-houmen-no-kudari",
   "zou-no-hana-paaku",
+  // --- 2026-05-05 削除: pecorino-market-and-restaurant (店舗系 32 へ統合済 + 閉業確認で DB 削除も完了) ---
   // --- 2026-05-05 追加: 店舗系 32件 (cafe 25 + restaurant 3 + shop 4) ---
   // GSC 90日実データで店舗系 spot ページは 9 imp / 0 click。食べログ等と棲み分け。
   "aoi-bekari-kafe-hakone-sengokuhara",
@@ -191,4 +193,15 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "the-park",
   "watanabe-bekari",
   "zaimokuza-cafe-75-th",
+]);
+
+// リネームされた slug の旧→新マップ。middleware で 301 redirect される。
+// gone-slugs（410）に入れるより、こちらで 301 化して新 slug に検索インプレッションを引き継ぐべき。
+// 抽出条件: gone-slugs に含まれる slug のうち、現 DB に同一 spot の新 slug が存在しているもの。
+//
+// 2026-05-05 初版: GSC 90日 31 imp / 1 click（小田原城 犬）の流入を新 slug に移行するため。
+// 同パターンで他に 6件候補あり（hase-tera-noajisai-shamen / hojo-beach / komyou-tera-no-yamato /
+// reinbooburijji-yuukei / taikan-ran-kuruma-to-shibafuhiroba / yamashita-koen-yokohama-yamashita）→ CEO 確認後に追加予定。
+export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
+  ["odawara-shiro-tenshukaku", "odawara-jo-tenshukaku"],
 ]);
