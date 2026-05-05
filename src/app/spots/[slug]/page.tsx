@@ -38,6 +38,7 @@ const CATEGORY_CONFIG: Record<SpotCategory, { icon: Icon; label: string }> = {
   parking: { icon: Car, label: "駐車場" },
   viewpoint: { icon: Binoculars, label: "景観ポイント" },
   shop: { icon: Storefront, label: "ショップ" },
+  landmark: { icon: MapPin, label: "ランドマーク" },
 };
 
 const SIZE_LABELS: Record<string, string> = {

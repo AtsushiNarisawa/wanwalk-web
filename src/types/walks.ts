@@ -81,7 +81,8 @@ export type SpotCategory =
   | "restroom"
   | "parking"
   | "viewpoint"
-  | "shop";
+  | "shop"
+  | "landmark";
 
 // SEOランディングページとして個別ページを生成しないカテゴリ。
 // ルート上の地図マーカー・コースガイドとしては表示するが、/spots/[slug] は生成しない・sitemapからも除外。
@@ -90,6 +91,8 @@ export type SpotCategory =
 // - cafe/restaurant/shop: 食べログ等の専門サイトと棲み分け。GSC 90日実データで店舗系 spot ページは 9 imp / 0 click（CTR 0%）と
 //   投資価値ゼロが裏付けられた。店舗関係性のリスク（無断紹介・閉業追従負担・ペコリーノ閉業実例）も避ける。
 //   検索ユーザーは「○○ 犬連れ」「エリア × カテゴリ」で公共スポットに来ており、店舗名ピンポイントは検索ボリュームほぼゼロ。
+// - landmark: 同一ルート内に本体 spot がある付属（門前・広場・入口）系。本体 spot に SEO 集約しつつ、
+//   ルート上の地理的なランドマークとしては表示維持する用途（5/6 viewpoint 精査で導入）。
 export const NON_SEO_SPOT_CATEGORIES = new Set<SpotCategory>([
   "parking",
   "restroom",
@@ -97,6 +100,7 @@ export const NON_SEO_SPOT_CATEGORIES = new Set<SpotCategory>([
   "cafe",
   "restaurant",
   "shop",
+  "landmark",
 ]);
 
 export interface DogPolicy {

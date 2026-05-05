@@ -32,6 +32,7 @@ const CATEGORY_ICONS: Record<SpotCategory, Icon> = {
   parking: Car,
   viewpoint: Binoculars,
   shop: Storefront,
+  landmark: MapPin,
 };
 
 function formatDistance(meters: number): string {

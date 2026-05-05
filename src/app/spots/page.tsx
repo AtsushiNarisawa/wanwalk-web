@@ -49,6 +49,7 @@ const CATEGORY_CONFIG: Record<
   parking: { icon: Car, label: "駐車場" },
   viewpoint: { icon: Binoculars, label: "景観ポイント" },
   shop: { icon: Storefront, label: "ショップ" },
+  landmark: { icon: MapPin, label: "ランドマーク" },
 };
 
 // SEO ランディング対象のカテゴリのみ表示（NON_SEO_SPOT_CATEGORIES は getAllSpots 側で除外済み）。
