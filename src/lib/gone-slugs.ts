@@ -193,6 +193,10 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "the-park",
   "watanabe-bekari",
   "zaimokuza-cafe-75-th",
+  // --- 2026-05-07 追加: GSC 過去90日 × DB JOIN で missing 検出した新規 2件 ---
+  // DB に対応 spot が存在しない（過去削除 or 非存在）→ 410 で Google からの削除を加速
+  "dainamikku-na-iwaba",
+  "marine-cafe",
 ]);
 
 // リネームされた slug の旧→新マップ。middleware で 301 redirect される。
@@ -203,7 +207,8 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
 // 2026-05-05 拡充: CEO 承認で更に 6件追加（手動 LIKE マッチで検出した同パターン）。
 //   全7件とも DB の新 slug が is_published=true・SEO 残留カテゴリ（viewpoint/park）に存在することを確認済み。
 //   GSC 検索クエリ（「○○ 犬連れ」等）の検索意図に新 slug が応答できる妥当性も確認済み。
-// 残り 167 gone slug の網羅検出は別タスク（簡易類似マッチング SQL は project_pecorino_delete_and_301_redirect_2026_05_05.md 参照）。
+// 2026-05-07 D-1 統一プロジェクト: スプリント3 Part 10 で 9件追加（読みにくいローマ字・意味的乖離・特定性不足を一気に補正）。
+//   全9件とも DB に新 slug が存在することを確認済み・name と slug の意味整合性も担保。
 export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
   ["odawara-shiro-tenshukaku", "odawara-jo-tenshukaku"],
   ["hase-tera-noajisai-shamen", "hasedera-monzen"],
@@ -212,4 +217,21 @@ export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
   ["reinbooburijji-yuukei", "reimbo-burijji-tembo-dekki"],
   ["taikan-ran-kuruma-to-shibafuhiroba", "daiya-to-hana-no-dai-kanran-sha"],
   ["yamashita-koen-yokohama-yamashita", "yamashita-koen-iriguchi"],
+  // 2026-05-07 D-1 追加: 意味的乖離 2件
+  ["cafe-anana", "kamakura-kaihin-koen-sakanoshita"],
+  ["amagikokusaimasutsuriba", "joren-no-taki-shibukitei"],
+  // 2026-05-07 D-1 追加: 読みにくいローマ字 2件
+  ["dogguran", "showa-kinen-park-dog-run"],
+  ["parutenon", "chichibu-muse-park-parthenon"],
+  // 2026-05-07 D-1 追加: 地理冠なし・特定性不足 5件
+  ["anakuchi", "jogasaki-anakuchi"],
+  ["shuzenji", "izu-shuzenji-temple"],
+  ["iwadatami", "nagatoro-iwadatami"],
+  ["marukibashi", "sukumogawa-marukibashi"],
+  ["sengataki", "karuizawa-sengataki-falls"],
+  // 2026-05-07 D-3 追加: GSC 過去90日 × DB JOIN で missing 検出 → 現 DB に同一 spot の新 slug が存在
+  ["houboku-no-gaanjii-ushi", "hoboku-eria"],
+  ["kanmangafuchi-abyss", "man-ke-fuchi-iriguchi"],
+  ["tateyama-shiro-karano-tenbo", "tateyama-shiro-tembo-dai"],
+  ["tsutsuji-suspension-bridge", "tsutsuji-tsuribashi"],
 ]);
