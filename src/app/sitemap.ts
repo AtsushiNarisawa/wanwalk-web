@@ -4,6 +4,12 @@ import { getAllPublishedRoutes, getAreas, getAllSpotSlugs } from "@/lib/walks/da
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
 
+// 非ASCII / 過長 slug は middleware で 410 Gone 化される。
+// 万一 DB に混入してもサイトマップに出さないための防御フィルタ。
+const VALID_SLUG = /^[a-z0-9][a-z0-9_-]*$/i;
+const isValidSlug = (slug: string | null | undefined): slug is string =>
+  typeof slug === "string" && slug.length <= 100 && VALID_SLUG.test(slug);
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://wanwalk.jp";
 
@@ -58,26 +64,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  const routePages: MetadataRoute.Sitemap = routes.map((route) => ({
-    url: `${baseUrl}/routes/${route.slug}`,
-    lastModified: route.updated_at ? new Date(route.updated_at) : new Date(),
-    changeFrequency: "weekly" as const,
-    priority: 0.7,
-  }));
+  const routePages: MetadataRoute.Sitemap = routes
+    .filter((route) => isValidSlug(route.slug))
+    .map((route) => ({
+      url: `${baseUrl}/routes/${route.slug}`,
+      lastModified: route.updated_at ? new Date(route.updated_at) : new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }));
 
-  const areaPages: MetadataRoute.Sitemap = areas.map((area) => ({
-    url: `${baseUrl}/areas/${area.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly" as const,
-    priority: 0.6,
-  }));
+  const areaPages: MetadataRoute.Sitemap = areas
+    .filter((area) => isValidSlug(area.slug))
+    .map((area) => ({
+      url: `${baseUrl}/areas/${area.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
 
-  const spotPages: MetadataRoute.Sitemap = spotSlugs.map((slug) => ({
-    url: `${baseUrl}/spots/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.5,
-  }));
+  const spotPages: MetadataRoute.Sitemap = spotSlugs
+    .filter(isValidSlug)
+    .map((slug) => ({
+      url: `${baseUrl}/spots/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    }));
 
   return [...staticPages, ...routePages, ...areaPages, ...spotPages];
 }
