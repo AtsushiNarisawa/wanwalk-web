@@ -245,4 +245,7 @@ export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
   // 2026-05-07 Part 11 追加: 英字混入 spot.name の Phase 1.5-A D7 残課題クローズ
   // IPPEKIKO NATIONAL PARK → 一碧湖畔エリア（地理的正確化・「一碧湖国立公園」は存在せず富士箱根伊豆国立公園の一部）
   ["ippekiko-national-park", "ippekiko-kohan-area"],
+  // 2026-05-07 GSC 月次差分: 90日で 21 clicks / 251 impressions の機会損失を検出 → 即時 RENAMED 化
+  // 旧 slug は DB から消失・新 slug「多摩川河川敷ドッグラン（狛江）」が is_published=true で実在
+  ["tamagawa-kasenshiki-dogguran", "tamagawa-kasenshiki-dogguran-tokyo-tamagawa"],
 ]);
