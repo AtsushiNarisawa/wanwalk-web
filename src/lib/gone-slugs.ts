@@ -234,4 +234,7 @@ export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
   ["kanmangafuchi-abyss", "man-ke-fuchi-iriguchi"],
   ["tateyama-shiro-karano-tenbo", "tateyama-shiro-tembo-dai"],
   ["tsutsuji-suspension-bridge", "tsutsuji-tsuribashi"],
+  // 2026-05-07 Part 11 追加: 英字混入 spot.name の Phase 1.5-A D7 残課題クローズ
+  // IPPEKIKO NATIONAL PARK → 一碧湖畔エリア（地理的正確化・「一碧湖国立公園」は存在せず富士箱根伊豆国立公園の一部）
+  ["ippekiko-national-park", "ippekiko-kohan-area"],
 ]);
