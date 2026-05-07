@@ -197,6 +197,14 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   // DB に対応 spot が存在しない（過去削除 or 非存在）→ 410 で Google からの削除を加速
   "dainamikku-na-iwaba",
   "marine-cafe",
+  // --- 2026-05-07 Part 15: 誤読・誤スペル slug 改名で新 slug 6件を追加 ---
+  // （旧 slug は上記に既存・新 slug は同カテゴリ NON_SEO 維持のため 410 化）
+  "aoi-bakery-cafe-sengokuhara",
+  "cafe-the-rose-yokohama",
+  "ishigama-garden-terrace",
+  "motosu-kan-cafe",
+  "nakameguro-koka-shita",
+  "watanabe-bakery",
 ]);
 
 // リネームされた slug の旧→新マップ。middleware で 301 redirect される。
