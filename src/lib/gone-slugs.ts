@@ -235,6 +235,13 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "suwanohara-park-center-toilet",
   "tariasen-iriguchi-baiten",
   "tembo-hiroba-odawara-suwa",
+  // --- 2026-05-07 GSC 月次差分 (Stage B 修正): RENAMED 候補から GONE に移動 4件 ---
+  // 新 slug 候補が parking カテゴリ (NON_SEO_SPOT_CATEGORIES) で 404 化されるため
+  // 301 redirect chain を作らず直接 410 化。
+  "arasaki-koen-chusha-jo-miura-arasaki",
+  "fujisawa-shi-kanko-kyokai-enoshima-chusha-jo",
+  "kannonzaki-koen-dai-ichi-chusha-jo-kannonzaki-umi",
+  "yuhodo-iriguchi",
 ]);
 
 // リネームされた slug の旧→新マップ。middleware で 301 redirect される。
@@ -278,17 +285,15 @@ export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
   // 2026-05-07 GSC 月次差分: 90日で 21 clicks / 251 impressions の機会損失を検出 → 即時 RENAMED 化
   // 旧 slug は DB から消失・新 slug「多摩川河川敷ドッグラン（狛江）」が is_published=true で実在
   ["tamagawa-kasenshiki-dogguran", "tamagawa-kasenshiki-dogguran-tokyo-tamagawa"],
-  // 2026-05-07 GSC 月次差分 (Stage B): 新規 missing から RENAMED 10件
-  // 全件 GSC 90日 0/0 だが DB に同一 spot の新 slug が is_published=true で実在。
+  // 2026-05-07 GSC 月次差分 (Stage B): 新規 missing から RENAMED 6件
+  // 全件 GSC 90日 0/0 だが DB に同一 spot の新 slug が viewpoint/park (SEO 対象) で実在。
   // tamagawa の前例 (旧 0/0 → 新 21/251) を踏まえ将来の検索クエリ救済の保険として一括 301 化。
-  ["arasaki-koen-chusha-jo-miura-arasaki", "arasaki-koen-chusha-jo"],
-  ["fujisawa-shi-kanko-kyokai-enoshima-chusha-jo", "fujisawa-shi-kanko-kyokai-enoshima-chusha-jo-shonan-enoshima"],
+  // ※ 当初 10件想定だったが 4件は新 slug が parking カテゴリ (NON_SEO_SPOT_CATEGORIES) で 404 化されるため
+  //   redirect 先 404 を避けるべく GONE_SPOT_SLUGS に移動した。
   ["joren-falls", "joren-no-taki-shibukitei"],
   ["kadowaki-suspension-bridge", "kadowaki-tsuribashi"],
-  ["kannonzaki-koen-dai-ichi-chusha-jo-kannonzaki-umi", "kannonzaki-koen-dai-ichi-chusha-jo"],
   ["komachi-street", "komachi-dori"],
   ["kotoku-in", "kotokuin-kamakura-daibutsu"],
   ["nagaike-water-park", "nagaike-shinsui-koen"],
   ["yahata-no-shizen-kenkyu-ro-tembo-pointo", "yahata-tsutsuji-gunraku-tembo-dai"],
-  ["yuhodo-iriguchi", "yuhodo-iriguchi-hakone-miyanoshita"],
 ]);
