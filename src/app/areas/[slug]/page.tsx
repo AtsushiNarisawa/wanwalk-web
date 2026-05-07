@@ -4,6 +4,8 @@ import { getAreas, getAreaBySlug, getRoutesByAreaId } from "@/lib/walks/data";
 import SeasonFilter from "@/components/walks/SeasonFilter";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
+import ShareMenu from "@/components/walks/ShareMenu";
+import { buildOgMetadata } from "@/lib/walks/og-meta";
 import Link from "next/link";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
@@ -35,24 +37,20 @@ export async function generateMetadata({
     : ogImageBase.replace("/object/", "/render/image/") +
       "?width=1200&height=630&resize=cover&quality=80";
 
+  const title = `${area.name}で犬と歩けるおすすめ散歩コース`;
+  const description = `${area.name}（${area.prefecture}）の犬連れ散歩コースを紹介。${area.description ?? ""}`;
+
   return {
-    title: `${area.name}で犬と歩けるおすすめ散歩コース`,
-    description: `${area.name}（${area.prefecture}）の犬連れ散歩コースを紹介。${area.description ?? ""}`,
-    alternates: {
-      canonical: `/areas/${slug}`,
-    },
-    openGraph: {
-      title: `${area.name}で犬と歩けるおすすめ散歩コース`,
+    title,
+    description,
+    alternates: { canonical: `/areas/${slug}` },
+    ...buildOgMetadata({
+      title,
       description: `${area.name}（${area.prefecture}）の犬連れ散歩コースを紹介。`,
-      images: [
-        {
-          url: ogImageUrl,
-          width: 1200,
-          height: 630,
-          alt: `${area.name} - 犬と歩けるおすすめ散歩コース`,
-        },
-      ],
-    },
+      path: `/areas/${slug}`,
+      ogImage: ogImageUrl,
+      ogImageAlt: `${area.name} - 犬と歩けるおすすめ散歩コース`,
+    }),
   };
 }
 
@@ -83,19 +81,36 @@ export default async function AreaDetailPage({
         <span style={{ color: "var(--color-ww-text-secondary)" }}>{area.name}</span>
       </nav>
 
-      <h1
+      <div
         style={{
-          fontFamily: "var(--font-ww-serif)",
-          fontSize: 32,
-          fontWeight: 700,
-          color: "var(--color-ww-text)",
-          letterSpacing: "0.01em",
-          lineHeight: 1.35,
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 16,
           marginBottom: 8,
         }}
       >
-        {area.name}で犬と歩けるおすすめ散歩コース
-      </h1>
+        <h1
+          style={{
+            fontFamily: "var(--font-ww-serif)",
+            fontSize: 32,
+            fontWeight: 700,
+            color: "var(--color-ww-text)",
+            letterSpacing: "0.01em",
+            lineHeight: 1.35,
+            margin: 0,
+            flex: 1,
+          }}
+        >
+          {area.name}で犬と歩けるおすすめ散歩コース
+        </h1>
+        <ShareMenu
+          url={`https://wanwalk.jp/areas/${slug}`}
+          text={`${area.name}（${area.prefecture}）で犬と歩けるおすすめ散歩コース`}
+          title={`${area.name} | WanWalk`}
+          size="sm"
+        />
+      </div>
       <p
         style={{
           fontSize: 14,

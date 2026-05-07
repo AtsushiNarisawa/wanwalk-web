@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Path, MapPin, Dog, Camera } from "@phosphor-icons/react/dist/ssr";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
+import { buildOgMetadata } from "@/lib/walks/og-meta";
 
 // 完全静的ページ（DB参照なし）
 export const dynamic = "force-static";
@@ -11,22 +12,13 @@ export const metadata: Metadata = {
   title: "WanWalkについて - 愛犬との散歩をもっと豊かに",
   description:
     "WanWalkは、犬連れに特化した日本初の散歩ルート体験プラットフォームです。83本のルートと589件の犬連れスポットを、体験ストーリーと写真でお届けします。",
-  alternates: {
-    canonical: "/about",
-  },
-  openGraph: {
+  alternates: { canonical: "/about" },
+  ...buildOgMetadata({
     title: "WanWalkについて",
-    description:
-      "犬連れに特化した日本初の散歩ルート体験プラットフォーム。",
-    images: [
-      {
-        url: "https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/render/image/public/route-photos/yamanakako-lakeside/refetch_20260422/01.jpg?width=1200&height=630&resize=cover&quality=80",
-        width: 1200,
-        height: 630,
-        alt: "WanWalkについて",
-      },
-    ],
-  },
+    description: "犬連れに特化した日本初の散歩ルート体験プラットフォーム。",
+    path: "/about",
+    ogImageAlt: "WanWalkについて",
+  }),
 };
 
 export default function AboutPage() {

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getAreasWithRouteCount } from "@/lib/walks/data";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import AreaCard from "@/components/walks/AreaCard";
+import { buildOgMetadata } from "@/lib/walks/og-meta";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
@@ -11,22 +12,13 @@ export const metadata: Metadata = {
   title: "エリア一覧 - 犬と歩ける散歩コース",
   description:
     "箱根・鎌倉・湘南・横浜など、愛犬と一緒に楽しめる散歩コースのあるエリア一覧。犬連れに必要な情報つきで紹介。",
-  alternates: {
-    canonical: "/areas",
-  },
-  openGraph: {
+  alternates: { canonical: "/areas" },
+  ...buildOgMetadata({
     title: "エリア一覧 - 犬と歩ける散歩コース | WanWalk",
-    description:
-      "箱根・鎌倉・湘南・横浜など、愛犬と一緒に楽しめる散歩コースのあるエリア一覧。",
-    images: [
-      {
-        url: "https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/render/image/public/route-photos/yamanakako-lakeside/refetch_20260422/01.jpg?width=1200&height=630&resize=cover&quality=80",
-        width: 1200,
-        height: 630,
-        alt: "エリア一覧 - 犬と歩ける散歩コース",
-      },
-    ],
-  },
+    description: "箱根・鎌倉・湘南・横浜など、愛犬と一緒に楽しめる散歩コースのあるエリア一覧。",
+    path: "/areas",
+    ogImageAlt: "エリア一覧 - 犬と歩ける散歩コース",
+  }),
 };
 
 export default async function AreasPage() {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getAllPublishedRoutes, getAreasWithRouteCount } from "@/lib/walks/data";
 import SeasonFilter from "@/components/walks/SeasonFilter";
+import { buildOgMetadata } from "@/lib/walks/og-meta";
 
 export const revalidate = 86400;
 
@@ -9,21 +10,13 @@ export const metadata: Metadata = {
   title: "散歩コース一覧",
   description:
     "WanWalk掲載の全散歩コースを一覧で。箱根・鎌倉・伊豆など全エリアから、季節やカート走行可で絞り込めます。",
-  alternates: {
-    canonical: "/routes",
-  },
-  openGraph: {
+  alternates: { canonical: "/routes" },
+  ...buildOgMetadata({
     title: "散歩コース一覧 | WanWalk",
     description: "全エリアの愛犬散歩コースを一覧で。季節フィルター付き。",
-    images: [
-      {
-        url: "https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/render/image/public/route-photos/yamanakako-lakeside/refetch_20260422/01.jpg?width=1200&height=630&resize=cover&quality=80",
-        width: 1200,
-        height: 630,
-        alt: "散歩コース一覧 | WanWalk",
-      },
-    ],
-  },
+    path: "/routes",
+    ogImageAlt: "散歩コース一覧 | WanWalk",
+  }),
 };
 
 export default async function RoutesIndexPage() {

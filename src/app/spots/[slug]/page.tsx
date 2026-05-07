@@ -24,6 +24,8 @@ import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
 import type { SpotCategory, DogPolicy } from "@/types/walks";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
+import ShareMenu from "@/components/walks/ShareMenu";
+import { buildOgMetadata } from "@/lib/walks/og-meta";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
@@ -71,24 +73,19 @@ export async function generateMetadata({
   const dogFriendly = spot.pet_friendly ? "犬連れOK" : "";
   const desc = `${spot.area_name}の${cat}「${spot.name}」。${dogFriendly}${spot.description?.slice(0, 80) ?? ""}`;
 
+  const title = `${spot.name} - ${spot.area_name}の犬連れスポット`;
+  const ogImage = `https://wanwalk.jp/api/og/spots/${slug}`;
   return {
-    title: `${spot.name} - ${spot.area_name}の犬連れスポット`,
+    title,
     description: desc,
-    alternates: {
-      canonical: `/spots/${slug}`,
-    },
-    openGraph: {
-      title: `${spot.name} - ${spot.area_name}の犬連れスポット`,
+    alternates: { canonical: `/spots/${slug}` },
+    ...buildOgMetadata({
+      title,
       description: desc,
-      images: [
-        {
-          url: `/api/og/spots/${slug}`,
-          width: 1200,
-          height: 630,
-          alt: `${spot.name} - ${spot.area_name}`,
-        },
-      ],
-    },
+      path: `/spots/${slug}`,
+      ogImage,
+      ogImageAlt: `${spot.name} - ${spot.area_name}`,
+    }),
   };
 }
 
@@ -210,19 +207,36 @@ export default async function SpotDetailPage({
             </div>
           )}
 
-          <h1
+          <div
             style={{
-              fontFamily: "var(--font-ww-serif)",
-              fontSize: 32,
-              fontWeight: 700,
-              color: "var(--color-ww-text)",
-              letterSpacing: "0.01em",
-              lineHeight: 1.35,
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: 16,
               marginBottom: 8,
             }}
           >
-            {spot.name}
-          </h1>
+            <h1
+              style={{
+                fontFamily: "var(--font-ww-serif)",
+                fontSize: 32,
+                fontWeight: 700,
+                color: "var(--color-ww-text)",
+                letterSpacing: "0.01em",
+                lineHeight: 1.35,
+                margin: 0,
+                flex: 1,
+              }}
+            >
+              {spot.name}
+            </h1>
+            <ShareMenu
+              url={`https://wanwalk.jp/spots/${slug}`}
+              text={`${spot.name} - ${spot.area_name}の犬連れスポット`}
+              title={`${spot.name} | WanWalk`}
+              size="sm"
+            />
+          </div>
 
           <div
             className="flex items-center gap-3 flex-wrap"

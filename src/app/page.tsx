@@ -10,6 +10,7 @@ import {
 import RouteCard from "@/components/walks/RouteCard";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
+import { buildOgMetadata } from "@/lib/walks/og-meta";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
@@ -18,21 +19,13 @@ export const metadata: Metadata = {
   title: "次の休日、どこ歩く？ 愛犬との散歩コース | WanWalk",
   description:
     "箱根・鎌倉・伊豆など、愛犬と歩きたくなる散歩コースを厳選。駐車場・犬可カフェ・トイレ情報も完備。",
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
+  alternates: { canonical: "/" },
+  ...buildOgMetadata({
     title: "次の休日、どこ歩く？ | WanWalk",
     description: "箱根・鎌倉・伊豆…愛犬と歩きたくなる散歩コースを厳選。",
-    images: [
-      {
-        url: "https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/render/image/public/route-photos/yamanakako-lakeside/refetch_20260422/01.jpg?width=1200&height=630&resize=cover&quality=80",
-        width: 1200,
-        height: 630,
-        alt: "WanWalk - 愛犬との散歩コース",
-      },
-    ],
-  },
+    path: "/",
+    ogImageAlt: "WanWalk - 愛犬との散歩コース",
+  }),
 };
 
 // Wildbounds流セクション見出し（hairline装飾線 + Noto Serif JP）

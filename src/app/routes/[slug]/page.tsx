@@ -18,6 +18,7 @@ import PetInfoGrid from "@/components/walks/PetInfoGrid";
 import RouteActions from "@/components/walks/RouteActions";
 import RouteTimeline from "@/components/walks/RouteTimeline";
 import FeaturedSpots from "@/components/walks/FeaturedSpots";
+import { buildOgMetadata } from "@/lib/walks/og-meta";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
@@ -49,24 +50,19 @@ export async function generateMetadata({
       ? `${route.areas.name}の犬連れ散策コース「${route.name}」。園内散策、滞在目安${route.estimated_minutes}分。${route.description?.slice(0, 80) ?? ""}`
       : `${route.areas.name}の犬連れ散歩コース「${route.name}」。距離${distanceKm}km、所要${route.estimated_minutes}分。${route.description?.slice(0, 80) ?? ""}`);
 
+  const title = `${route.name} - ${route.areas.name}の${titleSuffix}`;
+  const ogImage = `https://wanwalk.jp/api/og/${slug}`;
   return {
-    title: `${route.name} - ${route.areas.name}の${titleSuffix}`,
+    title,
     description,
-    alternates: {
-      canonical: `/routes/${slug}`,
-    },
-    openGraph: {
-      title: `${route.name} - ${route.areas.name}の${titleSuffix}`,
+    alternates: { canonical: `/routes/${slug}` },
+    ...buildOgMetadata({
+      title,
       description,
-      images: [
-        {
-          url: `/api/og/${slug}`,
-          width: 1200,
-          height: 630,
-          alt: `${route.name} - ${route.areas.name}`,
-        },
-      ],
-    },
+      path: `/routes/${slug}`,
+      ogImage,
+      ogImageAlt: `${route.name} - ${route.areas.name}`,
+    }),
   };
 }
 
