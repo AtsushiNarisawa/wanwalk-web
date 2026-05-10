@@ -182,6 +182,7 @@ export default async function SpotDetailPage({
               alt={spot.name}
               fill
               className="object-cover"
+              style={{ objectPosition: spot.photo_metadata?.image_position ?? "center" }}
               priority
               sizes="(max-width: 896px) 100vw, 896px"
             />

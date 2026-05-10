@@ -134,6 +134,7 @@ export interface RouteSpot {
   category: SpotCategory | null;
   dog_policy: DogPolicy | null;
   photo_url: string | null;
+  photo_metadata: { image_position?: "top" | "bottom" | "center" } | null;
   website_url: string | null;
   phone: string | null;
   price_range: string | null;
