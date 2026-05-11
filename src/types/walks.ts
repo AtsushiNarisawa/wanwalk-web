@@ -38,6 +38,7 @@ export interface OfficialRoute {
   start_lat: number;
   start_lng: number;
   cart_friendly: boolean;
+  cart_notes: string | null;
   route_type: RouteType;
   created_at: string;
   updated_at: string;

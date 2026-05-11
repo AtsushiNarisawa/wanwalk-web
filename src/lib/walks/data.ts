@@ -122,7 +122,7 @@ export async function getRouteBySlug(
   const { data, error } = await supabase
     .from("official_routes")
     .select(
-      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, route_type, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
+      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, cart_notes, route_type, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
     )
     .eq("slug", slug)
     .eq("is_published", true)

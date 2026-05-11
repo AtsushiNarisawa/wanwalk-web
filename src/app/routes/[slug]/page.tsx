@@ -23,6 +23,100 @@ import { buildOgMetadata } from "@/lib/walks/og-meta";
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
 
+type FaqEntry = { "@type": "Question"; name: string; acceptedAnswer: { "@type": "Answer"; text: string } };
+
+function buildRouteFaq(
+  route: import("@/types/walks").RouteWithArea,
+  spots: import("@/types/walks").RouteSpot[],
+  distanceKm: string,
+  isArea: boolean
+): FaqEntry[] {
+  const petInfo = route.pet_info;
+  const requiredSpots = spots.filter((s) => !s.is_optional);
+  // インフラ系（駐車場・トイレ・給水・ランドマーク）は pet_friendly=false でも実害なし（教訓 B-Z+β）→ NG列挙から除外
+  const INFRA_CATEGORIES = new Set(["parking", "restroom", "water_station", "landmark"]);
+  const visitableSpots = requiredSpots.filter((s) => !INFRA_CATEGORIES.has(s.category ?? ""));
+  const okCount = visitableSpots.filter((s) => s.pet_friendly === true).length;
+  const ngSpots = visitableSpots.filter((s) => s.pet_friendly === false);
+  const ngNames = ngSpots.slice(0, 2).map((s) => s.name);
+
+  // Q1: 犬連れ可否（pet_friendly比率で動的）
+  const sizeLabel = isArea
+    ? `滞在目安は約${route.estimated_minutes}分の園内散策コース`
+    : `距離${distanceKm}km・所要約${route.estimated_minutes}分のコース`;
+  let q1Answer: string;
+  if (visitableSpots.length === 0) {
+    q1Answer = `はい、${route.name}は犬連れで散歩できる${isArea ? "施設" : "ルート"}です。${sizeLabel}です。リード着用でお楽しみください。`;
+  } else if (ngSpots.length === 0) {
+    q1Answer = `はい、${route.name}は犬連れで楽しめます。${sizeLabel}で、コース上の見どころスポット${visitableSpots.length}箇所すべてが犬連れOKです。リード着用でお楽しみください。`;
+  } else if (ngSpots.length < visitableSpots.length / 2) {
+    q1Answer = `はい、${route.name}の散歩自体は犬連れOKです。${sizeLabel}で、${okCount}箇所のスポットを愛犬と楽しめます。ただし${ngNames.join("・")}は内部・境内が犬同伴不可のため、外観・門前からの拝観でお楽しみください。`;
+  } else {
+    q1Answer = `${route.name}のコース散歩自体は犬連れで歩けます（${sizeLabel}）。ただし${ngNames.join("・")}など内部・境内が犬同伴不可のスポットがあります。門前・参道・外観からの散策をお楽しみください。`;
+  }
+
+  // Q2: 駐車場
+  const parkingSpots = spots
+    .filter((s) => s.category === "parking")
+    .map((s) => s.name)
+    .filter((n, i, arr) => arr.indexOf(n) === i);
+  let q2Answer: string;
+  if (petInfo?.parking) {
+    const supplement = parkingSpots.length > 0 ? `（コース上の駐車場目印: ${parkingSpots.slice(0, 2).join("・")}）` : "";
+    q2Answer = `${petInfo.parking}。${supplement}`.trim();
+  } else if (parkingSpots.length > 0) {
+    q2Answer = `コース上の駐車場目印: ${parkingSpots.slice(0, 2).join("・")}。詳細は現地でご確認ください。`;
+  } else {
+    q2Answer = "公式の駐車場情報は登録されていません。最寄りの有料駐車場をご利用ください。";
+  }
+
+  // Q3: ベストシーズン（DB値をそのまま使用・CEO監修済）
+  const q3Answer = petInfo?.best_season
+    ? `${route.name}のベストシーズンは、${petInfo.best_season}です。`
+    : `${route.name}は通年で犬連れ散歩を楽しめます。`;
+
+  // Q4: カート走行可否（cart_notes 冒頭の結論語と前置きの重複を避ける + 末尾に句点を補う）
+  const cartNotes = route.cart_notes?.trim() ?? "";
+  const cleanedCartNotes = cartNotes.replace(/^カート(非推奨|推奨)。?\s*/, "").trim();
+  const ensurePunct = (s: string) => (s && !/[。．\.!?！？、]$/.test(s) ? `${s}。` : s);
+  const cartTail = ensurePunct(cartNotes) || "舗装メインで走行可能です。";
+  const cleanedCartTail = ensurePunct(cleanedCartNotes) || "段差や未舗装区間が多いため、";
+  const q4Answer = route.cart_friendly
+    ? `はい、${route.name}はベビーカーやペットカートで散歩できます。${cartTail}`
+    : `${route.name}はベビーカー・ペットカートでの散歩には向きません。${cleanedCartTail}抱っこ移動やキャリーバッグをご検討ください。`;
+
+  // Q5: 犬連れOKカフェ・レストラン（0件なら省略）
+  const dogOkCafes = spots.filter(
+    (s) => (s.category === "cafe" || s.category === "restaurant") && s.pet_friendly === true
+  );
+  const faqs: FaqEntry[] = [
+    { "@type": "Question", name: `${route.name}は犬連れで散歩できますか？`, acceptedAnswer: { "@type": "Answer", text: q1Answer } },
+    { "@type": "Question", name: `${route.name}に駐車場はありますか？`, acceptedAnswer: { "@type": "Answer", text: q2Answer } },
+    { "@type": "Question", name: `${route.name}のベストシーズンはいつですか？`, acceptedAnswer: { "@type": "Answer", text: q3Answer } },
+    { "@type": "Question", name: `${route.name}はベビーカーやペットカートで歩けますか？`, acceptedAnswer: { "@type": "Answer", text: q4Answer } },
+  ];
+
+  if (dogOkCafes.length > 0) {
+    const terraceOnly = dogOkCafes.every((s) => s.dog_policy?.indoor === false && s.dog_policy?.terrace === true);
+    const indoorOk = dogOkCafes.some((s) => s.dog_policy?.indoor === true);
+    const styleNote = terraceOnly
+      ? "テラス席のみペット同伴可"
+      : indoorOk
+        ? "店内・テラスとも犬同伴OKの店舗あり"
+        : "ペット同伴可（席種は店舗により異なる）";
+    const sample = dogOkCafes[0].name;
+    const countText = dogOkCafes.length === 1 ? `1店` : `${dogOkCafes.length}店`;
+    const q5Answer = `はい、${route.name}沿いには犬連れOKのカフェ・飲食スポットが${countText}あります（例: ${sample}）。${styleNote}。最新の同伴ルールは各店舗に直接ご確認ください。`;
+    faqs.push({
+      "@type": "Question",
+      name: `${route.name}沿いに犬連れで入れるカフェ・レストランはありますか？`,
+      acceptedAnswer: { "@type": "Answer", text: q5Answer },
+    });
+  }
+
+  return faqs;
+}
+
 export async function generateStaticParams() {
   try {
     const routes = await getAllPublishedRoutes();
@@ -494,41 +588,14 @@ export default async function RouteDetailPage({
         }}
       />
 
-      {/* FAQ構造化データ */}
+      {/* FAQ構造化データ（ルート固有・動的生成） */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            mainEntity: [
-              {
-                "@type": "Question",
-                name: `${route.name}は犬連れで散歩できますか？`,
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: isArea
-                    ? `はい、${route.name}は犬連れで散策できる施設です。滞在目安は約${route.estimated_minutes}分、園内を自由に散策できます。${petInfo?.surface ? `路面は${petInfo.surface}です。` : ""}${petInfo?.others ?? "リード着用でお楽しみいただけます。"}`
-                    : `はい、${route.name}は犬連れで散歩できるルートです。距離${distanceKm}km、所要約${route.estimated_minutes}分のコースです。${petInfo?.surface ? `路面は${petInfo.surface}です。` : ""}${petInfo?.others ?? "リード着用でお楽しみいただけます。"}`,
-                },
-              },
-              {
-                "@type": "Question",
-                name: `${route.name}に駐車場はありますか？`,
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: petInfo?.parking ?? "詳細は現地でご確認ください。",
-                },
-              },
-              {
-                "@type": "Question",
-                name: `${route.name}にトイレはありますか？`,
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: petInfo?.restroom ?? "詳細は現地でご確認ください。",
-                },
-              },
-            ],
+            mainEntity: buildRouteFaq(route, spots, distanceKm, isArea),
           }),
         }}
       />
