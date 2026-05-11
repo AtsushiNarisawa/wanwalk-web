@@ -11,7 +11,7 @@ export const dynamic = "force-static";
 export const metadata: Metadata = {
   title: "WanWalkについて - 愛犬との散歩をもっと豊かに",
   description:
-    "WanWalkは、犬連れに特化した日本初の散歩ルート体験プラットフォームです。83本のルートと589件の犬連れスポットを、体験ストーリーと写真でお届けします。",
+    "WanWalkは、犬連れに特化した日本初の散歩ルート体験プラットフォームです。74本のルートと473件の犬連れスポットを、体験ストーリーと写真でお届けします。",
   alternates: { canonical: "/about" },
   ...buildOgMetadata({
     title: "WanWalkについて",
@@ -123,11 +123,70 @@ export default function AboutPage() {
             数字で見るWanWalk
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <StatCard icon={<Path size={24} weight="regular" />} value="83" label="散歩ルート" />
+            <StatCard icon={<Path size={24} weight="regular" />} value="74" label="散歩ルート" />
             <StatCard icon={<MapPin size={24} weight="regular" />} value="26" label="対応エリア" />
-            <StatCard icon={<Dog size={24} weight="regular" />} value="589" label="犬連れスポット" />
-            <StatCard icon={<Camera size={24} weight="regular" />} value="100%" label="体験ストーリー" />
+            <StatCard icon={<Dog size={24} weight="regular" />} value="473" label="犬連れスポット" />
+            <StatCard icon={<Camera size={24} weight="regular" />} value="468" label="平均ストーリー字数" />
           </div>
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--color-ww-text-tertiary)",
+              marginTop: 12,
+              textAlign: "right",
+            }}
+          >
+            ※ 2026年5月時点
+          </p>
+        </section>
+
+        {/* 実体験ベースの精査実績（E-E-A-T シグナル） */}
+        <section style={{ marginBottom: 48 }}>
+          <h2
+            className="ww-serif"
+            style={{
+              fontFamily: "var(--font-ww-serif)",
+              fontSize: 22,
+              fontWeight: 600,
+              color: "var(--color-ww-accent)",
+              marginBottom: 24,
+            }}
+          >
+            実体験ベースで精査しています
+          </h2>
+          <p
+            style={{
+              fontSize: 16,
+              lineHeight: 2,
+              color: "var(--color-ww-text)",
+              marginBottom: 16,
+            }}
+          >
+            WanWalkの公開ルートは、テンプレート記事ではありません。
+            DogHub箱根仙石原でスタッフが愛犬家のお客様に実際にご案内してきた経験を起点に、
+            一本ずつ写真と座標、犬連れ実用情報を確認しながら整備しています。
+          </p>
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            <FeatureItem title="体験ストーリー 全74ルートに収録（平均468字）">
+              全ルートに、駐車場の入り方・路面の状態・足元の注意点・愛犬と立ち寄れるカフェやベンチまで、
+              実際に歩いた感覚に基づくストーリーを掲載しています。
+            </FeatureItem>
+            <FeatureItem title="犬連れ実用情報 100%充填">
+              全74ルートでカート走行可否（cart_friendly）と
+              主要カテゴリのスポット（カフェ・レストラン・ドッグラン・ショップ）に
+              犬連れポリシー（テラス可否・リード要否・サイズ制限）を100%付与しています。
+            </FeatureItem>
+            <FeatureItem title="座標・写真・Place ID 精査 50ルート以上完了">
+              2026年4月以降、50ルート以上を一本ずつ精査。
+              スポット座標のずれ、写真の主題ミスマッチ、Place ID 誤マッチを
+              Google Places API と現地データで突き合わせて訂正しています。
+            </FeatureItem>
+            <FeatureItem title="pet_friendly フラグ訂正 49件（2026年5月時点）">
+              公式FAQ・第三者複数ソース・実訪問者口コミの3段検証で、
+              「犬OKなのに犬不可と表示されていた」「犬不可なのに犬OKと表示されていた」を
+              一件ずつ整合化。情報の正確性を継続的に高めています。
+            </FeatureItem>
+          </ul>
         </section>
 
         {/* WanWalkの特徴 */}
@@ -319,22 +378,43 @@ export default function AboutPage() {
         <SupportedBadge />
       </div>
 
-      {/* Organization JSON-LD */}
+      {/* Organization JSON-LD（E-E-A-T シグナル強化版） */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Organization",
+            "@id": "https://wanwalk.jp/#organization",
             name: "WanWalk",
+            alternateName: "ワンウォーク",
             url: "https://wanwalk.jp",
             description:
-              "犬連れに特化した日本初の散歩ルート体験プラットフォーム",
+              "犬連れに特化した日本初の散歩ルート体験プラットフォーム。全74ルート・473件の犬連れスポットを、体験ストーリーと写真でお届けする。",
+            knowsAbout: [
+              "犬連れ散歩",
+              "犬連れ旅行",
+              "愛犬家旅行",
+              "散歩ルート",
+              "ペットフレンドリースポット",
+              "犬連れカフェ",
+              "ドッグラン",
+              "犬連れ観光",
+            ],
+            areaServed: {
+              "@type": "Country",
+              name: "Japan",
+            },
             parentOrganization: {
               "@type": "Organization",
+              "@id": "https://dog-hub.shop/#organization",
               name: "DogHub株式会社",
+              alternateName: "DogHub箱根仙石原",
               url: "https://dog-hub.shop",
+              description:
+                "箱根仙石原で犬のホテル&カフェ「DogHub」を運営。愛犬家のお客様の声をもとにWanWalkを開発。",
             },
+            sameAs: ["https://dog-hub.shop"],
           }),
         }}
       />
