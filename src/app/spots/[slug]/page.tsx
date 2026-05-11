@@ -73,7 +73,9 @@ export async function generateMetadata({
   const dogFriendly = spot.pet_friendly ? "犬連れOK" : "";
   const desc = `${spot.area_name}の${cat}「${spot.name}」。${dogFriendly}${spot.description?.slice(0, 80) ?? ""}`;
 
-  const title = `${spot.name} - ${spot.area_name}の犬連れスポット`;
+  const catLabel = cat ? `（${cat}）` : "";
+  const dogBadge = spot.pet_friendly ? "犬OK " : "";
+  const title = `${dogBadge}${spot.name}${catLabel}｜${spot.area_name}の犬連れスポット`;
   const ogImage = `https://wanwalk.jp/api/og/spots/${slug}`;
   return {
     title,

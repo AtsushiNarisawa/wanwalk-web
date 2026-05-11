@@ -16,12 +16,12 @@ import { buildOgMetadata } from "@/lib/walks/og-meta";
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: "次の休日、どこ歩く？ 愛犬との散歩コース | WanWalk",
+  title: { absolute: "犬と歩ける散歩コース74本｜箱根・鎌倉・伊豆｜WanWalk" },
   description:
     "箱根・鎌倉・伊豆など、愛犬と歩きたくなる散歩コースを厳選。駐車場・犬可カフェ・トイレ情報も完備。",
   alternates: { canonical: "/" },
   ...buildOgMetadata({
-    title: "次の休日、どこ歩く？ | WanWalk",
+    title: "犬と歩ける散歩コース74本｜箱根・鎌倉・伊豆｜WanWalk",
     description: "箱根・鎌倉・伊豆…愛犬と歩きたくなる散歩コースを厳選。",
     path: "/",
     ogImageAlt: "WanWalk - 愛犬との散歩コース",

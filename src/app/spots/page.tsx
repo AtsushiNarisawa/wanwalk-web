@@ -24,15 +24,15 @@ import { buildOgMetadata } from "@/lib/walks/og-meta";
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: "犬連れスポット一覧 - 全国の愛犬と行ける場所",
+  title: "犬連れスポット454件｜カフェ・ドッグラン・公園一覧",
   description:
     "カフェ・ドッグラン・公園・レストランなど、愛犬と一緒に行ける全国のスポットを紹介。犬種制限・テラス席・リード情報つき。",
   alternates: { canonical: "/spots" },
   ...buildOgMetadata({
-    title: "犬連れスポット一覧 | WanWalk",
+    title: "犬連れスポット454件｜カフェ・ドッグラン・公園一覧 | WanWalk",
     description: "カフェ・ドッグラン・公園など、愛犬と一緒に行ける全国のスポットを紹介。",
     path: "/spots",
-    ogImageAlt: "犬連れスポット一覧 | WanWalk",
+    ogImageAlt: "犬連れスポット454件 | WanWalk",
   }),
 };
 

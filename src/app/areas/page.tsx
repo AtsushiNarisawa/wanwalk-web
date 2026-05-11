@@ -9,15 +9,15 @@ import { buildOgMetadata } from "@/lib/walks/og-meta";
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: "エリア一覧 - 犬と歩ける散歩コース",
+  title: "犬連れ散歩エリア26｜箱根・鎌倉・伊豆・湘南",
   description:
     "箱根・鎌倉・湘南・横浜など、愛犬と一緒に楽しめる散歩コースのあるエリア一覧。犬連れに必要な情報つきで紹介。",
   alternates: { canonical: "/areas" },
   ...buildOgMetadata({
-    title: "エリア一覧 - 犬と歩ける散歩コース | WanWalk",
+    title: "犬連れ散歩エリア26｜箱根・鎌倉・伊豆・湘南 | WanWalk",
     description: "箱根・鎌倉・湘南・横浜など、愛犬と一緒に楽しめる散歩コースのあるエリア一覧。",
     path: "/areas",
-    ogImageAlt: "エリア一覧 - 犬と歩ける散歩コース",
+    ogImageAlt: "犬連れ散歩エリア26 | WanWalk",
   }),
 };
 

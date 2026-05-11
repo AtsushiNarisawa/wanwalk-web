@@ -7,15 +7,15 @@ import { buildOgMetadata } from "@/lib/walks/og-meta";
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: "散歩コース一覧",
+  title: "犬連れ散歩コース74本｜全国エリア別一覧",
   description:
     "WanWalk掲載の全散歩コースを一覧で。箱根・鎌倉・伊豆など全エリアから、季節やカート走行可で絞り込めます。",
   alternates: { canonical: "/routes" },
   ...buildOgMetadata({
-    title: "散歩コース一覧 | WanWalk",
+    title: "犬連れ散歩コース74本｜全国エリア別一覧 | WanWalk",
     description: "全エリアの愛犬散歩コースを一覧で。季節フィルター付き。",
     path: "/routes",
-    ogImageAlt: "散歩コース一覧 | WanWalk",
+    ogImageAlt: "犬連れ散歩コース74本 | WanWalk",
   }),
 };
 

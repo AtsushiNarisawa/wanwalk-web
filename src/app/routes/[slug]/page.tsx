@@ -137,14 +137,16 @@ export async function generateMetadata({
 
   const isArea = route.route_type === "area";
   const distanceKm = (route.distance_meters / 1000).toFixed(1);
-  const titleSuffix = isArea ? "犬連れ散策コース" : "犬連れ散歩コース";
   const description =
     route.meta_description ??
     (isArea
       ? `${route.areas.name}の犬連れ散策コース「${route.name}」。園内散策、滞在目安${route.estimated_minutes}分。${route.description?.slice(0, 80) ?? ""}`
       : `${route.areas.name}の犬連れ散歩コース「${route.name}」。距離${distanceKm}km、所要${route.estimated_minutes}分。${route.description?.slice(0, 80) ?? ""}`);
 
-  const title = `${route.name} - ${route.areas.name}の${titleSuffix}`;
+  const sizeHint = isArea
+    ? `${route.estimated_minutes}分散策`
+    : `${distanceKm}km・${route.estimated_minutes}分`;
+  const title = `${route.name}｜${route.areas.name} 犬連れ散歩 ${sizeHint}`;
   const ogImage = `https://wanwalk.jp/api/og/${slug}`;
   return {
     title,
