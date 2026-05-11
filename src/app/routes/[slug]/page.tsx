@@ -146,7 +146,13 @@ export async function generateMetadata({
   const sizeHint = isArea
     ? `${route.estimated_minutes}分散策`
     : `${distanceKm}km・${route.estimated_minutes}分`;
-  const title = `${route.name}｜${route.areas.name} 犬連れ散歩 ${sizeHint}`;
+  // GSC 末尾切れ対策: route.name が「本体 説明」形式のルートで title が SERP の表示幅を超える場合、
+  // 説明部分を省略する。slug ごとに明示指定（一律閾値だと「河口湖 もみじ回廊…」等が「河口湖」だけになり致命的）。
+  const TITLE_SHORTEN_SLUGS = new Set<string>(["odawara-castle-saigoji"]);
+  const displayName = TITLE_SHORTEN_SLUGS.has(slug)
+    ? route.name.split(" ")[0]
+    : route.name;
+  const title = `${displayName}｜${route.areas.name} 犬連れ散歩 ${sizeHint}`;
   const ogImage = `https://wanwalk.jp/api/og/${slug}`;
   return {
     title,
