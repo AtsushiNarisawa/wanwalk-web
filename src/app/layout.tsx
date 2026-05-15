@@ -55,7 +55,7 @@ export default function RootLayout({
             />
             <script
               dangerouslySetInnerHTML={{
-                __html: `window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '${GA_ID}');`,
+                __html: `window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());var __ww_internal=false;try{__ww_internal=localStorage.getItem('wanwalk_internal')==='true';}catch(e){}gtag('config', '${GA_ID}', __ww_internal?{traffic_type:'internal'}:{});`,
               }}
             />
           </>
