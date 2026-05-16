@@ -1,16 +1,33 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { trackEvent, type SourcePage } from "@/lib/analytics";
 
 type Props = {
   slug: string;
   name: string;
   routeCount: number;
   heroImageUrl: string | null;
+  sourcePage?: SourcePage;
 };
 
-export default function AreaCard({ slug, name, routeCount, heroImageUrl }: Props) {
+export default function AreaCard({
+  slug,
+  name,
+  routeCount,
+  heroImageUrl,
+  sourcePage,
+}: Props) {
+  const handleClick = () => {
+    trackEvent("area_card_click", {
+      area_slug: slug,
+      source_page: sourcePage,
+    });
+  };
+
   return (
-    <Link href={`/areas/${slug}`} className="group block">
+    <Link href={`/areas/${slug}`} onClick={handleClick} className="group block">
       <div
         className="relative w-full overflow-hidden"
         style={{ aspectRatio: "4 / 3", borderRadius: "var(--radius-ww-sm)" }}

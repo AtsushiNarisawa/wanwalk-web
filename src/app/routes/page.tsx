@@ -73,7 +73,7 @@ export default async function RoutesIndexPage() {
         </p>
       </header>
 
-      <SeasonFilter routes={routes} />
+      <SeasonFilter routes={routes} sourcePage="routes_list" />
 
       <script
         type="application/ld+json"

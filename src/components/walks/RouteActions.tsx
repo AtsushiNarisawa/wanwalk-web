@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BookmarkSimple } from "@phosphor-icons/react";
 import ShareMenu from "./ShareMenu";
+import { trackEvent } from "@/lib/analytics";
 
 type Props = {
   routeId: string;
@@ -43,11 +44,14 @@ export default function RouteActions({ routeId, routeSlug, routeName, areaName }
 
   const toggleBookmark = () => {
     const ids = readBookmarks();
-    const next = ids.includes(routeId)
-      ? ids.filter((x) => x !== routeId)
-      : [...ids, routeId];
+    const adding = !ids.includes(routeId);
+    const next = adding ? [...ids, routeId] : ids.filter((x) => x !== routeId);
     writeBookmarks(next);
-    setBookmarked(next.includes(routeId));
+    setBookmarked(adding);
+    trackEvent("route_bookmark_toggle", {
+      route_slug: routeSlug,
+      action: adding ? "add" : "remove",
+    });
   };
 
   const shareUrl = typeof window !== "undefined"
@@ -92,6 +96,8 @@ export default function RouteActions({ routeId, routeSlug, routeName, areaName }
         url={shareUrl}
         text={shareText}
         title={`${routeName} | WanWalk`}
+        shareKind="route"
+        shareTargetSlug={routeSlug}
       />
 
       <style>{`

@@ -1,8 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
 import type { RouteSpot, DogPolicy } from "@/types/walks";
+import { trackEvent } from "@/lib/analytics";
 
 function isLinkable(spot: RouteSpot): boolean {
   if (!spot.slug) return false;
@@ -75,9 +78,10 @@ const FEATURED_CATEGORIES = new Set([
 
 interface FeaturedSpotsProps {
   spots: RouteSpot[];
+  routeSlug?: string;
 }
 
-export default function FeaturedSpots({ spots }: FeaturedSpotsProps) {
+export default function FeaturedSpots({ spots, routeSlug }: FeaturedSpotsProps) {
   const featured = spots
     .filter((s) => s.category && FEATURED_CATEGORIES.has(s.category))
     .filter((s) => s.photo_url || s.description)
@@ -86,6 +90,16 @@ export default function FeaturedSpots({ spots }: FeaturedSpotsProps) {
   if (featured.length === 0) return null;
 
   const usedPhotos = new Set<string>();
+
+  const handleSpotClick = (spot: RouteSpot, surface: "title" | "photo" | "detail_cta") => {
+    trackEvent("spot_card_click", {
+      spot_slug: spot.slug ?? undefined,
+      spot_category: spot.category ?? undefined,
+      route_slug: routeSlug,
+      source_page: "route_detail",
+      surface,
+    });
+  };
 
   return (
     <div>
@@ -122,6 +136,7 @@ export default function FeaturedSpots({ spots }: FeaturedSpotsProps) {
                 {linkable ? (
                   <Link
                     href={`/spots/${spot.slug}`}
+                    onClick={() => handleSpotClick(spot, "title")}
                     className="ww-spot-link"
                     style={{ color: "inherit" }}
                   >
@@ -151,6 +166,7 @@ export default function FeaturedSpots({ spots }: FeaturedSpotsProps) {
               (linkable ? (
                 <Link
                   href={`/spots/${spot.slug}`}
+                  onClick={() => handleSpotClick(spot, "photo")}
                   className="group"
                   style={{
                     position: "relative",
@@ -195,6 +211,7 @@ export default function FeaturedSpots({ spots }: FeaturedSpotsProps) {
             {linkable && (
               <Link
                 href={`/spots/${spot.slug}`}
+                onClick={() => handleSpotClick(spot, "detail_cta")}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",

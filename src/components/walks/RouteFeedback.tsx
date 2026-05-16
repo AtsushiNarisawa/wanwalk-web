@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { trackEvent } from "@/lib/analytics";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_WANWALK_SUPABASE_URL!,
@@ -17,12 +18,24 @@ const categories: Record<string, string> = {
   other: "その他",
 };
 
-export default function RouteFeedback({ routeId }: { routeId: string }) {
+type Props = {
+  routeId: string;
+  routeSlug?: string;
+};
+
+export default function RouteFeedback({ routeId, routeSlug }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [category, setCategory] = useState("other");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const handleOpen = () => {
+    setIsOpen(true);
+    trackEvent("route_feedback_open", {
+      route_slug: routeSlug,
+    });
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,6 +48,10 @@ export default function RouteFeedback({ routeId }: { routeId: string }) {
         user_id: null,
         category,
         message: message.trim(),
+      });
+      trackEvent("route_feedback_submit", {
+        route_slug: routeSlug,
+        feedback_category: category,
       });
       setSubmitted(true);
       setMessage("");
@@ -69,7 +86,7 @@ export default function RouteFeedback({ routeId }: { routeId: string }) {
           </p>
         ) : !isOpen ? (
           <button
-            onClick={() => setIsOpen(true)}
+            onClick={handleOpen}
             className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium hover:underline"
             style={{ color: "var(--color-ww-accent)" }}
           >

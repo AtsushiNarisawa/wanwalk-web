@@ -123,6 +123,7 @@ export default async function AreasPage() {
                 name={area.name}
                 routeCount={area.route_count}
                 heroImageUrl={area.hero_image_url ?? null}
+                sourcePage="areas_list"
               />
             ))}
           </div>

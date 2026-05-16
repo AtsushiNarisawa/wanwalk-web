@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Path, Clock, Users, ImageSquare } from "@phosphor-icons/react/dist/ssr";
-import type { OfficialRoute } from "@/types/walks";
+import type { OfficialRoute, RouteWithArea } from "@/types/walks";
+import { trackEvent, type SourcePage } from "@/lib/analytics";
 
 const difficultyLabels = {
   easy: "初級",
@@ -22,13 +25,31 @@ const difficultyStyles: Record<
   hard: { bg: "var(--color-ww-accent-hover)", color: "var(--color-ww-text-inverse)" },
 };
 
-export default function RouteCard({ route }: { route: OfficialRoute }) {
+type Props = {
+  route: OfficialRoute | RouteWithArea;
+  sourcePage?: SourcePage;
+};
+
+export default function RouteCard({ route, sourcePage }: Props) {
   const distanceKm = (route.distance_meters / 1000).toFixed(1);
   const diff = difficultyStyles[route.difficulty_level];
+  const areaSlug =
+    "areas" in route && route.areas && typeof route.areas === "object"
+      ? (route.areas as { slug?: string }).slug
+      : undefined;
+
+  const handleClick = () => {
+    trackEvent("route_card_click", {
+      route_slug: route.slug,
+      area_slug: areaSlug,
+      source_page: sourcePage,
+    });
+  };
 
   return (
     <Link
       href={`/routes/${route.slug}`}
+      onClick={handleClick}
       className="group block overflow-hidden transition-colors"
       style={{
         backgroundColor: "var(--color-ww-bg)",

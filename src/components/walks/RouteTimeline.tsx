@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
 import type { RouteSpot, SpotCategory } from "@/types/walks";
@@ -14,6 +16,7 @@ import {
   MapPin,
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
+import { trackEvent } from "@/lib/analytics";
 
 // SEO対象カテゴリかつ slug がある場合のみ詳細ページにリンクできる
 function isLinkable(spot: RouteSpot): boolean {
@@ -45,12 +48,23 @@ function formatDistance(meters: number): string {
 interface RouteTimelineProps {
   spots: RouteSpot[];
   isArea?: boolean;
+  routeSlug?: string;
 }
 
-export default function RouteTimeline({ spots, isArea = false }: RouteTimelineProps) {
+function handleTimelineSpotClick(spot: RouteSpot, routeSlug: string | undefined, surface: "timeline" | "area_highlight") {
+  trackEvent("spot_card_click", {
+    spot_slug: spot.slug ?? undefined,
+    spot_category: spot.category ?? undefined,
+    route_slug: routeSlug,
+    source_page: "route_detail",
+    surface,
+  });
+}
+
+export default function RouteTimeline({ spots, isArea = false, routeSlug }: RouteTimelineProps) {
   // area型: 全スポット並列（番号・距離なし、is_optional は視覚区別）
   if (isArea) {
-    return <AreaHighlights spots={spots} />;
+    return <AreaHighlights spots={spots} routeSlug={routeSlug} />;
   }
 
   // line型: コースガイドは「流れ・時間・距離の俯瞰」に特化。
@@ -136,6 +150,7 @@ export default function RouteTimeline({ spots, isArea = false }: RouteTimelinePr
                 {isLinkable(spot) ? (
                   <Link
                     href={`/spots/${spot.slug}`}
+                    onClick={() => handleTimelineSpotClick(spot, routeSlug, "timeline")}
                     style={{
                       fontFamily: "var(--font-ww-sans)",
                       fontSize: 15,
@@ -189,7 +204,7 @@ export default function RouteTimeline({ spots, isArea = false }: RouteTimelinePr
 }
 
 // area型: 番号・距離なしの見どころ一覧。is_optionalは視覚で区別
-function AreaHighlights({ spots }: { spots: RouteSpot[] }) {
+function AreaHighlights({ spots, routeSlug }: { spots: RouteSpot[]; routeSlug?: string }) {
   const ordered = [...spots].sort((a, b) => {
     if (a.is_optional !== b.is_optional) return a.is_optional ? 1 : -1;
     return (a.spot_order ?? 0) - (b.spot_order ?? 0);
@@ -260,6 +275,7 @@ function AreaHighlights({ spots }: { spots: RouteSpot[] }) {
             {isLinkable(spot) ? (
               <Link
                 href={`/spots/${spot.slug}`}
+                onClick={() => handleTimelineSpotClick(spot, routeSlug, "area_highlight")}
                 style={{
                   fontFamily: "var(--font-ww-sans)",
                   fontSize: isOptional ? 13 : 15,

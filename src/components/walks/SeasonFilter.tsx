@@ -11,6 +11,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
 import RouteCard from "./RouteCard";
+import { trackEvent, type SourcePage } from "@/lib/analytics";
 
 const SEASON_CONFIG: { key: Season; label: string; icon: Icon }[] = [
   { key: "spring", label: "春", icon: Flower },
@@ -21,9 +22,12 @@ const SEASON_CONFIG: { key: Season; label: string; icon: Icon }[] = [
 
 interface SeasonFilterProps {
   routes: (RouteWithArea | OfficialRoute)[];
+  sourcePage?: SourcePage;
+  /** フィルター発火時にイベントに添えるエリア slug（area_detail 用） */
+  areaSlug?: string;
 }
 
-export default function SeasonFilter({ routes }: SeasonFilterProps) {
+export default function SeasonFilter({ routes, sourcePage, areaSlug }: SeasonFilterProps) {
   const [activeSeason, setActiveSeason] = useState<Season | null>(null);
   const [cartOnly, setCartOnly] = useState(false);
 
@@ -46,6 +50,29 @@ export default function SeasonFilter({ routes }: SeasonFilterProps) {
     ? SEASON_CONFIG.find((s) => s.key === activeSeason)?.label
     : null;
 
+  const handleSeasonToggle = (key: Season) => {
+    const willActivate = activeSeason !== key;
+    setActiveSeason(willActivate ? key : null);
+    if (willActivate) {
+      trackEvent("filter_apply_season", {
+        season: key,
+        source_page: sourcePage,
+        area_slug: areaSlug,
+      });
+    }
+  };
+
+  const handleCartToggle = () => {
+    const willActivate = !cartOnly;
+    setCartOnly(willActivate);
+    if (willActivate) {
+      trackEvent("filter_apply_cart", {
+        source_page: sourcePage,
+        area_slug: areaSlug,
+      });
+    }
+  };
+
   return (
     <div>
       {/* フィルターUI */}
@@ -63,7 +90,7 @@ export default function SeasonFilter({ routes }: SeasonFilterProps) {
           return (
             <button
               key={key}
-              onClick={() => setActiveSeason(isActive ? null : key)}
+              onClick={() => handleSeasonToggle(key)}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -91,7 +118,7 @@ export default function SeasonFilter({ routes }: SeasonFilterProps) {
         })}
 
         <button
-          onClick={() => setCartOnly(!cartOnly)}
+          onClick={handleCartToggle}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -146,7 +173,7 @@ export default function SeasonFilter({ routes }: SeasonFilterProps) {
       {/* ルート一覧 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRoutes.map((route) => (
-          <RouteCard key={route.id} route={route} />
+          <RouteCard key={route.id} route={route} sourcePage={sourcePage} />
         ))}
         {filteredRoutes.length === 0 && (
           <p

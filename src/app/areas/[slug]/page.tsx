@@ -139,7 +139,7 @@ export default async function AreaDetailPage({
 
       {routes.length > 0 ? (
         <div style={{ marginBottom: 48 }}>
-          <SeasonFilter routes={routes} />
+          <SeasonFilter routes={routes} sourcePage="area_detail" areaSlug={area.slug} />
         </div>
       ) : (
         <div

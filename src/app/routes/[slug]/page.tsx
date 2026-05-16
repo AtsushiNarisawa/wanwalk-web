@@ -429,7 +429,7 @@ export default async function RouteDetailPage({
           >
             コースガイド
           </h2>
-          <RouteTimeline spots={spots} isArea={false} />
+          <RouteTimeline spots={spots} isArea={false} routeSlug={route.slug} />
         </section>
       )}
 
@@ -447,7 +447,7 @@ export default async function RouteDetailPage({
         >
           {isArea ? "見どころ" : "おすすめスポット"}
         </h2>
-        <FeaturedSpots spots={spots} />
+        <FeaturedSpots spots={spots} routeSlug={route.slug} />
       </section>
 
       {/* 犬連れメモ（施策④ アイコングリッド） */}
@@ -470,7 +470,7 @@ export default async function RouteDetailPage({
       )}
 
       {/* コミュニティノート + フィードバック */}
-      <RouteFeedback routeId={route.id} />
+      <RouteFeedback routeId={route.id} routeSlug={route.slug} />
 
       {/* ギャラリー */}
       {route.gallery_images && route.gallery_images.length > 0 && (

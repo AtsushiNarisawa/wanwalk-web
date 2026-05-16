@@ -8,15 +8,26 @@ import {
   FacebookLogo,
   Check,
 } from "@phosphor-icons/react";
+import { trackEvent, type ShareChannel, type ShareKind } from "@/lib/analytics";
 
 type Props = {
   url: string;
   text: string;
   title: string;
   size?: "sm" | "md";
+  /** どの種類のページから共有されたか（route/area/spot）+ slug を analytics 用に */
+  shareKind?: ShareKind;
+  shareTargetSlug?: string;
 };
 
-export default function ShareMenu({ url, text, title, size = "md" }: Props) {
+export default function ShareMenu({
+  url,
+  text,
+  title,
+  size = "md",
+  shareKind,
+  shareTargetSlug,
+}: Props) {
   const [mounted, setMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -34,10 +45,24 @@ export default function ShareMenu({ url, text, title, size = "md" }: Props) {
     return () => document.removeEventListener("mousedown", onClick);
   }, [menuOpen]);
 
+  const trackChannelClick = (channel: ShareChannel) => {
+    trackEvent("share_channel_click", {
+      share_kind: shareKind,
+      share_slug: shareTargetSlug,
+      channel,
+    });
+  };
+
   const handleShare = async () => {
+    trackEvent("share_open", {
+      share_kind: shareKind,
+      share_slug: shareTargetSlug,
+    });
+
     if (typeof navigator !== "undefined" && "share" in navigator) {
       try {
         await navigator.share({ title, text, url });
+        trackChannelClick("native");
         return;
       } catch {
         // fallthrough
@@ -49,6 +74,7 @@ export default function ShareMenu({ url, text, title, size = "md" }: Props) {
   const copyUrl = async () => {
     try {
       await navigator.clipboard.writeText(url);
+      trackChannelClick("copy");
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -115,9 +141,27 @@ export default function ShareMenu({ url, text, title, size = "md" }: Props) {
           <MenuItem onClick={copyUrl} icon={copied ? <Check size={18} /> : <LinkSimple size={18} />}>
             {copied ? "コピーしました" : "URLをコピー"}
           </MenuItem>
-          <MenuLink href={xUrl} icon={<XLogo size={18} />}>Xで共有</MenuLink>
-          <MenuLink href={fbUrl} icon={<FacebookLogo size={18} />}>Facebookで共有</MenuLink>
-          <MenuLink href={lineUrl} icon={<LineIcon />}>LINEで共有</MenuLink>
+          <MenuLink
+            href={xUrl}
+            icon={<XLogo size={18} />}
+            onClick={() => trackChannelClick("x")}
+          >
+            Xで共有
+          </MenuLink>
+          <MenuLink
+            href={fbUrl}
+            icon={<FacebookLogo size={18} />}
+            onClick={() => trackChannelClick("facebook")}
+          >
+            Facebookで共有
+          </MenuLink>
+          <MenuLink
+            href={lineUrl}
+            icon={<LineIcon />}
+            onClick={() => trackChannelClick("line")}
+          >
+            LINEで共有
+          </MenuLink>
         </div>
       )}
 
@@ -170,10 +214,12 @@ function MenuItem({
 function MenuLink({
   href,
   icon,
+  onClick,
   children,
 }: {
   href: string;
   icon: React.ReactNode;
+  onClick?: () => void;
   children: React.ReactNode;
 }) {
   return (
@@ -181,6 +227,7 @@ function MenuLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={onClick}
       role="menuitem"
       style={{
         display: "flex",
