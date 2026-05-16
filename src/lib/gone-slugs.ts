@@ -88,7 +88,7 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "megurogawa-soi-sakura-no-meisho",
   "meigetsuin-tori-noajisai",
   "minami-ke-oka-bokujo-chusha-jo-nasu-minamigaoka",
-  "minato-no-mie-ru-oka-koen-no-tenbo",
+  // "minato-no-mie-ru-oka-koen-no-tenbo", → RENAMED_SPOT_SLUGS で 301 redirect 化（2026-05-17 GSC 救済漏れ）
   "miyagino-onsen-kaikan",
   "mizutori-no-oyogu-kohan",
   "mokudou-no-shizen-kenkyuu-michi",
@@ -139,7 +139,7 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "taigan-no-dotemichi-mizu-asobi-supotto",
   // "taikan-ran-kuruma-to-shibafuhiroba", → RENAMED_SPOT_SLUGS で 301 redirect 化（2026-05-05）
   "taisa-n-hashi-karano-yokohama-zenkei",
-  "takitsubo-sawamei-kawa-seiryuu",
+  // "takitsubo-sawamei-kawa-seiryuu", → RENAMED_SPOT_SLUGS で 301 redirect 化（2026-05-17 GSC 救済漏れ・90日 188 impr の最重要）
   "tariasen-chusha-jo",
   "teiso-shitsugen-no-mokudou",
   "tenguyama-dai-1-chusha-jo-kusatsu-sainokawara",
@@ -296,4 +296,10 @@ export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
   ["kotoku-in", "kotokuin-kamakura-daibutsu"],
   ["nagaike-water-park", "nagaike-shinsui-koen"],
   ["yahata-no-shizen-kenkyu-ro-tembo-pointo", "yahata-tsutsuji-gunraku-tembo-dai"],
+  // 2026-05-17 GSC 救済漏れ修正: 5/4 cf9b384 の一括 410 化（151件）時点で「DB に同一意味の新 slug が存在するか」
+  // のチェックが不完全で、健康な viewpoint 新 slug を持つ 2件が GONE に振られていた。tamagawa 前例
+  // （5/7 RENAMED 化で 旧 0/0 → 新 21/251 imp）に倣い RENAMED 化して検索インプレッションを救済。
+  // 両件とも新 slug は viewpoint（SEO 対象）・description 230字台で healthy・同一意味の同一スポットを確認済み。
+  ["takitsubo-sawamei-kawa-seiryuu", "sawa-nagawa-taki-tsubo-eria"],
+  ["minato-no-mie-ru-oka-koen-no-tenbo", "minato-no-mieru-oka-koen-tembo-dai"],
 ]);
