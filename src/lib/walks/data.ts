@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { wanwalkSupabase as supabase } from "./supabase";
 import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
 import type { Area, OfficialRoute, RouteSpot, RouteWithArea, SpotWithRoute, RouteAreaInfo } from "@/types/walks";
@@ -482,18 +483,23 @@ export async function getSpotsListingSummary(
 
 // /spots/category/[category] 用: カテゴリ単一の全件取得（ページネーション + JSON-LD 用）。
 // page/perPage は呼び出し側でスライス。total はクロウラ用に全件返す前提。
-export async function getSpotsByCategory(category: string): Promise<SpotListItem[]> {
-  const { data, error } = await supabase
-    .from("route_spots")
-    .select(LISTING_SELECT)
-    .not("slug", "is", null)
-    .eq("category", category)
-    .eq("official_routes.is_published", true)
-    .order("name");
+//
+// React.cache でラップして同一 request 内で重複 SQL を防ぐ。
+// generateMetadata と Page component の両方から呼ばれるため、cache がないと SQL が 2 回走る。
+export const getSpotsByCategory = cache(
+  async (category: string): Promise<SpotListItem[]> => {
+    const { data, error } = await supabase
+      .from("route_spots")
+      .select(LISTING_SELECT)
+      .not("slug", "is", null)
+      .eq("category", category)
+      .eq("official_routes.is_published", true)
+      .order("name");
 
-  if (error || !data) return [];
-  return data.map((s) => mapToListItem(s as Record<string, unknown>));
-}
+    if (error || !data) return [];
+    return data.map((s) => mapToListItem(s as Record<string, unknown>));
+  }
+);
 
 export async function getSpotBySlug(slug: string): Promise<SpotWithRoute | null> {
   const { data, error } = await supabase
