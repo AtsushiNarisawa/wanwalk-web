@@ -389,6 +389,112 @@ export async function getAllSpots(): Promise<
   });
 }
 
+// /spots ハブ + カテゴリページ用の軽量スポット情報。
+// CWV 対策で getAllSpots() の SELECT * を避け、表示に必要な列のみ取得する。
+// location/dog_policy/seasonal_notes/photo_metadata 等の重い列は除外。
+export type SpotListItem = {
+  id: string;
+  name: string;
+  slug: string;
+  category: string | null;
+  pet_friendly: boolean;
+  photo_url: string | null;
+  route_name: string;
+  route_slug: string;
+  route_total_walks: number;
+  area_name: string;
+  area_slug: string;
+};
+
+const LISTING_SELECT =
+  "id, name, slug, category, pet_friendly, photo_url, official_routes!inner(name, slug, total_walks, is_published, areas!inner(name, slug))";
+
+function mapToListItem(s: Record<string, unknown>): SpotListItem {
+  const route = s.official_routes as unknown as {
+    name: string;
+    slug: string;
+    total_walks: number;
+    areas: { name: string; slug: string };
+  };
+  return {
+    id: s.id as string,
+    name: s.name as string,
+    slug: s.slug as string,
+    category: (s.category as string | null) ?? null,
+    pet_friendly: Boolean(s.pet_friendly),
+    photo_url: (s.photo_url as string | null) ?? null,
+    route_name: route.name,
+    route_slug: route.slug,
+    route_total_walks: route.total_walks ?? 0,
+    area_name: route.areas.name,
+    area_slug: route.areas.slug,
+  };
+}
+
+// /spots ハブ用の集計値とサンプル。
+// - エリア別件数 (26 エリアまで)
+// - カテゴリ別件数
+// - 人気スポット ( total_walks 順 / 10件 )
+// - 全件 ItemList JSON-LD 用の slug+name 配列
+export async function getSpotsListingSummary(
+  seoCategories: string[]
+): Promise<{
+  total: number;
+  byCategory: Record<string, number>;
+  byArea: { area_slug: string; area_name: string; count: number }[];
+  popular: SpotListItem[];
+  allForItemList: { name: string; slug: string }[];
+}> {
+  const { data, error } = await supabase
+    .from("route_spots")
+    .select(LISTING_SELECT)
+    .not("slug", "is", null)
+    .in("category", seoCategories)
+    .eq("official_routes.is_published", true);
+
+  if (error || !data) {
+    return { total: 0, byCategory: {}, byArea: [], popular: [], allForItemList: [] };
+  }
+
+  const items = data.map((s) => mapToListItem(s as Record<string, unknown>));
+  const byCategory: Record<string, number> = {};
+  const areaMap = new Map<string, { area_name: string; count: number }>();
+  for (const it of items) {
+    if (it.category) byCategory[it.category] = (byCategory[it.category] ?? 0) + 1;
+    const a = areaMap.get(it.area_slug);
+    if (a) a.count += 1;
+    else areaMap.set(it.area_slug, { area_name: it.area_name, count: 1 });
+  }
+  const byArea = Array.from(areaMap.entries())
+    .map(([area_slug, v]) => ({ area_slug, area_name: v.area_name, count: v.count }))
+    .sort((a, b) => b.count - a.count);
+
+  const popular = [...items]
+    .sort((a, b) => b.route_total_walks - a.route_total_walks)
+    .slice(0, 10);
+
+  const allForItemList = items
+    .sort((a, b) => a.name.localeCompare(b.name, "ja"))
+    .map((it) => ({ name: it.name, slug: it.slug }));
+
+  return { total: items.length, byCategory, byArea, popular, allForItemList };
+}
+
+// /spots/category/[category] 用: カテゴリ単一の全件取得（ページネーション + JSON-LD 用）。
+// page/perPage は呼び出し側でスライス。total はクロウラ用に全件返す前提。
+export async function getSpotsByCategory(category: string): Promise<SpotListItem[]> {
+  const { data, error } = await supabase
+    .from("route_spots")
+    .select(LISTING_SELECT)
+    .not("slug", "is", null)
+    .eq("category", category)
+    .eq("official_routes.is_published", true)
+    .order("name");
+
+  if (error || !data) return [];
+  return data.map((s) => mapToListItem(s as Record<string, unknown>));
+}
+
 export async function getSpotBySlug(slug: string): Promise<SpotWithRoute | null> {
   const { data, error } = await supabase
     .from("route_spots")

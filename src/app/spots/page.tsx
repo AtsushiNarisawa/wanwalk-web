@@ -1,20 +1,15 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
-  Coffee,
-  ForkKnife,
   Tree,
   Dog,
-  Drop,
-  Toilet,
-  Car,
   Binoculars,
-  Storefront,
   CheckCircle,
   MapPin,
+  ArrowRight,
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
-import { getAllSpots } from "@/lib/walks/data";
+import { getSpotsListingSummary } from "@/lib/walks/data";
 import type { SpotCategory } from "@/types/walks";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
@@ -23,237 +18,165 @@ import { buildOgMetadata } from "@/lib/walks/og-meta";
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
 
+// SEO ランディング対象のカテゴリ。store/cafe/restaurant/parking 等の NON_SEO は表示しない。
+const SEO_CATEGORIES = ["viewpoint", "park", "dog_run"] as const;
+type SeoCategory = (typeof SEO_CATEGORIES)[number];
+
+const CATEGORY_META: Record<
+  SeoCategory,
+  { icon: Icon; label: string; tagline: string }
+> = {
+  viewpoint: {
+    icon: Binoculars,
+    label: "景観ポイント",
+    tagline: "絶景・展望台・撮影スポット",
+  },
+  park: {
+    icon: Tree,
+    label: "公園・自然",
+    tagline: "広場・芝生・木陰の散歩道",
+  },
+  dog_run: {
+    icon: Dog,
+    label: "ドッグラン",
+    tagline: "リードを外して走れるエリア",
+  },
+};
+
 export const metadata: Metadata = {
-  title: "犬連れスポット454件｜カフェ・ドッグラン・公園一覧",
+  title: "犬連れスポット一覧｜景観・公園・ドッグラン",
   description:
-    "カフェ・ドッグラン・公園・レストランなど、愛犬と一緒に行ける全国のスポットを紹介。犬種制限・テラス席・リード情報つき。",
+    "WanWalk 編集部が歩いた全国の犬連れスポット。景観ポイント・公園・ドッグランをエリア別・カテゴリ別で探せます。",
   alternates: { canonical: "/spots" },
   ...buildOgMetadata({
-    title: "犬連れスポット454件｜カフェ・ドッグラン・公園一覧 | WanWalk",
-    description: "カフェ・ドッグラン・公園など、愛犬と一緒に行ける全国のスポットを紹介。",
+    title: "犬連れスポット一覧｜景観・公園・ドッグラン | WanWalk",
+    description:
+      "全国の犬連れスポットをエリア・カテゴリで探す。景観・公園・ドッグランを地域別に紹介。",
     path: "/spots",
-    ogImageAlt: "犬連れスポット454件 | WanWalk",
+    ogImageAlt: "犬連れスポット一覧 | WanWalk",
   }),
 };
 
-const CATEGORY_CONFIG: Record<
-  SpotCategory,
-  { icon: Icon; label: string }
-> = {
-  cafe: { icon: Coffee, label: "カフェ" },
-  restaurant: { icon: ForkKnife, label: "レストラン" },
-  park: { icon: Tree, label: "公園・自然" },
-  dog_run: { icon: Dog, label: "ドッグラン" },
-  water_station: { icon: Drop, label: "水飲み場" },
-  restroom: { icon: Toilet, label: "トイレ" },
-  parking: { icon: Car, label: "駐車場" },
-  viewpoint: { icon: Binoculars, label: "景観ポイント" },
-  shop: { icon: Storefront, label: "ショップ" },
-  landmark: { icon: MapPin, label: "ランドマーク" },
-};
-
-// SEO ランディング対象のカテゴリのみ表示（NON_SEO_SPOT_CATEGORIES は getAllSpots 側で除外済み）。
-// cafe/restaurant/shop も 5/5 SEO 除外で一覧から外した（食べログ等と棲み分け・GSC 90日 0 click）。
-const CATEGORY_ORDER: SpotCategory[] = [
-  "viewpoint",
-  "park",
-  "dog_run",
-];
-
-export default async function SpotsListPage() {
-  const spots = await getAllSpots();
-
-  // Group by category
-  const byCategory = new Map<SpotCategory, typeof spots>();
-  for (const spot of spots) {
-    const cat = (spot.category ?? "viewpoint") as SpotCategory;
-    if (!byCategory.has(cat)) byCategory.set(cat, []);
-    byCategory.get(cat)!.push(spot);
-  }
-
-  // Unique areas for stats
-  const uniqueAreas = new Set(spots.map((s) => s.area_name));
+export default async function SpotsHubPage() {
+  const { total, byCategory, byArea, popular, allForItemList } =
+    await getSpotsListingSummary(SEO_CATEGORIES as unknown as string[]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
       {/* パンくず */}
-      <nav
-        style={{
-          fontSize: 13,
-          color: "var(--color-ww-text-tertiary)",
-          marginBottom: 24,
-        }}
-      >
-        <Link href="/" style={{ color: "inherit" }}>
+      <nav className="ww-breadcrumb">
+        <Link href="/" className="ww-breadcrumb-link">
           トップ
         </Link>
-        <span style={{ margin: "0 8px" }}>/</span>
-        <span style={{ color: "var(--color-ww-text-secondary)" }}>
-          スポット一覧
-        </span>
+        <span className="ww-breadcrumb-sep">/</span>
+        <span className="ww-breadcrumb-current">スポット一覧</span>
       </nav>
 
-      <h1
-        style={{
-          fontFamily: "var(--font-ww-serif)",
-          fontSize: 32,
-          fontWeight: 700,
-          color: "var(--color-ww-text)",
-          letterSpacing: "0.01em",
-          lineHeight: 1.35,
-          marginBottom: 8,
-        }}
-      >
-        犬連れスポット一覧
-      </h1>
-      <p
-        style={{
-          fontSize: 15,
-          color: "var(--color-ww-text-secondary)",
-          marginBottom: 32,
-        }}
-      >
-        <span className="ww-numeric">{spots.length}</span>件のスポット・
-        <span className="ww-numeric">{uniqueAreas.size}</span>エリア対応
+      <h1 className="ww-h1">犬連れスポットを探す</h1>
+
+      <p className="ww-lead">
+        WanWalk 編集部が歩いた全国の犬連れスポット
+        <span className="ww-numeric">{total}</span>件。
+        景観ポイント・公園・ドッグランをエリア・カテゴリで探せます。
       </p>
 
-      {/* カテゴリ別アンカーナビ */}
-      <div
-        className="flex flex-wrap gap-2 mb-10"
-        style={{ fontSize: 13 }}
-      >
-        {CATEGORY_ORDER.map((cat) => {
-          const conf = CATEGORY_CONFIG[cat];
-          const count = byCategory.get(cat)?.length ?? 0;
-          if (count === 0) return null;
-          const CatIcon = conf.icon;
-          return (
-            <a
-              key={cat}
-              href={`#cat-${cat}`}
-              className="inline-flex items-center gap-1.5 transition-colors"
-              style={{
-                padding: "6px 14px",
-                borderRadius: "var(--radius-ww-sm)",
-                border: "1px solid var(--color-ww-border-subtle)",
-                color: "var(--color-ww-text-secondary)",
-                backgroundColor: "var(--color-ww-bg)",
-              }}
+      {/* カテゴリカード */}
+      <section className="ww-section">
+        <h2 className="ww-h2">カテゴリで探す</h2>
+        <div className="ww-cat-grid">
+          {SEO_CATEGORIES.map((cat) => {
+            const meta = CATEGORY_META[cat];
+            const count = byCategory[cat] ?? 0;
+            if (count === 0) return null;
+            const CatIcon = meta.icon;
+            return (
+              <Link
+                key={cat}
+                href={`/spots/category/${cat}`}
+                className="ww-cat-card"
+              >
+                <div className="ww-cat-card-head">
+                  <CatIcon
+                    size={28}
+                    weight="regular"
+                    style={{ color: "var(--color-ww-accent)" }}
+                  />
+                  <div className="ww-cat-card-title-block">
+                    <h3 className="ww-cat-card-title">{meta.label}</h3>
+                    <p className="ww-cat-card-tagline">{meta.tagline}</p>
+                  </div>
+                </div>
+                <div className="ww-cat-card-foot">
+                  <span className="ww-numeric ww-cat-card-count">{count}</span>
+                  <span className="ww-cat-card-cta">
+                    一覧を見る <ArrowRight size={14} weight="regular" />
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* エリア別件数 */}
+      <section className="ww-section">
+        <h2 className="ww-h2">エリアで探す</h2>
+        <p className="ww-section-lead">
+          スポットの多い順。エリアページでルートと一緒に確認できます。
+        </p>
+        <div className="ww-area-chips">
+          {byArea.map((a) => (
+            <Link
+              key={a.area_slug}
+              href={`/areas/${a.area_slug}`}
+              className="ww-area-chip"
             >
-              <CatIcon size={14} weight="regular" />
-              {conf.label}
-              <span className="ww-numeric" style={{ opacity: 0.6 }}>
-                {count}
-              </span>
-            </a>
-          );
-        })}
-      </div>
+              {a.area_name}
+              <span className="ww-numeric ww-area-chip-count">{a.count}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-      {/* カテゴリ別セクション */}
-      {CATEGORY_ORDER.map((cat) => {
-        const catSpots = byCategory.get(cat);
-        if (!catSpots || catSpots.length === 0) return null;
-        const conf = CATEGORY_CONFIG[cat];
-        const CatIcon = conf.icon;
-
-        return (
-          <section key={cat} id={`cat-${cat}`} className="mb-12">
-            <div className="flex items-center gap-2 mb-6">
-              <CatIcon
-                size={20}
-                weight="regular"
-                style={{ color: "var(--color-ww-accent)" }}
-              />
-              <h2
-                className="ww-serif"
-                style={{
-                  fontFamily: "var(--font-ww-serif)",
-                  fontSize: 20,
-                  fontWeight: 600,
-                  color: "var(--color-ww-accent)",
-                }}
-              >
-                {conf.label}
-              </h2>
-              <span
-                className="ww-numeric"
-                style={{
-                  fontSize: 13,
-                  color: "var(--color-ww-text-tertiary)",
-                }}
-              >
-                ({catSpots.length})
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {catSpots.map((spot) => (
-                <Link
-                  key={spot.id}
-                  href={`/spots/${spot.slug}`}
-                  className="group block transition-colors"
-                  style={{
-                    padding: 16,
-                    backgroundColor: "var(--color-ww-bg)",
-                    border: "1px solid var(--color-ww-border-subtle)",
-                    borderRadius: "var(--radius-ww-md)",
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 600,
-                      color: "var(--color-ww-text)",
-                      lineHeight: 1.5,
-                      marginBottom: 6,
-                    }}
-                  >
-                    {spot.name}
-                  </p>
-                  <div
-                    className="flex items-center gap-3 flex-wrap"
-                    style={{
-                      fontSize: 12,
-                      color: "var(--color-ww-text-secondary)",
-                    }}
-                  >
-                    <span className="inline-flex items-center gap-1">
+      {/* 人気スポット */}
+      {popular.length > 0 && (
+        <section className="ww-section">
+          <h2 className="ww-h2">人気のスポット</h2>
+          <p className="ww-section-lead">
+            歩かれている回数が多いルートの代表スポット。
+          </p>
+          <ul className="ww-spot-list">
+            {popular.map((s) => (
+              <li key={s.id}>
+                <Link href={`/spots/${s.slug}`} className="ww-spot-row-link">
+                  <span className="ww-spot-name">{s.name}</span>
+                  <span className="ww-spot-meta">
+                    <span className="ww-spot-meta-item">
                       <MapPin size={12} weight="regular" />
-                      {spot.area_name}
+                      {s.area_name}
                     </span>
-                    {spot.pet_friendly && (
-                      <span
-                        className="inline-flex items-center gap-1"
-                        style={{ color: "var(--color-ww-accent)" }}
-                      >
+                    {s.pet_friendly && (
+                      <span className="ww-spot-meta-ok">
                         <CheckCircle size={12} weight="fill" />
                         犬連れOK
                       </span>
                     )}
-                  </div>
-                  <p
-                    className="mt-2"
-                    style={{
-                      fontSize: 12,
-                      color: "var(--color-ww-text-tertiary)",
-                    }}
-                  >
-                    {spot.route_name}
-                  </p>
+                  </span>
                 </Link>
-              ))}
-            </div>
-          </section>
-        );
-      })}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="py-8">
         <WalksAppCTA />
       </div>
       <SupportedBadge />
 
-      {/* ItemList structured data */}
+      {/* JSON-LD ItemList（全件・AIO/Google向け）。
+          HTMLの可視DOMには出さないが、構造化データとして全件を提供することで
+          サイト規模の信頼性 + ロングテール clue を維持する。 */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -262,13 +185,13 @@ export default async function SpotsListPage() {
             "@type": "ItemList",
             name: "WanWalk 犬連れスポット一覧",
             description:
-              "全国の愛犬と行けるカフェ・公園・ドッグランなどのスポット情報",
-            numberOfItems: spots.length,
-            itemListElement: spots.slice(0, 100).map((spot, i) => ({
+              "WanWalk が掲載する全国の犬連れスポット（景観・公園・ドッグラン）",
+            numberOfItems: total,
+            itemListElement: allForItemList.map((s, i) => ({
               "@type": "ListItem",
               position: i + 1,
-              url: `https://wanwalk.jp/spots/${spot.slug}`,
-              name: spot.name,
+              url: `https://wanwalk.jp/spots/${s.slug}`,
+              name: s.name,
             })),
           }),
         }}

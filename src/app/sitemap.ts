@@ -1,5 +1,15 @@
 import type { MetadataRoute } from "next";
-import { getAllPublishedRoutes, getAreas, getAllSpotSlugs } from "@/lib/walks/data";
+import {
+  getAllPublishedRoutes,
+  getAreas,
+  getAllSpotSlugs,
+  getSpotsByCategory,
+} from "@/lib/walks/data";
+
+// /spots/category/{cat} の対象カテゴリ + ページネーション設定。
+// 1 ページあたりの件数は /spots/category/[category]/page.tsx の PER_PAGE と揃える。
+const CATEGORY_PAGES_PER = 30;
+const CATEGORIES_FOR_SITEMAP = ["viewpoint", "park", "dog_run"] as const;
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
@@ -13,11 +23,38 @@ const isValidSlug = (slug: string | null | undefined): slug is string =>
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://wanwalk.jp";
 
-  const [routes, areas, spotSlugs] = await Promise.all([
+  const [routes, areas, spotSlugs, ...categorySpotsArr] = await Promise.all([
     getAllPublishedRoutes(),
     getAreas(),
     getAllSpotSlugs(),
+    ...CATEGORIES_FOR_SITEMAP.map((cat) => getSpotsByCategory(cat)),
   ]);
+
+  // カテゴリ別件数からページネーション URL を生成。
+  // page=1 は /spots/category/{cat} の canonical なので page=2 以降のみ追加。
+  const categoryPages: MetadataRoute.Sitemap = CATEGORIES_FOR_SITEMAP.flatMap(
+    (cat, i) => {
+      const total = categorySpotsArr[i]?.length ?? 0;
+      const totalPages = Math.max(1, Math.ceil(total / CATEGORY_PAGES_PER));
+      const urls: MetadataRoute.Sitemap = [
+        {
+          url: `${baseUrl}/spots/category/${cat}`,
+          lastModified: new Date(),
+          changeFrequency: "weekly" as const,
+          priority: 0.6,
+        },
+      ];
+      for (let p = 2; p <= totalPages; p++) {
+        urls.push({
+          url: `${baseUrl}/spots/category/${cat}?page=${p}`,
+          lastModified: new Date(),
+          changeFrequency: "weekly" as const,
+          priority: 0.4,
+        });
+      }
+      return urls;
+    }
+  );
 
   const staticPages: MetadataRoute.Sitemap = [
     {
@@ -91,5 +128,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     }));
 
-  return [...staticPages, ...routePages, ...areaPages, ...spotPages];
+  return [
+    ...staticPages,
+    ...routePages,
+    ...areaPages,
+    ...categoryPages,
+    ...spotPages,
+  ];
 }

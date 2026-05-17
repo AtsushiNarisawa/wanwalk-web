@@ -61,3 +61,216 @@
   color: var(--color-ww-accent);
   text-decoration-color: var(--color-ww-accent);
 }
+
+/* === /spots ハブ + /spots/category 共通 ===
+ * 274 件以上の表示で inline style を多重出力すると HTML が 900KB を超えるため、
+ * 繰り返し要素は CSS class に一本化して 1 度だけ定義する。
+ */
+.walks-root .ww-breadcrumb {
+  font-size: 13px;
+  color: var(--color-ww-text-tertiary);
+  margin-bottom: 24px;
+}
+.walks-root .ww-breadcrumb-link { color: inherit; }
+.walks-root .ww-breadcrumb-sep { margin: 0 8px; }
+.walks-root .ww-breadcrumb-current { color: var(--color-ww-text-secondary); }
+
+.walks-root .ww-h1 {
+  font-family: var(--font-ww-serif);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  margin-bottom: 8px;
+  color: var(--color-ww-text);
+}
+.walks-root .ww-h2 {
+  font-family: var(--font-ww-serif);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin-bottom: 8px;
+  color: var(--color-ww-text);
+}
+.walks-root .ww-lead {
+  font-size: 15px;
+  color: var(--color-ww-text-secondary);
+  margin-bottom: 40px;
+}
+.walks-root .ww-section { margin-bottom: 48px; }
+.walks-root .ww-section-lead {
+  font-size: 13px;
+  color: var(--color-ww-text-tertiary);
+  margin-bottom: 16px;
+}
+
+/* カテゴリカード */
+.walks-root .ww-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.walks-root .ww-cat-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  background-color: var(--color-ww-bg);
+  border: 1px solid var(--color-ww-border-subtle);
+  border-radius: var(--radius-ww-md);
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.walks-root .ww-cat-card:hover {
+  border-color: var(--color-ww-accent);
+  background-color: var(--color-ww-accent-soft);
+}
+.walks-root .ww-cat-card-head { display: flex; gap: 12px; align-items: flex-start; }
+.walks-root .ww-cat-card-title-block { display: flex; flex-direction: column; }
+.walks-root .ww-cat-card-title {
+  font-family: var(--font-ww-serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-ww-text);
+  margin: 0;
+}
+.walks-root .ww-cat-card-tagline {
+  font-size: 12px;
+  color: var(--color-ww-text-tertiary);
+  margin: 4px 0 0;
+}
+.walks-root .ww-cat-card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.walks-root .ww-cat-card-count {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-ww-accent);
+}
+.walks-root .ww-cat-card-cta {
+  font-size: 12px;
+  color: var(--color-ww-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* エリアチップ */
+.walks-root .ww-area-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.walks-root .ww-area-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-ww-sm);
+  border: 1px solid var(--color-ww-border-subtle);
+  background-color: var(--color-ww-bg);
+  color: var(--color-ww-text-secondary);
+  font-size: 13px;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+.walks-root .ww-area-chip:hover {
+  border-color: var(--color-ww-accent);
+  color: var(--color-ww-accent);
+}
+.walks-root .ww-area-chip-count {
+  font-size: 11px;
+  color: var(--color-ww-text-tertiary);
+}
+
+/* スポットリスト（compact list 形式・最小 DOM）*/
+.walks-root .ww-spot-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 4px;
+  contain: layout style;
+}
+.walks-root .ww-spot-row-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radius-ww-sm);
+  background-color: var(--color-ww-bg);
+  border: 1px solid var(--color-ww-border-subtle);
+  transition: border-color 150ms ease;
+}
+.walks-root .ww-spot-row-link:hover { border-color: var(--color-ww-accent); }
+.walks-root .ww-spot-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-ww-text);
+  line-height: 1.45;
+}
+.walks-root .ww-spot-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--color-ww-text-secondary);
+}
+.walks-root .ww-spot-meta-item { display: inline-flex; align-items: center; gap: 4px; }
+.walks-root .ww-spot-meta-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-ww-accent);
+}
+.walks-root .ww-spot-route {
+  font-size: 11px;
+  color: var(--color-ww-text-tertiary);
+}
+
+/* ページネーション */
+.walks-root .ww-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 32px;
+  flex-wrap: wrap;
+}
+.walks-root .ww-pagination-link,
+.walks-root .ww-pagination-current {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  padding: 8px 12px;
+  border-radius: var(--radius-ww-sm);
+  border: 1px solid var(--color-ww-border-subtle);
+  background-color: var(--color-ww-bg);
+  color: var(--color-ww-text-secondary);
+  font-size: 13px;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+.walks-root .ww-pagination-link:hover {
+  border-color: var(--color-ww-accent);
+  color: var(--color-ww-accent);
+}
+.walks-root .ww-pagination-current {
+  background-color: var(--color-ww-accent);
+  color: var(--color-ww-text-inverse);
+  border-color: var(--color-ww-accent);
+}
+.walks-root .ww-pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 4px;
+  color: var(--color-ww-text-tertiary);
+}
+
+/* viewport 外を遅延 render（modern browser native） */
+.walks-root .ww-spot-list > li {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 80px;
+}
