@@ -104,7 +104,7 @@ export async function getAllPublishedRoutes(): Promise<RouteWithArea[]> {
   const { data, error } = await supabase
     .from("official_routes")
     .select(
-      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, route_type, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
+      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, route_type, season_tags, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
     )
     .eq("is_published", true)
     .order("name");
@@ -122,7 +122,7 @@ export async function getRouteBySlug(
   const { data, error } = await supabase
     .from("official_routes")
     .select(
-      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, cart_notes, route_type, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
+      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, cart_notes, route_type, season_tags, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
     )
     .eq("slug", slug)
     .eq("is_published", true)
@@ -133,6 +133,61 @@ export async function getRouteBySlug(
     ...parseRouteLocation(data),
     areas: data.areas as unknown as Area,
   } as RouteWithArea;
+}
+
+// 関連ルート取得（Step 5-B）
+//
+// 4 軸スコアリングで関連度を算出:
+//   - 同エリア (area_id 一致): +100
+//   - 同季節タグ共通数: +20 / タグ
+//   - 同 cart_friendly: +10
+//   - 距離レンジ ±30%: +5
+// スコア順に上位 maxCount 件返す。is_published=true・自分自身を除く。
+export async function getRelatedRoutes(
+  current: RouteWithArea,
+  maxCount = 4
+): Promise<RouteWithArea[]> {
+  const { data, error } = await supabase
+    .from("official_routes")
+    .select(
+      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, route_type, season_tags, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
+    )
+    .eq("is_published", true)
+    .neq("id", current.id);
+
+  if (error || !data) return [];
+
+  const currentTags = new Set(current.season_tags ?? []);
+  const currentDistance = current.distance_meters;
+  const lowerDist = currentDistance * 0.7;
+  const upperDist = currentDistance * 1.3;
+
+  type Scored = { route: RouteWithArea; score: number };
+  const scored: Scored[] = data.map((r) => {
+    const parsed = parseRouteLocation(r) as OfficialRoute;
+    const withArea: RouteWithArea = {
+      ...parsed,
+      areas: r.areas as unknown as Area,
+    };
+    let score = 0;
+    if (withArea.area_id === current.area_id) score += 100;
+    const overlap = (withArea.season_tags ?? []).filter((t) => currentTags.has(t)).length;
+    score += overlap * 20;
+    if (withArea.cart_friendly === current.cart_friendly) score += 10;
+    if (withArea.distance_meters >= lowerDist && withArea.distance_meters <= upperDist) score += 5;
+    return { route: withArea, score };
+  });
+
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    // タイブレーク: total_walks 多い順 → name 昇順
+    if ((b.route.total_walks ?? 0) !== (a.route.total_walks ?? 0)) {
+      return (b.route.total_walks ?? 0) - (a.route.total_walks ?? 0);
+    }
+    return a.route.name.localeCompare(b.route.name, "ja");
+  });
+
+  return scored.slice(0, maxCount).map((s) => s.route);
 }
 
 export async function getRouteSpots(routeId: string): Promise<RouteSpot[]> {

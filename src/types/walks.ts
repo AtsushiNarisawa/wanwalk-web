@@ -40,6 +40,7 @@ export interface OfficialRoute {
   cart_friendly: boolean;
   cart_notes: string | null;
   route_type: RouteType;
+  season_tags: string[];
   created_at: string;
   updated_at: string;
   // joined
