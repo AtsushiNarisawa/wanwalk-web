@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import type { RouteWithArea, OfficialRoute, Season } from "@/types/walks";
+import Link from "next/link";
 import {
   Flower,
   Sun,
@@ -10,7 +9,7 @@ import {
   ShoppingCart,
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
-import RouteCard from "./RouteCard";
+import type { Season } from "@/types/walks";
 import { trackEvent, type SourcePage } from "@/lib/analytics";
 
 const SEASON_CONFIG: { key: Season; label: string; icon: Icon }[] = [
@@ -20,39 +19,35 @@ const SEASON_CONFIG: { key: Season; label: string; icon: Icon }[] = [
   { key: "winter", label: "冬", icon: Snowflake },
 ];
 
-interface SeasonFilterProps {
-  routes: (RouteWithArea | OfficialRoute)[];
+type Props = {
+  activeSeason: Season | null;
+  cartOnly: boolean;
+  filteredCount: number;
+  basePath: string;
   sourcePage?: SourcePage;
-  /** フィルター発火時にイベントに添えるエリア slug（area_detail 用） */
   areaSlug?: string;
+};
+
+function buildHref(
+  basePath: string,
+  next: { season: Season | null; cart: boolean },
+): string {
+  const params = new URLSearchParams();
+  if (next.season) params.set("season", next.season);
+  if (next.cart) params.set("cart", "1");
+  const qs = params.toString();
+  return qs ? `${basePath}?${qs}` : basePath;
 }
 
-export default function SeasonFilter({ routes, sourcePage, areaSlug }: SeasonFilterProps) {
-  const [activeSeason, setActiveSeason] = useState<Season | null>(null);
-  const [cartOnly, setCartOnly] = useState(false);
-
-  const filteredRoutes = useMemo(() => {
-    let result = routes;
-    if (activeSeason) {
-      result = result.filter((r) => {
-        const tags = r.pet_info?.best_season_tags;
-        if (!tags || !Array.isArray(tags)) return true;
-        return tags.includes(activeSeason);
-      });
-    }
-    if (cartOnly) {
-      result = result.filter((r) => r.cart_friendly === true);
-    }
-    return result;
-  }, [routes, activeSeason, cartOnly]);
-
-  const seasonLabel = activeSeason
-    ? SEASON_CONFIG.find((s) => s.key === activeSeason)?.label
-    : null;
-
-  const handleSeasonToggle = (key: Season) => {
-    const willActivate = activeSeason !== key;
-    setActiveSeason(willActivate ? key : null);
+export default function SeasonFilterControls({
+  activeSeason,
+  cartOnly,
+  filteredCount,
+  basePath,
+  sourcePage,
+  areaSlug,
+}: Props) {
+  const handleSeasonClick = (key: Season, willActivate: boolean) => {
     if (willActivate) {
       trackEvent("filter_apply_season", {
         season: key,
@@ -62,9 +57,7 @@ export default function SeasonFilter({ routes, sourcePage, areaSlug }: SeasonFil
     }
   };
 
-  const handleCartToggle = () => {
-    const willActivate = !cartOnly;
-    setCartOnly(willActivate);
+  const handleCartClick = (willActivate: boolean) => {
     if (willActivate) {
       trackEvent("filter_apply_cart", {
         source_page: sourcePage,
@@ -72,6 +65,10 @@ export default function SeasonFilter({ routes, sourcePage, areaSlug }: SeasonFil
       });
     }
   };
+
+  const seasonLabel = activeSeason
+    ? SEASON_CONFIG.find((s) => s.key === activeSeason)?.label
+    : null;
 
   return (
     <div>
@@ -87,10 +84,14 @@ export default function SeasonFilter({ routes, sourcePage, areaSlug }: SeasonFil
       >
         {SEASON_CONFIG.map(({ key, label, icon: IconComp }) => {
           const isActive = activeSeason === key;
+          const nextSeason: Season | null = isActive ? null : key;
           return (
-            <button
+            <Link
               key={key}
-              onClick={() => handleSeasonToggle(key)}
+              href={buildHref(basePath, { season: nextSeason, cart: cartOnly })}
+              onClick={() => handleSeasonClick(key, !isActive)}
+              scroll={false}
+              prefetch={false}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -107,18 +108,20 @@ export default function SeasonFilter({ routes, sourcePage, areaSlug }: SeasonFil
                 fontFamily: "var(--font-ww-sans)",
                 fontSize: 14,
                 fontWeight: isActive ? 600 : 400,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
+                textDecoration: "none",
               }}
             >
               <IconComp size={16} weight={isActive ? "fill" : "regular"} />
               {label}
-            </button>
+            </Link>
           );
         })}
 
-        <button
-          onClick={handleCartToggle}
+        <Link
+          href={buildHref(basePath, { season: activeSeason, cart: !cartOnly })}
+          onClick={() => handleCartClick(!cartOnly)}
+          scroll={false}
+          prefetch={false}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -135,14 +138,13 @@ export default function SeasonFilter({ routes, sourcePage, areaSlug }: SeasonFil
             fontFamily: "var(--font-ww-sans)",
             fontSize: 14,
             fontWeight: cartOnly ? 600 : 400,
-            cursor: "pointer",
-            transition: "all 0.15s ease",
             marginLeft: 4,
+            textDecoration: "none",
           }}
         >
           <ShoppingCart size={16} weight={cartOnly ? "fill" : "regular"} />
           カート走行可
-        </button>
+        </Link>
       </div>
 
       {/* フィルター結果ラベル */}
@@ -165,33 +167,10 @@ export default function SeasonFilter({ routes, sourcePage, areaSlug }: SeasonFil
               fontWeight: 600,
             }}
           >
-            {filteredRoutes.length}件
+            {filteredCount}件
           </span>
         </p>
       )}
-
-      {/* ルート一覧 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredRoutes.map((route, index) => (
-          <RouteCard
-            key={route.id}
-            route={route}
-            sourcePage={sourcePage}
-            priority={index === 0}
-          />
-        ))}
-        {filteredRoutes.length === 0 && (
-          <p
-            className="col-span-full text-center py-12"
-            style={{
-              fontSize: 15,
-              color: "var(--color-ww-text-tertiary)",
-            }}
-          >
-            条件に合うコースが見つかりませんでした
-          </p>
-        )}
-      </div>
     </div>
   );
 }

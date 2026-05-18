@@ -1,7 +1,13 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getAreas, getAreaBySlug, getRoutesByAreaId } from "@/lib/walks/data";
-import SeasonFilter from "@/components/walks/SeasonFilter";
+import SeasonFilterControls from "@/components/walks/SeasonFilterControls";
+import RouteCard from "@/components/walks/RouteCard";
+import {
+  filterRoutes,
+  parseSeasonParam,
+  parseCartParam,
+} from "@/lib/walks/filter-routes";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import ShareMenu from "@/components/walks/ShareMenu";
@@ -59,14 +65,21 @@ export async function generateMetadata({
 
 export default async function AreaDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ season?: string; cart?: string }>;
 }) {
   const { slug } = await params;
+  const { season: rawSeason, cart: rawCart } = await searchParams;
+  const season = parseSeasonParam(rawSeason);
+  const cartOnly = parseCartParam(rawCart);
+
   const area = await getAreaBySlug(slug);
   if (!area) notFound();
 
   const routes = await getRoutesByAreaId(area.id);
+  const filteredRoutes = filterRoutes(routes, season, cartOnly);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
@@ -139,7 +152,36 @@ export default async function AreaDetailPage({
 
       {routes.length > 0 ? (
         <div style={{ marginBottom: 48 }}>
-          <SeasonFilter routes={routes} sourcePage="area_detail" areaSlug={area.slug} />
+          <SeasonFilterControls
+            activeSeason={season}
+            cartOnly={cartOnly}
+            filteredCount={filteredRoutes.length}
+            basePath={`/areas/${slug}`}
+            sourcePage="area_detail"
+            areaSlug={area.slug}
+          />
+          <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 list-none p-0 m-0">
+            {filteredRoutes.map((route, index) => (
+              <li key={route.id} className="ww-route-li">
+                <RouteCard
+                  route={route}
+                  sourcePage="area_detail"
+                  priority={index === 0}
+                />
+              </li>
+            ))}
+            {filteredRoutes.length === 0 && (
+              <li
+                className="col-span-full text-center py-12 list-none"
+                style={{
+                  fontSize: 15,
+                  color: "var(--color-ww-text-tertiary)",
+                }}
+              >
+                条件に合うコースが見つかりませんでした
+              </li>
+            )}
+          </ul>
         </div>
       ) : (
         <div

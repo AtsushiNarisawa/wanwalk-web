@@ -276,3 +276,13 @@
   content-visibility: auto;
   contain-intrinsic-size: 0 80px;
 }
+
+/* ルートカード一覧 li（先頭1件以外を遅延 render で LCP/INP 改善） */
+.walks-root .ww-route-li {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 420px;
+}
+/* 先頭は LCP 候補なので即時 render（content-visibility を無効化） */
+.walks-root .ww-route-li:first-child {
+  content-visibility: visible;
+}

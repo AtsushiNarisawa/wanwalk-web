@@ -1,7 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getAllPublishedRoutes, getAreasWithRouteCount } from "@/lib/walks/data";
-import SeasonFilter from "@/components/walks/SeasonFilter";
+import SeasonFilterControls from "@/components/walks/SeasonFilterControls";
+import RouteCard from "@/components/walks/RouteCard";
+import {
+  filterRoutes,
+  parseSeasonParam,
+  parseCartParam,
+} from "@/lib/walks/filter-routes";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 
 export const revalidate = 86400;
@@ -19,12 +25,21 @@ export const metadata: Metadata = {
   }),
 };
 
-export default async function RoutesIndexPage() {
+export default async function RoutesIndexPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ season?: string; cart?: string }>;
+}) {
+  const { season: rawSeason, cart: rawCart } = await searchParams;
+  const season = parseSeasonParam(rawSeason);
+  const cartOnly = parseCartParam(rawCart);
+
   const [routes, areas] = await Promise.all([
     getAllPublishedRoutes(),
     getAreasWithRouteCount(),
   ]);
   const activeAreas = areas.filter((a) => a.route_count > 0);
+  const filteredRoutes = filterRoutes(routes, season, cartOnly);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
@@ -73,7 +88,38 @@ export default async function RoutesIndexPage() {
         </p>
       </header>
 
-      <SeasonFilter routes={routes} sourcePage="routes_list" />
+      <SeasonFilterControls
+        activeSeason={season}
+        cartOnly={cartOnly}
+        filteredCount={filteredRoutes.length}
+        basePath="/routes"
+        sourcePage="routes_list"
+      />
+
+      <ul
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 list-none p-0 m-0"
+      >
+        {filteredRoutes.map((route, index) => (
+          <li key={route.id} className="ww-route-li">
+            <RouteCard
+              route={route}
+              sourcePage="routes_list"
+              priority={index === 0}
+            />
+          </li>
+        ))}
+        {filteredRoutes.length === 0 && (
+          <li
+            className="col-span-full text-center py-12 list-none"
+            style={{
+              fontSize: 15,
+              color: "var(--color-ww-text-tertiary)",
+            }}
+          >
+            条件に合うコースが見つかりませんでした
+          </li>
+        )}
+      </ul>
 
       <script
         type="application/ld+json"
