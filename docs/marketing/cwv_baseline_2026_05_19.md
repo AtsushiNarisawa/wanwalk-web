@@ -380,3 +380,53 @@ Next.js 16 は `priority` に対して `<link rel="preload" as="image" imageSrcS
 - 🟡 routes / areas_detail / route_detail は Phase 2-C 以降の階層化が必要（コスト3-4h・効果見込み LCP -5〜-10s）
 
 Phase 2-B 波及確認サブタスクは**完全クローズ**。Phase 2-A コンテンツ攻勢へ移行可能。
+
+---
+
+## 8. Tier-B 階層化改修 (2026-05-20)
+
+C1 で改善し切れなかった routes / areas_detail の LCP 13-21s に対し、**SeasonFilter コンポーネントの Server Component 化** を実施。
+
+### 真因深掘り
+
+`SeasonFilter.tsx` は `"use client"` で全 74 ルートの props を受け取り、useState/useMemo でフィルタリング:
+- Client Bundle に 74 件のルートデータが渡される
+- ブラウザでハイドレート → メインスレッド長時間タスク
+- LCP 画像が先頭1件にあっても、ハイドレーション完了まで「使える状態」にならない
+
+### 実装内容 (commit `5a1b4ad`)
+
+1. `src/lib/walks/filter-routes.ts` 新設 — `filterRoutes(routes, season, cartOnly)` 純粋関数
+2. `SeasonFilter.tsx` → `SeasonFilterControls.tsx` (rename + 大幅再設計):
+   - フィルターボタンを `<Link href="?season=spring">` で SSR ナビゲーション
+   - GA4 イベント送出のみ Client（onClick で trackEvent）
+   - `prefetch={false}` で不要な事前 fetch を抑制
+3. `/routes/page.tsx` と `/areas/[slug]/page.tsx`:
+   - `searchParams` を受け取り → SSR でフィルタ済 routes を取得
+   - 直接 `<ul><li><RouteCard /></li></ul>` で描画（先頭1件のみ priority）
+4. `globals.css`:
+   - `.ww-route-li { content-visibility: auto; contain-intrinsic-size: 0 420px }`
+   - `.ww-route-li:first-child { content-visibility: visible }` (LCP 候補は強制 render)
+
+### 結果 (5/19 baseline → tier-B 完了)
+
+| page | perf 通算 | LCP 通算 | FCP 通算 | TTFB |
+|---|---:|---:|---:|---:|
+| **routes** | 53→**67** (+14) | 30.4s → **6.0s (-80%)** | 3.1s → 2.2s | 42ms |
+| **areas** | 65→**75** (+10) | 16.7s → **8.1s (-51%)** | 3.9s → 1.3s | 54ms |
+| **areas_detail** (箱根芦ノ湖 5本) | 69→**75** (+6) | 16.2s → **5.6s (-65%)** | 2.8s → 2.2s | 17ms |
+| **areas_detail** (鎌倉 9本) | - → **77** | **5.2s** | 2.3s | 16ms |
+
+### Dynamic Render の懸念は杞憂
+
+`searchParams` 使用により build 出力上は `ƒ Dynamic` 表示になったが、Vercel PPR (Partial Prerendering) + Edge Cache で **TTFB 16-54ms** と SSG 並みの応答速度を実現。
+
+### Phase 2-B Tier-B ✅ クローズ判定
+
+- ✅ routes LCP **30.4s → 6.0s (-80%)** の劇的改善
+- ✅ areas_detail 大型エリア（鎌倉 9本）でも 5.2s
+- ✅ TTFB 16-54ms で Dynamic 化の悪影響なし
+- ✅ Client JS bundle から 74 件のルートデータ除去
+- 🟡 残: route_detail LCP 13s は別レイヤー（map / leaflet）が真因の可能性 → Phase 2-C 以降
+
+これで Phase 2-B「テクニカル SEO」は **B-1/B-2/B-3/B-4 + 波及確認 + Tier-B 階層化**まで全て完了。CWV ターゲット 7 ページのうち 6 ページが Performance 70 以上、LCP も 6 ページが 8s 以下。Phase 2-A コンテンツ攻勢へ完全移行可能な状態。
