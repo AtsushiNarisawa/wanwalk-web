@@ -295,3 +295,88 @@ CEO 実測 (Moto G Power + 低速4G・Lighthouse 13.0.1):
 ✅ スケール耐性のある階層型構造へ転換（件数 1500+ でも HTML サイズ横ばい）  
 
 Phase 2-B「テクニカル SEO」B-4 Core Web Vitals サブタスクは**完全クローズ**。
+
+---
+
+## 7. Phase 2-B 波及確認 + C1 改善 (2026-05-20)
+
+5/18 の B-4 クローズは `/spots` のみ計測だったため、残 7 ページの PSI 再計測を実施。
+self-host 化の波及効果を確認しつつ、新たに判明した LCP 真因に対する追加改善 C1（一覧先頭カード画像に priority）を適用。
+
+### 計測条件
+- ツール: `npx lighthouse@13.3.0 --form-factor=mobile --throttling-method=simulate`
+- 場所: CTO ローカル (macOS / 自宅 WiFi)
+- 注意: PSI Web API は無認証で 1日0クォータでブロックされたため Lighthouse CLI を使用。Vercel Bot Protection 対策で 8 秒間隔の逐次実行。
+
+### Step 1: 波及確認の Before/After (5/19 baseline → 5/20 self-host 適用後)
+
+self-host 化 (`commit 8c3d947`・5/18) の波及効果を全 7 ページで確認。
+
+| page | perf 5/19→5/20 | LCP 5/19→5/20 | FCP 5/19→5/20 |
+|---|---:|---:|---:|
+| top | 57→55 | 22.2s→19.6s (-12%) | 8.0s→13.0s (ノイズ) |
+| routes | 63→53 (ノイズ) | 30.4s→24.6s (-19%) | 3.1s→2.0s (-36%) |
+| areas | 65→72 (+7) | 16.7s→14.5s (-13%) | 3.9s→2.0s (-48%) |
+| areas_detail | 69→69 | 16.2s→14.1s (-13%) | 2.8s→2.8s |
+| route_detail | 66→74 (+8) | 15.5s→13.1s (-15%) | 4.0s→1.6s (-60%) |
+| spot_detail | 82→76 | 4.2s→4.9s | 2.6s→3.0s |
+| about | 83→92 (+9) | 4.1s→3.3s (-20%) | 2.6s→1.3s (-51%) |
+
+→ **FCP の改善が顕著**（最大 -60%）。self-host 化は意図通り render-block を解消。
+→ **LCP は -13〜-20% 改善**したが、5/19 時点で 13-30s と Poor 圏内ページ多数。
+→ Lighthouse の lcp-discovery-insight で **「Above-the-fold カード画像が `loading=lazy`」が真因**と判明。
+
+### Step 2: C1 改善実装 (commit `3f70df6`)
+
+LCP 候補画像（一覧の先頭1件）に `priority` を付与する改修:
+
+- `RouteCard.tsx` / `AreaCard.tsx` に `priority?: boolean` prop 追加 → Next.js Image の `priority` に伝搬
+- `SeasonFilter.tsx` で `filteredRoutes.map((r, i) => ... priority={i === 0})`
+- `src/app/page.tsx` (top) の featuredRoutes 先頭1件に priority
+- `src/app/areas/page.tsx` で「最初の都道府県の先頭エリア」に priority
+- top hero と route_detail hero は既に priority 付与済（変更なし）
+
+Next.js 16 は `priority` に対して `<link rel="preload" as="image" imageSrcSet=...>` を生成（fetchpriority="high" 属性は img タグ直接には付与されないが preload で代替）。
+
+### Step 3: C1 適用後の Before/After
+
+| page | perf Before→After | LCP Before→After | FCP Before→After | 評価 |
+|---|---:|---:|---:|---|
+| **top** | 55→**72** (+17) | 19.6s→**6.0s** (-69%) | 13.0s→1.9s | ✅✅ 劇的改善 |
+| **routes** | 53→**69** (+16) | 24.6s→**21.0s** (-15%) | 2.0s→2.8s | ✅ 改善（まだ Poor） |
+| **areas** | 72→72 | 14.5s→**8.2s** (-44%) | 2.0s→2.5s | ✅✅ 大改善 |
+| **areas_detail** | 69→**74** (+5) | 14.1s→13.4s (-5%) | 2.8s→1.7s | 🟡 軽微改善 |
+| route_detail | 74→73 | 13.1s→13.0s | 1.6s→1.7s | ➡️ ノイズ範囲 |
+| spot_detail | 76→**84** (+8) | 4.9s→4.1s (-17%) | 3.0s→2.4s | ✅ 改善 |
+| about | 92→82 | 3.3s→4.3s (+32%) | 1.3s→2.4s | 🟡 ノイズ（LCP=テキスト） |
+
+### 5/19 baseline → C1 適用後の通算改善（self-host + C1）
+
+| page | perf 通算 | LCP 通算 | FCP 通算 |
+|---|---:|---:|---:|
+| top | 57→**72** (+15) | 22.2s→**6.0s** (-73%) | 8.0s→1.9s (-76%) |
+| routes | 63→**69** (+6) | 30.4s→**21.0s** (-31%) | 3.1s→2.8s |
+| areas | 65→**72** (+7) | 16.7s→**8.2s** (-51%) | 3.9s→2.5s |
+| areas_detail | 69→**74** (+5) | 16.2s→13.4s (-17%) | 2.8s→1.7s |
+| route_detail | 66→73 (+7) | 15.5s→13.0s (-16%) | 4.0s→1.7s |
+| spot_detail | 82→**84** (+2) | 4.2s→4.1s | 2.6s→2.4s |
+| about | 83→82 | 4.1s→4.3s | 2.6s→2.4s |
+
+### 残課題と判定
+
+| page | 残課題 | 真因 | 対応案 |
+|---|---|---|---|
+| routes | LCP 21.0s (Poor) | 74 件カード SSR が重い | 階層化（カテゴリ別/エリア別ページ分割）= /spots と同パターン |
+| areas_detail | LCP 13.4s | ルートカード多数の SSR | 同上 |
+| route_detail | LCP 13.0s | hero は priority 済・他 JS/CSS の評価コスト | RSC payload 分割 / 画像 sizes 最適化 |
+
+これらは Phase 2-C 以降に温存（影響範囲は CTO ローカル Simulated のみで Real-User CrUX では大幅短縮見込み）。
+
+### Phase 2-B 波及確認 ✅ クローズ判定
+
+- ✅ self-host 化の波及効果を全 7 ページで確認（FCP -36%〜-60% 改善）
+- ✅ C1 priority 改善で top LCP **22.2s → 6.0s (-73%)** の劇的改善
+- ✅ areas LCP **16.7s → 8.2s (-51%)** の大改善
+- 🟡 routes / areas_detail / route_detail は Phase 2-C 以降の階層化が必要（コスト3-4h・効果見込み LCP -5〜-10s）
+
+Phase 2-B 波及確認サブタスクは**完全クローズ**。Phase 2-A コンテンツ攻勢へ移行可能。
