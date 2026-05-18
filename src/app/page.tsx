@@ -350,8 +350,13 @@ export default async function WalksTopPage() {
         <section className="py-12 md:py-16">
           <SectionHeading title="注目の散歩コース" seeAllHref="/routes" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredRoutes.map((route) => (
-              <RouteCard key={route.id} route={route} sourcePage="home" />
+            {featuredRoutes.map((route, index) => (
+              <RouteCard
+                key={route.id}
+                route={route}
+                sourcePage="home"
+                priority={index === 0}
+              />
             ))}
           </div>
           <div className="text-center mt-10">

@@ -10,6 +10,8 @@ type Props = {
   routeCount: number;
   heroImageUrl: string | null;
   sourcePage?: SourcePage;
+  /** LCP 候補画像（一覧の先頭1件のみ true）。fetchpriority=high + 即時ロード */
+  priority?: boolean;
 };
 
 export default function AreaCard({
@@ -18,6 +20,7 @@ export default function AreaCard({
   routeCount,
   heroImageUrl,
   sourcePage,
+  priority = false,
 }: Props) {
   const handleClick = () => {
     trackEvent("area_card_click", {
@@ -39,6 +42,7 @@ export default function AreaCard({
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover transition-opacity duration-300 opacity-90 group-hover:opacity-100"
+            priority={priority}
           />
         ) : (
           <div

@@ -28,9 +28,11 @@ const difficultyStyles: Record<
 type Props = {
   route: OfficialRoute | RouteWithArea;
   sourcePage?: SourcePage;
+  /** LCP 候補画像（一覧ページの先頭1件のみ true）。fetchpriority=high + 即時ロード */
+  priority?: boolean;
 };
 
-export default function RouteCard({ route, sourcePage }: Props) {
+export default function RouteCard({ route, sourcePage, priority = false }: Props) {
   const distanceKm = (route.distance_meters / 1000).toFixed(1);
   const diff = difficultyStyles[route.difficulty_level];
   const areaSlug =
@@ -68,6 +70,7 @@ export default function RouteCard({ route, sourcePage }: Props) {
             fill
             className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={priority}
           />
         ) : (
           <div

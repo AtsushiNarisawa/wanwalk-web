@@ -172,8 +172,13 @@ export default function SeasonFilter({ routes, sourcePage, areaSlug }: SeasonFil
 
       {/* ルート一覧 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredRoutes.map((route) => (
-          <RouteCard key={route.id} route={route} sourcePage={sourcePage} />
+        {filteredRoutes.map((route, index) => (
+          <RouteCard
+            key={route.id}
+            route={route}
+            sourcePage={sourcePage}
+            priority={index === 0}
+          />
         ))}
         {filteredRoutes.length === 0 && (
           <p

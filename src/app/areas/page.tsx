@@ -91,7 +91,7 @@ export default async function AreasPage() {
         愛犬と歩ける散歩コースを都道府県別にご紹介します。
       </p>
 
-      {sortedPrefs.map((pref) => (
+      {sortedPrefs.map((pref, prefIndex) => (
         <section key={pref} style={{ marginTop: 64 }}>
           <h2
             style={{
@@ -116,7 +116,7 @@ export default async function AreasPage() {
               rowGap: 40,
             }}
           >
-            {byPrefecture[pref].map((area) => (
+            {byPrefecture[pref].map((area, areaIndex) => (
               <AreaCard
                 key={area.id}
                 slug={area.slug}
@@ -124,6 +124,7 @@ export default async function AreasPage() {
                 routeCount={area.route_count}
                 heroImageUrl={area.hero_image_url ?? null}
                 sourcePage="areas_list"
+                priority={prefIndex === 0 && areaIndex === 0}
               />
             ))}
           </div>
