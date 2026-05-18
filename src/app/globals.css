@@ -24,8 +24,10 @@
   --color-ww-level-moderate: #B8905C;
   --color-ww-level-hard: #A84A3D;
 
-  --font-ww-serif: "Noto Serif JP", serif;
-  --font-ww-sans: "Inter", "Noto Sans JP", system-ui, sans-serif;
+  /* next/font 経由で self-host されたフォント変数を参照。
+     fallback で system font を維持して FOUT 中も読める状態に。 */
+  --font-ww-serif: var(--font-noto-serif-jp), "Noto Serif JP", serif;
+  --font-ww-sans: var(--font-inter), var(--font-noto-sans-jp), "Inter", "Noto Sans JP", system-ui, sans-serif;
 
   --radius-ww-sm: 4px;
   --radius-ww-md: 8px;

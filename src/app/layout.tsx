@@ -1,5 +1,29 @@
 import type { Metadata } from "next";
+import { Inter, Noto_Sans_JP, Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
+
+// next/font で self-host 化。
+// - 外部 fonts.googleapis.com への DNS/TLS 不要
+// - サブセット化 + preload 自動付与 + font-display:swap
+// - CSS で参照する変数: --font-ww-sans / --font-ww-serif
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-inter",
+});
+const notoSansJp = Noto_Sans_JP({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+  variable: "--font-noto-sans-jp",
+});
+const notoSerifJp = Noto_Serif_JP({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+  variable: "--font-noto-serif-jp",
+});
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID?.trim();
 
@@ -37,16 +61,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const fontClassNames = `${inter.variable} ${notoSansJp.variable} ${notoSerifJp.variable}`;
   return (
-    <html lang="ja">
+    <html lang="ja" className={fontClassNames}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* 画像ホストは self-host できないので preconnect は残す */}
         <link rel="preconnect" href="https://jkpenklhrlbctebkpvax.supabase.co" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;500;700&display=swap"
-          rel="stylesheet"
-        />
       </head>
       <body className="walks-root min-h-screen">
         {children}
