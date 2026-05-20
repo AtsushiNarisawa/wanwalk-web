@@ -37,7 +37,8 @@ export type TrackEventName =
   | "route_feedback_open"
   | "route_feedback_submit"
   | "filter_apply_season"
-  | "filter_apply_cart";
+  | "filter_apply_cart"
+  | "app_store_badge_click";
 
 type EventParams = Record<string, string | number | boolean | undefined | null>;
 

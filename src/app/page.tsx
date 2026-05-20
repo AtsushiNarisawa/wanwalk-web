@@ -10,6 +10,7 @@ import {
 import RouteCard from "@/components/walks/RouteCard";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
+import AppStoreBadge from "@/components/walks/AppStoreBadge";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
@@ -232,6 +233,21 @@ export default async function WalksTopPage() {
               <span className="ww-numeric">全{activeAreas.length}エリア</span>・
               <span className="ww-numeric">{totalRoutes}コース</span>
             </p>
+
+            {/* Hero 補助 CTA: App Store 配信中 */}
+            <div className="mt-6 flex flex-col items-center gap-3">
+              <span
+                style={{
+                  fontSize: 12,
+                  color: "var(--color-ww-text-tertiary)",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Also available on
+              </span>
+              <AppStoreBadge sourcePage="home" placement="hero" height={44} />
+            </div>
           </div>
         </div>
       </section>
@@ -426,7 +442,7 @@ export default async function WalksTopPage() {
             />
             <FeaturePillar
               icon={<DeviceMobile size={28} weight="regular" />}
-              title="アプリで記録（近日）"
+              title="アプリで記録"
               body="WanWalkアプリならGPSで散歩を自動記録。歩いたルートをそのまま残せます。"
             />
           </div>

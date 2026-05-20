@@ -1,6 +1,12 @@
 import { DeviceMobile } from "@phosphor-icons/react/dist/ssr";
+import AppStoreBadge from "./AppStoreBadge";
+import type { SourcePage } from "@/lib/analytics";
 
-export default function WalksAppCTA() {
+type Props = {
+  sourcePage?: SourcePage;
+};
+
+export default function WalksAppCTA({ sourcePage = "home" }: Props) {
   return (
     <section
       className="text-center"
@@ -34,10 +40,10 @@ export default function WalksAppCTA() {
           lineHeight: 1.4,
         }}
       >
-        WanWalkアプリ Coming Soon
+        WanWalkアプリ、App Store で配信中
       </h2>
       <p
-        className="mx-auto mb-6"
+        className="mx-auto mb-8"
         style={{
           maxWidth: 520,
           fontSize: 14,
@@ -45,24 +51,10 @@ export default function WalksAppCTA() {
           color: "var(--color-ww-text-secondary)",
         }}
       >
-        WanWalkアプリなら、散歩ルートをGPSで自動記録。
+        散歩ルートをGPSで自動記録。
         歩いた距離や時間を振り返りながら、愛犬との時間を残せます。
       </p>
-      <div
-        className="inline-flex items-center justify-center"
-        style={{
-          padding: "10px 20px",
-          border: "1px solid var(--color-ww-border-strong)",
-          borderRadius: "var(--radius-ww-md)",
-          fontSize: 12,
-          fontWeight: 500,
-          color: "var(--color-ww-text-secondary)",
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-        }}
-      >
-        App Store で近日公開予定
-      </div>
+      <AppStoreBadge sourcePage={sourcePage} placement="walks_app_cta" height={48} />
     </section>
   );
 }
