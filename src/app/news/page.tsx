@@ -40,20 +40,30 @@ export default async function NewsIndexPage() {
         <span style={{ color: "var(--color-ww-text-secondary)" }}>お知らせ</span>
       </nav>
 
-      <h1
-        className="ww-serif"
-        style={{
-          fontFamily: "var(--font-ww-serif)",
-          fontSize: 36,
-          fontWeight: 700,
-          color: "var(--color-ww-text)",
-          letterSpacing: "0.01em",
-          lineHeight: 1.35,
-          marginBottom: 16,
-        }}
-      >
-        お知らせ
-      </h1>
+      <div className="flex items-center mb-4">
+        <span
+          className="inline-block mr-3"
+          style={{
+            width: 24,
+            height: 1,
+            backgroundColor: "var(--color-ww-border-subtle)",
+          }}
+          aria-hidden
+        />
+        <h1
+          className="ww-serif"
+          style={{
+            fontFamily: "var(--font-ww-serif)",
+            fontSize: 36,
+            fontWeight: 700,
+            color: "var(--color-ww-text)",
+            letterSpacing: "0.01em",
+            lineHeight: 1.35,
+          }}
+        >
+          お知らせ
+        </h1>
+      </div>
 
       <p
         style={{

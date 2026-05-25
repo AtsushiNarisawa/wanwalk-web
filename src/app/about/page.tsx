@@ -373,6 +373,17 @@ export default function AboutPage() {
             実店舗での犬の散歩案内の経験をもとに、
             全国の犬連れ散歩ルートを体験ストーリー付きで紹介しています。
           </p>
+          <Link
+            href="/news"
+            className="inline-flex items-center gap-2 mt-6 transition-colors"
+            style={{
+              fontSize: 14,
+              fontWeight: 500,
+              color: "var(--color-ww-accent)",
+            }}
+          >
+            お知らせ一覧を見る →
+          </Link>
         </section>
 
         <SupportedBadge />

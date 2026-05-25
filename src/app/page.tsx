@@ -12,6 +12,7 @@ import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import AppStoreBadge from "@/components/walks/AppStoreBadge";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
+import { getAllNewsArticles, formatPublishedDate } from "@/lib/news";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
@@ -82,11 +83,13 @@ function SectionHeading({
 }
 
 export default async function WalksTopPage() {
-  const [areas, featuredRoutes, pickupRoute] = await Promise.all([
+  const [areas, featuredRoutes, pickupRoute, newsArticles] = await Promise.all([
     getAreasWithRouteCount(),
     getFeaturedRoutesForTop(12),
     getFeaturedRoute(),
+    getAllNewsArticles(),
   ]);
+  const latestNews = newsArticles[0];
 
   const activeAreas = areas.filter((a) => a.route_count > 0);
   const totalRoutes = activeAreas.reduce((sum, a) => sum + a.route_count, 0);
@@ -451,6 +454,85 @@ export default async function WalksTopPage() {
         <div className="py-12 md:py-16">
           <WalksAppCTA />
         </div>
+
+        {/* お知らせ（最新1件・/news への動線） */}
+        {latestNews && (
+          <section className="py-12 md:py-16">
+            <SectionHeading title="お知らせ" seeAllHref="/news" />
+            <Link
+              href={`/news/${latestNews.slug}`}
+              className="block transition-colors"
+              style={{
+                border: "1px solid var(--color-ww-border-subtle)",
+                borderRadius: "var(--radius-ww-md)",
+                padding: 24,
+                backgroundColor: "var(--color-ww-bg)",
+                color: "inherit",
+                textDecoration: "none",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  marginBottom: 10,
+                  fontSize: 12,
+                  color: "var(--color-ww-text-tertiary)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                <time dateTime={latestNews.publishedAt}>
+                  {formatPublishedDate(latestNews.publishedAt)}
+                </time>
+                <span
+                  style={{
+                    padding: "2px 8px",
+                    border: "1px solid var(--color-ww-border-subtle)",
+                    borderRadius: 2,
+                    color: "var(--color-ww-text-secondary)",
+                  }}
+                >
+                  {latestNews.category}
+                </span>
+              </div>
+              <h3
+                className="ww-serif"
+                style={{
+                  fontFamily: "var(--font-ww-serif)",
+                  fontSize: 18,
+                  fontWeight: 600,
+                  color: "var(--color-ww-text)",
+                  lineHeight: 1.55,
+                  marginBottom: 6,
+                }}
+              >
+                {latestNews.title}
+              </h3>
+              <p
+                style={{
+                  fontSize: 14,
+                  lineHeight: 1.85,
+                  color: "var(--color-ww-text-secondary)",
+                  marginBottom: 12,
+                }}
+              >
+                {latestNews.description}
+              </p>
+              <span
+                className="inline-flex items-center gap-1"
+                style={{
+                  fontSize: 13,
+                  color: "var(--color-ww-accent)",
+                  fontWeight: 500,
+                }}
+              >
+                続きを読む
+                <ArrowRight size={14} weight="regular" />
+              </span>
+            </Link>
+          </section>
+        )}
 
         <SupportedBadge />
       </div>

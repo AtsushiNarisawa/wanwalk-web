@@ -79,11 +79,41 @@ export default async function NewsArticlePage({
     },
   };
 
+  // BreadcrumbList JSON-LD
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "トップ",
+        item: "https://wanwalk.jp",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "お知らせ",
+        item: "https://wanwalk.jp/news",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: meta.title,
+        item: `https://wanwalk.jp/news/${slug}`,
+      },
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <article className="max-w-3xl mx-auto px-4 py-12">
         {/* パンくず */}
@@ -208,7 +238,7 @@ export default async function NewsArticlePage({
             style={{ gap: 12 }}
           >
             <Link
-              href="/"
+              href="/routes"
               style={{
                 display: "inline-block",
                 padding: "12px 24px",
@@ -220,7 +250,7 @@ export default async function NewsArticlePage({
                 textDecoration: "none",
               }}
             >
-              ルートを見る
+              ルート一覧を見る
             </Link>
             <a
               href="https://apps.apple.com/jp/app/wanwalk/id6757466888"
