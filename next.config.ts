@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
+import createMDX from "@next/mdx";
 
 const nextConfig: NextConfig = {
+  pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
   images: {
     loader: "custom",
     loaderFile: "./src/lib/supabase-image-loader.ts",
@@ -25,4 +27,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withMDX = createMDX({
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
+});
+
+export default withMDX(nextConfig);

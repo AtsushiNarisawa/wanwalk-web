@@ -5,6 +5,7 @@ import {
   getAllSpotSlugs,
   getSpotsByCategory,
 } from "@/lib/walks/data";
+import { getAllNewsArticles } from "@/lib/news";
 
 // /spots/category/{cat} の対象カテゴリ + ページネーション設定。
 // 1 ページあたりの件数は /spots/category/[category]/page.tsx の PER_PAGE と揃える。
@@ -23,12 +24,14 @@ const isValidSlug = (slug: string | null | undefined): slug is string =>
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://wanwalk.jp";
 
-  const [routes, areas, spotSlugs, ...categorySpotsArr] = await Promise.all([
-    getAllPublishedRoutes(),
-    getAreas(),
-    getAllSpotSlugs(),
-    ...CATEGORIES_FOR_SITEMAP.map((cat) => getSpotsByCategory(cat)),
-  ]);
+  const [routes, areas, spotSlugs, newsArticles, ...categorySpotsArr] =
+    await Promise.all([
+      getAllPublishedRoutes(),
+      getAreas(),
+      getAllSpotSlugs(),
+      getAllNewsArticles(),
+      ...CATEGORIES_FOR_SITEMAP.map((cat) => getSpotsByCategory(cat)),
+    ]);
 
   // カテゴリ別件数からページネーション URL を生成。
   // page=1 は /spots/category/{cat} の canonical なので page=2 以降のみ追加。
@@ -88,6 +91,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
+      url: `${baseUrl}/news`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.6,
+    },
+    {
       url: `${baseUrl}/terms`,
       lastModified: new Date("2026-04-20"),
       changeFrequency: "yearly",
@@ -128,11 +137,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     }));
 
+  const newsPages: MetadataRoute.Sitemap = newsArticles
+    .filter((a) => isValidSlug(a.slug))
+    .map((a) => ({
+      url: `${baseUrl}/news/${a.slug}`,
+      lastModified: new Date(a.publishedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    }));
+
   return [
     ...staticPages,
     ...routePages,
     ...areaPages,
     ...categoryPages,
     ...spotPages,
+    ...newsPages,
   ];
 }
