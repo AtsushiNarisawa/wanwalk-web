@@ -441,7 +441,7 @@ export default async function WalksTopPage() {
             <FeaturePillar
               icon={<Camera size={28} weight="regular" />}
               title="写真で体験を伝える"
-              body="実際に歩いた人の写真と体験で、コースの空気感をそのままお届けします。"
+              body="ルートの写真と犬連れ実用情報で、コースの空気感をそのままお届けします。"
             />
             <FeaturePillar
               icon={<DeviceMobile size={28} weight="regular" />}

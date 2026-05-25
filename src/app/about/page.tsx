@@ -169,7 +169,7 @@ export default function AboutPage() {
           <ul style={{ listStyle: "none", padding: 0 }}>
             <FeatureItem title="体験ストーリー 全74ルートに収録（平均468字）">
               全ルートに、駐車場の入り方・路面の状態・足元の注意点・愛犬と立ち寄れるカフェやベンチまで、
-              実際に歩いた感覚に基づくストーリーを掲載しています。
+              散歩の流れに沿って書いたストーリーを掲載しています。
             </FeatureItem>
             <FeatureItem title="犬連れ実用情報 100%充填">
               全74ルートでカート走行可否（cart_friendly）と
@@ -209,7 +209,7 @@ export default function AboutPage() {
               愛犬と安心してお出かけできる情報を提供します。
             </FeatureItem>
             <FeatureItem title="体験ストーリーで伝える">
-              単なるスポット情報ではなく、実際に歩いた体験をストーリーと写真で紹介。
+              単なるスポット情報ではなく、散歩コースの流れと犬連れ実用情報をストーリーと写真で紹介。
               散歩コースの空気感をそのままお届けします。
             </FeatureItem>
             <FeatureItem title="実用的なルート設計">
