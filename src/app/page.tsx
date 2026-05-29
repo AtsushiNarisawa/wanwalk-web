@@ -552,7 +552,7 @@ export default async function WalksTopPage() {
                 name: "WanWalkとは何ですか？",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "WanWalkは、犬連れに特化した日本初の散歩ルート体験プラットフォームです。箱根・鎌倉・伊豆など全国26エリアで、83本の散歩ルートと556件の犬連れスポットを体験ストーリー付きで紹介しています。",
+                  text: `WanWalkは、犬連れに特化した日本初の散歩ルート体験プラットフォームです。箱根・鎌倉・伊豆など全国${activeAreas.length}エリアで、${totalRoutes}本の散歩ルートと各ルートの犬連れスポットを体験ストーリー付きで紹介しています。`,
                 },
               },
               {

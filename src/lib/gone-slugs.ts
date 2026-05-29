@@ -242,6 +242,24 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "fujisawa-shi-kanko-kyokai-enoshima-chusha-jo",
   "kannonzaki-koen-dai-ichi-chusha-jo-kannonzaki-umi",
   "yuhodo-iriguchi",
+  // --- 2026-05-29 非公開ルート配下スポット 14件（W1 是正と同時に 410 化）---
+  // CEO が意図的に非公開化した 4 ルート（葉山2・軽井沢1・箱根仙石原1）配下の viewpoint。
+  // getSpotBySlug/getAllSpotSlugs に is_published フィルタを追加し新規生成を止めたうえで、
+  // 既にインデックスされている可能性のある URL の除去を加速するため 410 化する。
+  "buna-no-mori",
+  "kintoki-jinja-fukin",
+  "choja-ke-saki-no-sunahama",
+  "chojagasaki-kaigan",
+  "chojagasaki-tembo-pointo",
+  "kyukei-benchi",
+  "ohama-kaigan-yuhodo",
+  "isshoku-kaigan-no-sunahama",
+  "morito-dai-myojin",
+  "morito-kaigan",
+  "ike-no-oku-gawa",
+  "kaede-namiki-no-yuhodo",
+  "kumo-ba-ike-no-mizukagami",
+  "kumo-jo-chi-suimen-no-utsuri-komi",
 ]);
 
 // リネームされた slug の旧→新マップ。middleware で 301 redirect される。

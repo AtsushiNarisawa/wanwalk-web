@@ -47,7 +47,11 @@ export async function generateMetadata({
       "?width=1200&height=630&resize=cover&quality=80";
 
   const title = `${area.name}の犬連れ散歩コース${routeCount}本｜駐車場・カフェ情報つき`;
-  const description = `${area.name}（${area.prefecture}）の犬連れ散歩コースを紹介。${area.description ?? ""}`;
+  // area.description は運転経路文（御殿場IC→国道…）を含み 116 全角に達するケースがあるため、
+  // meta description は冒頭 70 文字に丸めて Google スニペット表示超過を防ぐ。
+  const descPrefix = `${area.name}（${area.prefecture}）の犬連れ散歩コースを紹介。`;
+  const descBody = (area.description ?? "").slice(0, 70);
+  const description = `${descPrefix}${descBody}${descBody.length >= 70 ? "…" : ""}`;
 
   return {
     title,

@@ -48,11 +48,12 @@ export async function GET(
   const { data: spot } = await supabase
     .from("route_spots")
     .select(
-      "name, category, photo_url, pet_friendly, official_routes!inner(name, areas!inner(name))"
+      "name, category, photo_url, pet_friendly, official_routes!inner(name, is_published, areas!inner(name))"
     )
     .eq("slug", slug)
+    .eq("official_routes.is_published", true)
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (!spot) {
     return new Response("Spot not found", { status: 404 });
@@ -82,6 +83,8 @@ export async function GET(
       >
         {/* Background photo */}
         {photoUrl && (
+          // next/og の ImageResponse(Satori) 内では next/image は使えないため生の img を使う。
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={photoUrl}
             alt=""

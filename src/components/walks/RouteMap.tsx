@@ -168,6 +168,8 @@ export default function RouteMap({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // SSR 非対応の Leaflet 描画を mounted まで遅延する意図的ガード。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

@@ -38,6 +38,8 @@ export default function RouteActions({ routeId, routeSlug, routeName, areaName }
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // SSR ハイドレーション回避の意図的な mounted ガード（localStorage 読み出し前）。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     setBookmarked(readBookmarks().includes(routeId));
   }, [routeId]);

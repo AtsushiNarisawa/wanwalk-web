@@ -10,7 +10,6 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
 import { getSpotsListingSummary } from "@/lib/walks/data";
-import type { SpotCategory } from "@/types/walks";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import { buildOgMetadata } from "@/lib/walks/og-meta";

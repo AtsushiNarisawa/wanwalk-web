@@ -43,19 +43,23 @@ export default function RouteFeedback({ routeId, routeSlug }: Props) {
 
     setIsSubmitting(true);
     try {
-      await supabase.from("route_feedback").insert({
+      // supabase-js は insert 失敗時に throw せず { error } を返すため、error を必ず確認する。
+      // これを怠ると RLS 拒否・制約違反でもサイレントに「送信完了」表示になる。
+      const { error } = await supabase.from("route_feedback").insert({
         route_id: routeId,
         user_id: null,
         category,
         message: message.trim(),
       });
+      if (error) throw error;
       trackEvent("route_feedback_submit", {
         route_slug: routeSlug,
         feedback_category: category,
       });
       setSubmitted(true);
       setMessage("");
-    } catch {
+    } catch (e) {
+      console.error("route_feedback insert failed", e);
       alert("送信に失敗しました。もう一度お試しください。");
     } finally {
       setIsSubmitting(false);

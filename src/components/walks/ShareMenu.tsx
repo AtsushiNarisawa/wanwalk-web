@@ -34,6 +34,8 @@ export default function ShareMenu({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // SSR ハイドレーション回避の意図的な mounted ガード（navigator.share 等の client API 利用前）。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

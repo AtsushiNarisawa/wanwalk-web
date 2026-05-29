@@ -70,6 +70,8 @@ export async function GET(
       >
         {/* Background photo */}
         {thumbnailUrl && (
+          // next/og の ImageResponse(Satori) 内では next/image は使えないため生の img を使う。
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={thumbnailUrl}
             alt=""

@@ -8,8 +8,9 @@ const NON_SEO_CATEGORIES_ARR = Array.from(NON_SEO_SPOT_CATEGORIES);
 export async function getFeaturedRoute(): Promise<RouteWithArea | null> {
   const { data, error } = await supabase
     .from("featured_routes")
-    .select("route_id, label, official_routes(*, areas(id, name, slug, prefecture, description))")
+    .select("route_id, label, official_routes!inner(*, areas(id, name, slug, prefecture, description))")
     .eq("is_active", true)
+    .eq("official_routes.is_published", true)
     .order("display_order")
     .limit(1);
 
@@ -52,7 +53,7 @@ export async function getRoutesByAreaId(
   const { data, error } = await supabase
     .from("official_routes")
     .select(
-      "id, area_id, name, slug, description, difficulty_level, distance_meters, estimated_minutes, thumbnail_url, pet_info, total_pins, total_walks, is_published, cart_friendly, start_location"
+      "id, area_id, name, slug, description, difficulty_level, distance_meters, estimated_minutes, thumbnail_url, pet_info, total_pins, total_walks, is_published, cart_friendly, season_tags, start_location"
     )
     .eq("area_id", areaId)
     .eq("is_published", true)
@@ -365,9 +366,10 @@ export async function getAllSpots(): Promise<
   const { data, error } = await supabase
     .from("route_spots")
     .select(
-      "*, official_routes!inner(name, slug, areas!inner(name, slug))"
+      "*, official_routes!inner(name, slug, is_published, areas!inner(name, slug))"
     )
     .not("slug", "is", null)
+    .eq("official_routes.is_published", true)
     .not("category", "in", `(${NON_SEO_CATEGORIES_ARR.join(",")})`)
     .order("name");
 
@@ -505,11 +507,12 @@ export async function getSpotBySlug(slug: string): Promise<SpotWithRoute | null>
   const { data, error } = await supabase
     .from("route_spots")
     .select(
-      "*, official_routes!inner(name, slug, cart_friendly, areas!inner(name, slug))"
+      "*, official_routes!inner(name, slug, cart_friendly, is_published, areas!inner(name, slug))"
     )
     .eq("slug", slug)
+    .eq("official_routes.is_published", true)
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (error || !data) return null;
   const route = data.official_routes as unknown as {
@@ -551,8 +554,9 @@ export async function getRoutesBySpotRouteId(
 export async function getAllSpotSlugs(): Promise<string[]> {
   const { data, error } = await supabase
     .from("route_spots")
-    .select("slug")
+    .select("slug, official_routes!inner(is_published)")
     .not("slug", "is", null)
+    .eq("official_routes.is_published", true)
     .not("category", "in", `(${NON_SEO_CATEGORIES_ARR.join(",")})`);
 
   if (error) return [];
