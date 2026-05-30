@@ -10,14 +10,20 @@ type RevalidateBody = {
 
 // 再生成対象として許可するパスのパターン
 // 任意パスの再生成を許可すると攻撃面が広がるため、事前にホワイトリスト化
+// ※ ISR(revalidate) を持つページは全てここに登録すること。未登録だと skipped になり
+//   再生成できない（例: /about は W13 で動的化したが当初未登録で skip されていた）。
 const ALLOWED_PATH_PATTERNS: RegExp[] = [
   /^\/$/,
+  /^\/about$/,
   /^\/areas$/,
   /^\/areas\/[a-z0-9-]+$/,
   /^\/spots$/,
   /^\/spots\/[a-z0-9-]+$/,
+  /^\/spots\/category\/[a-z0-9_-]+$/,
   /^\/routes$/,
   /^\/routes\/[a-z0-9-]+$/,
+  /^\/news$/,
+  /^\/news\/[a-z0-9-]+$/,
   /^\/sitemap\.xml$/,
 ];
 
