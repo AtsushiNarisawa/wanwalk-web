@@ -4,22 +4,26 @@ import { getAreasWithRouteCount } from "@/lib/walks/data";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import AreaCard from "@/components/walks/AreaCard";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
+import { getSiteStats } from "@/lib/walks/stats";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
 
-export const metadata: Metadata = {
-  title: "犬連れ散歩エリア26｜箱根・鎌倉・伊豆・湘南",
-  description:
-    "箱根・鎌倉・湘南・横浜など、愛犬と一緒に楽しめる散歩コースのあるエリア一覧。犬連れに必要な情報つきで紹介。",
-  alternates: { canonical: "/areas" },
-  ...buildOgMetadata({
-    title: "犬連れ散歩エリア26｜箱根・鎌倉・伊豆・湘南 | WanWalk",
-    description: "箱根・鎌倉・湘南・横浜など、愛犬と一緒に楽しめる散歩コースのあるエリア一覧。",
-    path: "/areas",
-    ogImageAlt: "犬連れ散歩エリア26 | WanWalk",
-  }),
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { areaCount } = await getSiteStats();
+  return {
+    title: `犬連れ散歩エリア${areaCount}｜箱根・鎌倉・伊豆・湘南`,
+    description:
+      "箱根・鎌倉・湘南・横浜など、愛犬と一緒に楽しめる散歩コースのあるエリア一覧。犬連れに必要な情報つきで紹介。",
+    alternates: { canonical: "/areas" },
+    ...buildOgMetadata({
+      title: `犬連れ散歩エリア${areaCount}｜箱根・鎌倉・伊豆・湘南 | WanWalk`,
+      description: "箱根・鎌倉・湘南・横浜など、愛犬と一緒に楽しめる散歩コースのあるエリア一覧。",
+      path: "/areas",
+      ogImageAlt: `犬連れ散歩エリア${areaCount} | WanWalk`,
+    }),
+  };
+}
 
 export default async function AreasPage() {
   const areas = await getAreasWithRouteCount();

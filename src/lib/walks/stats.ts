@@ -1,6 +1,5 @@
-import "server-only";
 import { cache } from "react";
-import { createServerClient } from "./supabase";
+import { wanwalkSupabase as supabase } from "./supabase";
 
 // サイト全体の表示件数（公開コース数・対応エリア数・スポット数・平均ストーリー字数）の
 // Single Source of Truth。about / トップ / routes / areas のメタや本文に散在していた
@@ -20,8 +19,6 @@ export type SiteStats = {
 // React cache で同一リクエスト内（generateMetadata と本文の二重呼び出し等）の
 // クエリ重複を排除する。
 export const getSiteStats = cache(async (): Promise<SiteStats> => {
-  const supabase = createServerClient();
-
   const [routesRes, spotsRes] = await Promise.all([
     // 公開ルートの area_id と description だけを取得（〜74 行・軽量）
     supabase

@@ -4,24 +4,28 @@ import { Path, MapPin, Dog, Camera } from "@phosphor-icons/react/dist/ssr";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
+import { getSiteStats } from "@/lib/walks/stats";
 
-// 完全静的ページ（DB参照なし）
-export const dynamic = "force-static";
+// ISR: 24時間ごとに再検証（件数を getSiteStats で集計するため force-static から変更）
+export const revalidate = 86400;
 
-export const metadata: Metadata = {
-  title: "WanWalkについて - 愛犬との散歩をもっと豊かに",
-  description:
-    "WanWalkは、犬連れに特化した日本初の散歩ルート体験プラットフォームです。74本のルートと473件の犬連れスポットを、体験ストーリーと写真でお届けします。",
-  alternates: { canonical: "/about" },
-  ...buildOgMetadata({
-    title: "WanWalkについて",
-    description: "犬連れに特化した日本初の散歩ルート体験プラットフォーム。",
-    path: "/about",
-    ogImageAlt: "WanWalkについて",
-  }),
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { routeCount, spotCount } = await getSiteStats();
+  return {
+    title: "WanWalkについて - 愛犬との散歩をもっと豊かに",
+    description: `WanWalkは、犬連れに特化した日本初の散歩ルート体験プラットフォームです。${routeCount}本のルートと${spotCount}件の犬連れスポットを、体験ストーリーと写真でお届けします。`,
+    alternates: { canonical: "/about" },
+    ...buildOgMetadata({
+      title: "WanWalkについて",
+      description: "犬連れに特化した日本初の散歩ルート体験プラットフォーム。",
+      path: "/about",
+      ogImageAlt: "WanWalkについて",
+    }),
+  };
+}
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const { routeCount, areaCount, spotCount, avgStoryLength } = await getSiteStats();
   return (
     <>
       <div className="max-w-3xl mx-auto px-4 py-12">
@@ -123,10 +127,10 @@ export default function AboutPage() {
             数字で見るWanWalk
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <StatCard icon={<Path size={24} weight="regular" />} value="74" label="散歩ルート" />
-            <StatCard icon={<MapPin size={24} weight="regular" />} value="26" label="対応エリア" />
-            <StatCard icon={<Dog size={24} weight="regular" />} value="473" label="犬連れスポット" />
-            <StatCard icon={<Camera size={24} weight="regular" />} value="468" label="平均ストーリー字数" />
+            <StatCard icon={<Path size={24} weight="regular" />} value={String(routeCount)} label="散歩ルート" />
+            <StatCard icon={<MapPin size={24} weight="regular" />} value={String(areaCount)} label="対応エリア" />
+            <StatCard icon={<Dog size={24} weight="regular" />} value={String(spotCount)} label="犬連れスポット" />
+            <StatCard icon={<Camera size={24} weight="regular" />} value={String(avgStoryLength)} label="平均ストーリー字数" />
           </div>
           <p
             style={{
@@ -167,12 +171,12 @@ export default function AboutPage() {
             一本ずつ写真と座標、犬連れ実用情報を確認しながら整備しています。
           </p>
           <ul style={{ listStyle: "none", padding: 0 }}>
-            <FeatureItem title="体験ストーリー 全74ルートに収録（平均468字）">
+            <FeatureItem title={`体験ストーリー 全${routeCount}ルートに収録（平均${avgStoryLength}字）`}>
               全ルートに、駐車場の入り方・路面の状態・足元の注意点・愛犬と立ち寄れるカフェやベンチまで、
               散歩の流れに沿って書いたストーリーを掲載しています。
             </FeatureItem>
             <FeatureItem title="犬連れ実用情報 100%充填">
-              全74ルートでカート走行可否（cart_friendly）と
+              全{routeCount}ルートでカート走行可否（cart_friendly）と
               主要カテゴリのスポット（カフェ・レストラン・ドッグラン・ショップ）に
               犬連れポリシー（テラス可否・リード要否・サイズ制限）を100%付与しています。
             </FeatureItem>
@@ -244,7 +248,7 @@ export default function AboutPage() {
               color: "var(--color-ww-text-secondary)",
             }}
           >
-            箱根（芦ノ湖・仙石原・強羅・宮ノ下・湯本）・鎌倉・横浜・伊豆・軽井沢・河口湖・三浦半島・湘南・秩父・日光・那須・草津・東京 他、全26エリアに対応。
+            箱根（芦ノ湖・仙石原・強羅・宮ノ下・湯本）・鎌倉・横浜・伊豆・軽井沢・河口湖・三浦半島・湘南・秩父・日光・那須・草津・東京 他、全{areaCount}エリアに対応。
             順次拡大中です。
           </p>
           <Link
@@ -400,8 +404,7 @@ export default function AboutPage() {
             name: "WanWalk",
             alternateName: "ワンウォーク",
             url: "https://wanwalk.jp",
-            description:
-              "犬連れに特化した日本初の散歩ルート体験プラットフォーム。全74ルート・473件の犬連れスポットを、体験ストーリーと写真でお届けする。",
+            description: `犬連れに特化した日本初の散歩ルート体験プラットフォーム。全${routeCount}ルート・${spotCount}件の犬連れスポットを、体験ストーリーと写真でお届けする。`,
             knowsAbout: [
               "犬連れ散歩",
               "犬連れ旅行",

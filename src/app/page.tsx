@@ -12,23 +12,28 @@ import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import AppStoreBadge from "@/components/walks/AppStoreBadge";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
+import { getSiteStats } from "@/lib/walks/stats";
 import { getAllNewsArticles, formatPublishedDate } from "@/lib/news";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
 
-export const metadata: Metadata = {
-  title: { absolute: "犬と歩ける散歩コース74本｜箱根・鎌倉・伊豆｜WanWalk" },
-  description:
-    "箱根・鎌倉・伊豆など、愛犬と歩きたくなる散歩コースを厳選。駐車場・犬可カフェ・トイレ情報も完備。",
-  alternates: { canonical: "/" },
-  ...buildOgMetadata({
-    title: "犬と歩ける散歩コース74本｜箱根・鎌倉・伊豆｜WanWalk",
-    description: "箱根・鎌倉・伊豆…愛犬と歩きたくなる散歩コースを厳選。",
-    path: "/",
-    ogImageAlt: "WanWalk - 愛犬との散歩コース",
-  }),
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { routeCount } = await getSiteStats();
+  const title = `犬と歩ける散歩コース${routeCount}本｜箱根・鎌倉・伊豆｜WanWalk`;
+  return {
+    title: { absolute: title },
+    description:
+      "箱根・鎌倉・伊豆など、愛犬と歩きたくなる散歩コースを厳選。駐車場・犬可カフェ・トイレ情報も完備。",
+    alternates: { canonical: "/" },
+    ...buildOgMetadata({
+      title,
+      description: "箱根・鎌倉・伊豆…愛犬と歩きたくなる散歩コースを厳選。",
+      path: "/",
+      ogImageAlt: "WanWalk - 愛犬との散歩コース",
+    }),
+  };
+}
 
 // Wildbounds流セクション見出し（hairline装飾線 + Noto Serif JP）
 function SectionHeading({

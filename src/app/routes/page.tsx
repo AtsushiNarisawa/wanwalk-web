@@ -9,21 +9,25 @@ import {
   parseCartParam,
 } from "@/lib/walks/filter-routes";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
+import { getSiteStats } from "@/lib/walks/stats";
 
 export const revalidate = 86400;
 
-export const metadata: Metadata = {
-  title: "犬連れ散歩コース74本｜全国エリア別一覧",
-  description:
-    "WanWalk掲載の全散歩コースを一覧で。箱根・鎌倉・伊豆など全エリアから、季節やカート走行可で絞り込めます。",
-  alternates: { canonical: "/routes" },
-  ...buildOgMetadata({
-    title: "犬連れ散歩コース74本｜全国エリア別一覧 | WanWalk",
-    description: "全エリアの愛犬散歩コースを一覧で。季節フィルター付き。",
-    path: "/routes",
-    ogImageAlt: "犬連れ散歩コース74本 | WanWalk",
-  }),
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { routeCount } = await getSiteStats();
+  return {
+    title: `犬連れ散歩コース${routeCount}本｜全国エリア別一覧`,
+    description:
+      "WanWalk掲載の全散歩コースを一覧で。箱根・鎌倉・伊豆など全エリアから、季節やカート走行可で絞り込めます。",
+    alternates: { canonical: "/routes" },
+    ...buildOgMetadata({
+      title: `犬連れ散歩コース${routeCount}本｜全国エリア別一覧 | WanWalk`,
+      description: "全エリアの愛犬散歩コースを一覧で。季節フィルター付き。",
+      path: "/routes",
+      ogImageAlt: `犬連れ散歩コース${routeCount}本 | WanWalk`,
+    }),
+  };
+}
 
 export default async function RoutesIndexPage({
   searchParams,
