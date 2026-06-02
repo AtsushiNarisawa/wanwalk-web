@@ -13,6 +13,7 @@ import SupportedBadge from "@/components/walks/SupportedBadge";
 import AppStoreBadge from "@/components/walks/AppStoreBadge";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { getSiteStats } from "@/lib/walks/stats";
+import { formatDistance } from "@/lib/walks/format";
 import { getAllNewsArticles, formatPublishedDate } from "@/lib/news";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
@@ -349,7 +350,7 @@ export default async function WalksTopPage() {
                   }}
                 >
                   <span className="ww-numeric">
-                    {(pickupRoute.distance_meters / 1000).toFixed(1)}km
+                    {formatDistance(pickupRoute.distance_meters)}
                   </span>
                   <span>約<span className="ww-numeric">{pickupRoute.estimated_minutes}</span>分</span>
                   <span

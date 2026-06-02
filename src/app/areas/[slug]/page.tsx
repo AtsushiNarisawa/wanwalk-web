@@ -12,6 +12,7 @@ import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import ShareMenu from "@/components/walks/ShareMenu";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
+import { formatDistance } from "@/lib/walks/format";
 import Link from "next/link";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
@@ -242,7 +243,7 @@ export default async function AreaDetailPage({
                   name: `${area.name}の犬連れおすすめルートは？`,
                   acceptedAnswer: {
                     "@type": "Answer",
-                    text: `${area.name}のおすすめは${routes[0] ? `「${routes[0].name}」（距離${(routes[0].distance_meters / 1000).toFixed(1)}km・所要${routes[0].estimated_minutes}分）` : ""}です。すべてのルートに駐車場情報・犬連れスポット・体験ストーリーが完備されています。`,
+                    text: `${area.name}のおすすめは${routes[0] ? `「${routes[0].name}」（距離${formatDistance(routes[0].distance_meters)}・所要${routes[0].estimated_minutes}分）` : ""}です。すべてのルートに駐車場情報・犬連れスポット・体験ストーリーが完備されています。`,
                   },
                 },
               ],

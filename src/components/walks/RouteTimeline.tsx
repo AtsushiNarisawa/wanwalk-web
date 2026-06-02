@@ -17,6 +17,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
 import { trackEvent } from "@/lib/analytics";
+import { formatDistance } from "@/lib/walks/format";
 
 // SEO対象カテゴリかつ slug がある場合のみ詳細ページにリンクできる
 function isLinkable(spot: RouteSpot): boolean {
@@ -37,13 +38,6 @@ const CATEGORY_ICONS: Record<SpotCategory, Icon> = {
   shop: Storefront,
   landmark: MapPin,
 };
-
-function formatDistance(meters: number): string {
-  if (meters >= 1000) {
-    return `${(meters / 1000).toFixed(1)}km`;
-  }
-  return `${meters}m`;
-}
 
 interface RouteTimelineProps {
   spots: RouteSpot[];

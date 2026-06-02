@@ -20,6 +20,7 @@ import RouteTimeline from "@/components/walks/RouteTimeline";
 import FeaturedSpots from "@/components/walks/FeaturedSpots";
 import RelatedRoutes from "@/components/walks/RelatedRoutes";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
+import { formatDistance } from "@/lib/walks/format";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
@@ -29,7 +30,7 @@ type FaqEntry = { "@type": "Question"; name: string; acceptedAnswer: { "@type": 
 function buildRouteFaq(
   route: import("@/types/walks").RouteWithArea,
   spots: import("@/types/walks").RouteSpot[],
-  distanceKm: string,
+  distanceLabel: string,
   isArea: boolean
 ): FaqEntry[] {
   const petInfo = route.pet_info;
@@ -44,7 +45,7 @@ function buildRouteFaq(
   // Q1: 犬連れ可否（pet_friendly比率で動的）
   const sizeLabel = isArea
     ? `滞在目安は約${route.estimated_minutes}分の園内散策コース`
-    : `距離${distanceKm}km・所要約${route.estimated_minutes}分のコース`;
+    : `距離${distanceLabel}・所要約${route.estimated_minutes}分のコース`;
   let q1Answer: string;
   if (visitableSpots.length === 0) {
     q1Answer = `はい、${route.name}は犬連れで散歩できる${isArea ? "施設" : "ルート"}です。${sizeLabel}です。リード着用でお楽しみください。`;
@@ -137,16 +138,16 @@ export async function generateMetadata({
   if (!route) return {};
 
   const isArea = route.route_type === "area";
-  const distanceKm = (route.distance_meters / 1000).toFixed(1);
+  const distanceLabel = formatDistance(route.distance_meters);
   const description =
     route.meta_description ??
     (isArea
       ? `${route.areas.name}の犬連れ散策コース「${route.name}」。園内散策、滞在目安${route.estimated_minutes}分。${route.description?.slice(0, 80) ?? ""}`
-      : `${route.areas.name}の犬連れ散歩コース「${route.name}」。距離${distanceKm}km、所要${route.estimated_minutes}分。${route.description?.slice(0, 80) ?? ""}`);
+      : `${route.areas.name}の犬連れ散歩コース「${route.name}」。距離${distanceLabel}、所要${route.estimated_minutes}分。${route.description?.slice(0, 80) ?? ""}`);
 
   const sizeHint = isArea
     ? `${route.estimated_minutes}分散策`
-    : `${distanceKm}km・${route.estimated_minutes}分`;
+    : `${distanceLabel}・${route.estimated_minutes}分`;
   // GSC 末尾切れ対策: route.name が「本体 説明」形式のルートで title が SERP の表示幅を超える場合、
   // 説明部分を省略する。slug ごとに明示指定（一律閾値だと「河口湖 もみじ回廊…」等が「河口湖」だけになり致命的）。
   const TITLE_SHORTEN_SLUGS = new Set<string>(["odawara-castle-saigoji"]);
@@ -192,7 +193,7 @@ export default async function RouteDetailPage({
   ]);
 
   const isArea = route.route_type === "area";
-  const distanceKm = (route.distance_meters / 1000).toFixed(1);
+  const distanceLabel = formatDistance(route.distance_meters);
   const petInfo = route.pet_info;
   const elevationGainFromPet = petInfo?.elevation_gain
     ? Number(String(petInfo.elevation_gain).replace(/[^0-9.-]/g, "")) || null
@@ -317,7 +318,7 @@ export default async function RouteDetailPage({
 
         {/* 施策③: 4点スペックバー */}
         <SpecBar
-          distanceKm={distanceKm}
+          distanceLabel={distanceLabel}
           minutes={route.estimated_minutes}
           elevationGain={elevationGain}
           difficulty={route.difficulty_level}
@@ -348,7 +349,7 @@ export default async function RouteDetailPage({
           </>
         ) : (
           <>
-            「{route.name}」は、{route.areas.name}にある距離{distanceKm}km・所要約{route.estimated_minutes}分の犬連れ散歩コースです。
+            「{route.name}」は、{route.areas.name}にある距離{distanceLabel}・所要約{route.estimated_minutes}分の犬連れ散歩コースです。
             {difficultyLabels[route.difficulty_level]}コースで、
             {route.cart_friendly ? "カート走行可。" : ""}
             {petInfo?.parking ? `駐車場: ${petInfo.parking}。` : ""}
@@ -607,7 +608,7 @@ export default async function RouteDetailPage({
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            mainEntity: buildRouteFaq(route, spots, distanceKm, isArea),
+            mainEntity: buildRouteFaq(route, spots, distanceLabel, isArea),
           }),
         }}
       />

@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { wanwalkSupabase as supabase } from "@/lib/walks/supabase";
+import { formatDistance } from "@/lib/walks/format";
 
 export const runtime = "edge";
 
@@ -47,7 +48,7 @@ export async function GET(
   }
 
   const areaName = (route.areas as unknown as { name: string })?.name ?? "";
-  const distanceKm = (route.distance_meters / 1000).toFixed(1);
+  const distanceLabel = formatDistance(route.distance_meters);
   const difficultyLabel =
     route.difficulty_level === "easy"
       ? "初級"
@@ -163,7 +164,7 @@ export async function GET(
           >
             <span style={{ display: "flex" }}>{difficultyLabel}</span>
             <span style={{ display: "flex", color: "rgba(255,255,255,0.5)" }}>|</span>
-            <span style={{ display: "flex" }}>{distanceKm} km</span>
+            <span style={{ display: "flex" }}>{distanceLabel}</span>
             <span style={{ display: "flex", color: "rgba(255,255,255,0.5)" }}>|</span>
             <span style={{ display: "flex" }}>約 {route.estimated_minutes} 分</span>
           </div>

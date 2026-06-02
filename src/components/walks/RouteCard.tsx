@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Path, Clock, Users, ImageSquare } from "@phosphor-icons/react/dist/ssr";
 import type { OfficialRoute, RouteWithArea } from "@/types/walks";
 import { trackEvent, type SourcePage } from "@/lib/analytics";
+import { formatDistance } from "@/lib/walks/format";
 
 const difficultyLabels = {
   easy: "初級",
@@ -33,7 +34,7 @@ type Props = {
 };
 
 export default function RouteCard({ route, sourcePage, priority = false }: Props) {
-  const distanceKm = (route.distance_meters / 1000).toFixed(1);
+  const distanceLabel = formatDistance(route.distance_meters);
   const diff = difficultyStyles[route.difficulty_level];
   const areaSlug =
     "areas" in route && route.areas && typeof route.areas === "object"
@@ -118,7 +119,7 @@ export default function RouteCard({ route, sourcePage, priority = false }: Props
         >
           <span className="inline-flex items-center gap-1.5">
             <Path size={14} weight="regular" />
-            <span className="ww-numeric">{distanceKm}</span>km
+            <span className="ww-numeric">{distanceLabel}</span>
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Clock size={14} weight="regular" />

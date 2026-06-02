@@ -1,7 +1,7 @@
 import { Path, Clock, Mountains, ChartLineUp } from "@phosphor-icons/react/dist/ssr";
 
 type Props = {
-  distanceKm: string;
+  distanceLabel: string;
   minutes: number;
   elevationGain: number | null;
   difficulty: "easy" | "moderate" | "hard";
@@ -15,7 +15,7 @@ const difficultyMap = {
 } as const;
 
 export default function SpecBar({
-  distanceKm,
+  distanceLabel,
   minutes,
   elevationGain,
   difficulty,
@@ -38,7 +38,7 @@ export default function SpecBar({
     >
       <SpecItem
         icon={<Path size={24} weight="regular" />}
-        value={`${distanceKm} km`}
+        value={distanceLabel}
         label={isArea ? "園内距離" : "距離"}
       />
       <SpecItem
