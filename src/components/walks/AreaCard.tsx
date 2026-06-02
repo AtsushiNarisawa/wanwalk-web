@@ -88,7 +88,7 @@ export default function AreaCard({
             letterSpacing: "0.02em",
           }}
         >
-          {routeCount}コース
+          {routeCount}ルート
         </p>
       </div>
     </Link>

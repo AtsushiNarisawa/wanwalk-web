@@ -88,7 +88,7 @@ export default async function RoutesIndexPage({
           }}
         >
           <span className="ww-numeric">{activeAreas.length}</span>エリアの
-          <span className="ww-numeric">{routes.length}</span>コースから、季節やカート走行可で絞り込めます。
+          <span className="ww-numeric">{routes.length}</span>ルートから、季節やカート走行可で絞り込めます。
         </p>
       </header>
 
@@ -120,7 +120,7 @@ export default async function RoutesIndexPage({
               color: "var(--color-ww-text-tertiary)",
             }}
           >
-            条件に合うコースが見つかりませんでした
+            条件に合うルートが見つかりませんでした
           </li>
         )}
       </ul>

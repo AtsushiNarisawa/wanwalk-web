@@ -297,7 +297,7 @@ export default async function WalksTopPage() {
                     letterSpacing: "0.02em",
                   }}
                 >
-                  {area.prefecture} ・ <span className="ww-numeric">{area.route_count}</span>コース
+                  {area.prefecture} ・ <span className="ww-numeric">{area.route_count}</span>ルート
                 </p>
               </Link>
             ))}

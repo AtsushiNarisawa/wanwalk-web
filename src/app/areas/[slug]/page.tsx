@@ -127,7 +127,7 @@ export default async function AreaDetailPage({
         </h1>
         <ShareMenu
           url={`https://wanwalk.jp/areas/${slug}`}
-          text={`${area.name}（${area.prefecture}）で犬と歩けるおすすめ散歩コース`}
+          text={`${area.name}（${area.prefecture}）で犬と歩けるおすすめ散歩ルート`}
           title={`${area.name} | WanWalk`}
           size="sm"
         />
@@ -183,7 +183,7 @@ export default async function AreaDetailPage({
                   color: "var(--color-ww-text-tertiary)",
                 }}
               >
-                条件に合うコースが見つかりませんでした
+                条件に合うルートが見つかりませんでした
               </li>
             )}
           </ul>

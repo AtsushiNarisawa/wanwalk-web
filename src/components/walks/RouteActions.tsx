@@ -59,7 +59,7 @@ export default function RouteActions({ routeId, routeSlug, routeName, areaName }
   const shareUrl = typeof window !== "undefined"
     ? `${window.location.origin}/routes/${routeSlug}`
     : `https://wanwalk.jp/routes/${routeSlug}`;
-  const shareText = `${routeName} - ${areaName}の犬連れ散歩コース`;
+  const shareText = `${routeName} - ${areaName}の犬連れ散歩ルート`;
 
   if (!mounted) {
     return <div style={{ display: "flex", gap: 8, minHeight: 40 }} aria-hidden />;
