@@ -10,6 +10,7 @@ import {
   getRouteAreaInfo,
 } from "@/lib/walks/data";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
+import WalkInAppCTA from "@/components/walks/WalkInAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import RouteFeedback from "@/components/walks/RouteFeedback";
 import RouteMapWrapper from "@/components/walks/RouteMapWrapper";
@@ -326,6 +327,9 @@ export default async function RouteDetailPage({
         />
       </header>
 
+      {/* Cross統一③: ヘッダー直下の Web→App 文脈付き導線 */}
+      <WalkInAppCTA sourcePage="route_detail" />
+
       {/* 直接回答型冒頭文（AI Overview / GEO最適化） */}
       <p
         style={{
@@ -525,7 +529,7 @@ export default async function RouteDetailPage({
 
       {/* CTA */}
       <div style={{ marginTop: 48 }}>
-        <WalksAppCTA />
+        <WalksAppCTA sourcePage="route_detail" />
       </div>
       <SupportedBadge />
 
