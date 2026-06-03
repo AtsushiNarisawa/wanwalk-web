@@ -151,11 +151,27 @@ export async function generateMetadata({
     : `${distanceLabel}・${route.estimated_minutes}分`;
   // GSC 末尾切れ対策: route.name が「本体 説明」形式のルートで title が SERP の表示幅を超える場合、
   // 説明部分を省略する。slug ごとに明示指定（一律閾値だと「河口湖 もみじ回廊…」等が「河口湖」だけになり致命的）。
-  const TITLE_SHORTEN_SLUGS = new Set<string>(["odawara-castle-saigoji"]);
+  const TITLE_SHORTEN_SLUGS = new Set<string>([]);
+  // CTR 改善（2026-06 GSC 高表示・低CTRページ対策）: 検索語を先頭に置き、クリック誘因を明示した
+  // タイトルを slug 単位で上書き。route.name（h1・パンくず・構造化データ）は変更しないため表示崩れなし。
+  // 効果は 6月末 GSC ベンチマークで観測。
+  const TITLE_OVERRIDES: Record<string, string> = {
+    "nasu-minamigaoka-ranch": "南ヶ丘牧場 犬連れ散歩｜入場・駐車場無料の那須高原牧場",
+    "miura-kurihama-hana": "くりはま花の国 犬連れ散歩｜入園無料・花畑100万本",
+    "yokohama-sankeien-honmoku-promenade": "三溪園 犬連れ散歩｜庭園の外周ループは犬OK 横浜本牧",
+    "izu-shuzenji-onsen": "修善寺温泉 犬連れ散歩｜竹林の小径と渓流の橋めぐり",
+    "tokyo-kasai-rinkai-park-loop": "葛西臨海公園 犬連れ散歩｜海・芝生・大観覧車を一周",
+    "kawaguchiko-saiko-nenba": "西湖いやしの里根場 犬連れ散歩｜富士山と茅葺き集落",
+    "odawara-castle-saigoji": "小田原城 犬連れ散歩｜城下町から御幸の浜の海岸へ",
+    "kamakura-kita-engakuji-walk": "北鎌倉 犬連れ散歩｜円覚寺・あじさい寺明月院の門前めぐり",
+    "karuizawa-taliesin-lakeside": "軽井沢タリアセン 犬連れ散歩｜塩沢湖畔とバラ園さんぽ",
+  };
   const displayName = TITLE_SHORTEN_SLUGS.has(slug)
     ? route.name.split(" ")[0]
     : route.name;
-  const title = `${displayName}｜${route.areas.name} 犬連れ散歩 ${sizeHint}`;
+  const title =
+    TITLE_OVERRIDES[slug] ??
+    `${displayName}｜${route.areas.name} 犬連れ散歩 ${sizeHint}`;
   const ogImage = `https://wanwalk.jp/api/og/${slug}`;
   return {
     title,
