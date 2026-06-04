@@ -20,6 +20,7 @@ import RouteActions from "@/components/walks/RouteActions";
 import RouteTimeline from "@/components/walks/RouteTimeline";
 import FeaturedSpots from "@/components/walks/FeaturedSpots";
 import RelatedRoutes from "@/components/walks/RelatedRoutes";
+import AreaRouteLinks from "@/components/walks/AreaRouteLinks";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { formatDistance } from "@/lib/walks/format";
 
@@ -542,6 +543,10 @@ export default async function RouteDetailPage({
 
       {/* 関連ルート（Phase 2-B Step 5-B・直帰率改善 41%→35% 目標） */}
       <RelatedRoutes currentRoute={route} />
+
+      {/* 同エリア全コースのテキストリンク索引（鎌倉内部リンク救済・2026-06-04）
+          兄弟6本以上のエリアのみ描画。沈んでいる高表示ページに内部リンクを均等配分する。 */}
+      <AreaRouteLinks currentRoute={route} />
 
       {/* CTA */}
       <div style={{ marginTop: 48 }}>
