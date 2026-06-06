@@ -75,4 +75,4 @@ export function groupPlacesByArea(
 }
 
 // 並び替えモード。
-export type DirectorySortMode = "recommended" | "area";
+export type DirectorySortMode = "name" | "area";

@@ -1,20 +1,26 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDirectoryPlaces } from "@/lib/walks/directory";
 import HakoneDogMapView from "@/components/walks/HakoneDogMapView";
 import DirectoryRefTracker from "@/components/walks/DirectoryRefTracker";
 
 /**
- * 箱根 犬連れ「おでかけマップ」β（非公開）。
+ * 箱根 犬連れ「おでかけマップ」β（非公開・リンク限定）。
  *
- * ■ 非公開βの担保
- *   - robots: noindex,nofollow（meta）
- *   - sitemap 非登録（sitemap.ts を触らない）
- *   - グローバルナビ無し＋どのページからも内部リンクしない（直リンク共有のみ）
+ * ■ アクセス制限（リンクを知っている人だけ）
+ *   - URL に秘密キー `?k=<ACCESS_KEY>` が無ければ 404（notFound）にする＝リンクそのものが鍵。
+ *     共有リンク＝ `https://wanwalk.jp/hakone/dog-map?k=<ACCESS_KEY>`。
+ *   - キーは server component 内でのみ参照（クライアントへは出さない）。
+ *   - referrer:no-referrer で、外部リンク遷移時に Referer 経由でキーが漏れないようにする。
+ *   - キーを変えれば即時に旧リンクを失効できる（ローテーション可）。
+ *
+ * ■ 非公開βの担保（多層）
+ *   - robots: noindex,nofollow（meta）／ sitemap 非登録 ／ グローバルナビ無し・内部リンク無し。
  *   ※ robots.txt の Disallow は入れない（Disallow するとクローラが noindex を読めず逆効果）。
  *
  * ■ 中立を設計で体現（HAKONE_DOGMAP_SPEC §10-6）
- *   ピン/カード/バッジ完全均一・PRバッジ無し・固定ランダム順・運営者開示。
+ *   ピン/カード/バッジ完全均一・PRバッジ無し・あいうえお順/地理順・運営者開示。
  */
 export const metadata: Metadata = {
   title: "箱根 愛犬とおでかけマップ（β）",
@@ -22,22 +28,31 @@ export const metadata: Metadata = {
     "箱根で愛犬と泊まる・食べる・遊ぶ・温泉を楽しめる施設の地図。各施設から歩けるWanWalkの散歩ルートも一緒にご案内します（試験公開版）。",
   robots: { index: false, follow: false },
   alternates: { canonical: undefined },
+  // 外部リンク遷移時に ?k=<キー> が Referer で漏れないようにする。
+  referrer: "no-referrer",
 };
 
-// ?ref を読むため動的レンダリング。DB 取得は44行+RPC1回と軽量。
+// ?k / ?ref を読むため動的レンダリング。DB 取得は44行+RPC1回と軽量。
 export const dynamic = "force-dynamic";
+
+// 共有リンクの秘密キー（リンク限定アクセスの鍵）。
+// ※ セキュリティ上の機密ではなく「URLを知らない人に開かせない」ためのゲート。
+//   失効・更新したい場合はこの値を変えて再デプロイ（旧リンクは即 404 になる）。
+const ACCESS_KEY = "hkmap-2f8a91c47b3e";
 
 const REF_PATTERN = /^[a-z0-9][a-z0-9_-]{0,63}$/i;
 
 export default async function HakoneDogMapPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ref?: string }>;
+  searchParams: Promise<{ ref?: string; k?: string }>;
 }) {
-  const [{ ref }, places] = await Promise.all([
-    searchParams,
-    getDirectoryPlaces("hakone"),
-  ]);
+  const { ref, k } = await searchParams;
+
+  // リンク限定アクセス: 正しいキーが無ければ 404（存在を一切見せない）。
+  if (k !== ACCESS_KEY) notFound();
+
+  const places = await getDirectoryPlaces("hakone");
   const safeRef = typeof ref === "string" && REF_PATTERN.test(ref) ? ref : "";
 
   return (

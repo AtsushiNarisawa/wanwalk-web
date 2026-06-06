@@ -6,9 +6,9 @@
  * 地図 + 凡例兼フィルタ + 施設カード一覧を統括する。
  *
  * ■ 中立を設計で体現
- *   - おすすめ順＝「id ハッシュによる固定ランダム順」。距離順・名前順だと特定エリア
- *     （仙石原＝DogHub 所在）が上位に偏るのを避ける。手動の序列カラムは持たない。
- *   - エリア順＝サブエリアの地理順（湯本→芦ノ湖）。順位ではなく地理。各エリア内は固定ランダム順。
+ *   - あいうえお順＝施設名の五十音（ja ロケール）順。距離順・人気順のような序列を持ち込まず、
+ *     誰が見ても順位でないと分かる中立な並び。手動の序列カラムは持たない。
+ *   - エリア順＝サブエリアの地理順（湯本→芦ノ湖）。順位ではなく地理。各エリア内もあいうえお順。
  *   - フィルタチップ＝凡例。4群すべて同一スタイル（色のみカテゴリで変わる）。
  *
  * ■ スマホでの長さ対策
@@ -46,19 +46,6 @@ const HakoneDogMap = dynamic(() => import("./HakoneDogMap"), {
   ),
 });
 
-// 決定的ハッシュ（FNV-1a 32bit）。SSR/クライアントで同一順 → ハイドレーション不一致なし。
-// ⚠️ 中立性の担保: seed には施設属性と無関係な id（gen_random_uuid）だけを渡すこと。
-//    name / area_id / utm_slug 等に変えると五十音順・地理順のバイアスが静かに復活し、
-//    「固定ランダム順＝順位ではない」が壊れる。ソートキーは hashId(place.id) のまま維持する。
-function hashId(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
 const GRID_STYLE: React.CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
@@ -81,9 +68,9 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
     return counts;
   }, [places]);
 
-  // 固定ランダム順（順位ではない）。エリア順でも各エリア内はこの順序を保つ。
+  // あいうえお順（施設名・ja ロケール）。エリア順でも各エリア内はこの順序を保つ。
   const ordered = useMemo(
-    () => [...places].sort((a, b) => hashId(a.id) - hashId(b.id)),
+    () => [...places].sort((a, b) => a.name.localeCompare(b.name, "ja")),
     [places]
   );
 
@@ -228,8 +215,8 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
           <button type="button" aria-pressed={sortMode === "area"} onClick={() => setSortMode("area")} style={segBtn("area", "エリア順")}>
             エリア順
           </button>
-          <button type="button" aria-pressed={sortMode === "recommended"} onClick={() => setSortMode("recommended")} style={segBtn("recommended", "おすすめ順")}>
-            おすすめ順
+          <button type="button" aria-pressed={sortMode === "name"} onClick={() => setSortMode("name")} style={segBtn("name", "あいうえお順")}>
+            あいうえお順
           </button>
         </div>
       </div>
@@ -250,8 +237,8 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
       >
         <p style={{ fontSize: 12, color: "var(--color-ww-text-tertiary)", margin: 0, lineHeight: 1.6 }}>
           {sortMode === "area"
-            ? `${visible.length}件をエリア別に表示中。エリア内・エリアの並びは施設の優劣を示すものではありません。`
-            : `${visible.length}件を表示中。並び順は固定のランダム順で、施設の優劣・おすすめ度を示すものではありません。`}
+            ? `${visible.length}件をエリア別に表示中。エリアは地理順・施設はあいうえお順で、施設の優劣を示すものではありません。`
+            : `${visible.length}件をあいうえお順で表示中。掲載順は施設の優劣・おすすめ度を示すものではありません。`}
         </p>
         {sortMode === "area" && areaGroups.length > 0 && (
           <button
@@ -278,7 +265,7 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
         <p style={{ color: "var(--color-ww-text-secondary)", fontSize: 14, padding: "24px 0" }}>
           表示するカテゴリが選ばれていません。上のボタンでカテゴリを選んでください。
         </p>
-      ) : sortMode === "recommended" ? (
+      ) : sortMode === "name" ? (
         renderCardGrid(visible)
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
