@@ -44,6 +44,14 @@ export interface NearestRoute {
   dist_m: number;
 }
 
+// 施設が属するサブエリア（エリア順表示・交通案内に使用）。
+// description は areas テーブルの CEO 監修文（エリア紹介＋渋滞回避の運転経路を含む）。
+export interface DirectoryArea {
+  slug: string;
+  name: string;
+  description: string | null;
+}
+
 // directory_places_with_latlng ビューの1行（表示に必要な列のみ）。
 export interface DirectoryPlace {
   id: string;
@@ -66,4 +74,6 @@ export interface DirectoryPlace {
   is_published: boolean;
   // データ層で結合（描画時に算出した最寄りルート・距離昇順）。
   nearest_routes?: NearestRoute[];
+  // データ層で結合（area_id → サブエリア）。エリア順表示・交通案内に使用。
+  area?: DirectoryArea | null;
 }

@@ -12,7 +12,7 @@
  */
 import { cache } from "react";
 import { wanwalkSupabase as supabase } from "./supabase";
-import type { DirectoryPlace, NearestRoute } from "@/types/directory";
+import type { DirectoryArea, DirectoryPlace, NearestRoute } from "@/types/directory";
 
 const DIRECTORY_SELECT =
   "id, region, area_id, name, category, subcategory, lat, lng, description, dog_policy, photo_url, official_url, phone, price_range, opening_hours, verified_at, utm_slug, is_published";
@@ -23,6 +23,23 @@ type NearestRow = {
   name: string;
   dist_m: number;
 };
+
+type AreaRow = { id: string; slug: string; name: string; description: string | null };
+
+// 施設が参照するエリアを id → {slug,name,description} で取得（エリア順表示・交通案内用）。
+async function fetchAreasByIds(ids: string[]): Promise<Map<string, DirectoryArea>> {
+  const map = new Map<string, DirectoryArea>();
+  if (ids.length === 0) return map;
+  const { data, error } = await supabase
+    .from("areas")
+    .select("id, slug, name, description")
+    .in("id", ids);
+  if (error || !data) return map;
+  for (const a of data as AreaRow[]) {
+    map.set(a.id, { slug: a.slug, name: a.name, description: a.description });
+  }
+  return map;
+}
 
 /**
  * region 内の施設を、最寄りルート（距離昇順 3 本）を結合して返す。
@@ -44,6 +61,16 @@ export const getDirectoryPlaces = cache(
 
     if (placesRes.error || !placesRes.data) return [];
 
+    // 施設が参照するエリアをまとめて取得（id → エリア）。
+    const areaIds = Array.from(
+      new Set(
+        (placesRes.data as unknown as DirectoryPlace[])
+          .map((p) => p.area_id)
+          .filter((id): id is string => typeof id === "string")
+      )
+    );
+    const areasById = await fetchAreasByIds(areaIds);
+
     // place_id → 最寄りルート（距離昇順）。
     const nearestByPlace = new Map<string, NearestRoute[]>();
     if (!nearestRes.error && Array.isArray(nearestRes.data)) {
@@ -63,6 +90,7 @@ export const getDirectoryPlaces = cache(
     return (placesRes.data as unknown as DirectoryPlace[]).map((p) => ({
       ...p,
       nearest_routes: nearestByPlace.get(String(p.id)) ?? [],
+      area: p.area_id ? areasById.get(p.area_id) ?? null : null,
     }));
   }
 );

@@ -2,18 +2,30 @@
 
 /**
  * 箱根 犬連れおでかけマップβ のクライアント親。
- * フィルタ（4 群トグル）の useState を持ち、地図 + 凡例兼フィルタ + 施設カード一覧を統括する。
+ * カテゴリフィルタ（4群）＋並び替え（おすすめ順／エリア順）の useState を持ち、
+ * 地図 + 凡例兼フィルタ + 施設カード一覧を統括する。
  *
  * ■ 中立を設計で体現
- *   - 既定の並び順は「id ハッシュによる固定ランダム順」。距離順・名前順だと特定エリア
+ *   - おすすめ順＝「id ハッシュによる固定ランダム順」。距離順・名前順だと特定エリア
  *     （仙石原＝DogHub 所在）が上位に偏るのを避ける。手動の序列カラムは持たない。
- *     順位ではないことを文言で明示する。
- *   - フィルタチップ＝凡例。4 群すべて同一スタイル（色のみカテゴリで変わる）。
+ *   - エリア順＝サブエリアの地理順（湯本→芦ノ湖）。順位ではなく地理。各エリア内は固定ランダム順。
+ *   - フィルタチップ＝凡例。4群すべて同一スタイル（色のみカテゴリで変わる）。
+ *
+ * ■ スマホでの長さ対策
+ *   エリア順では各エリアを折りたたみ（既定は畳む）。初期はエリア見出し＋交通案内だけが並び、
+ *   タップで施設カードを展開する。スマホでも短く一覧できる。
  */
 import { useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { CaretDown, Car, ArrowRight } from "@phosphor-icons/react";
 import type { DirectoryGroup, DirectoryPlace } from "@/types/directory";
 import { DIRECTORY_GROUPS, DIRECTORY_GROUP_ORDER, groupOfPlace } from "@/lib/walks/directory-groups";
+import {
+  groupPlacesByArea,
+  splitAreaDescription,
+  type DirectorySortMode,
+} from "@/lib/walks/directory-areas";
 import DirectoryPlaceCard from "./DirectoryPlaceCard";
 
 // Leaflet は SSR 非対応のため client wrapper 内で dynamic import（ssr:false）。
@@ -47,10 +59,18 @@ function hashId(s: string): number {
   return h >>> 0;
 }
 
+const GRID_STYLE: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+  gap: 20,
+};
+
 export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] }) {
   const [active, setActive] = useState<Set<DirectoryGroup>>(
     () => new Set(DIRECTORY_GROUP_ORDER)
   );
+  const [sortMode, setSortMode] = useState<DirectorySortMode>("area");
+  const [openAreas, setOpenAreas] = useState<Set<string>>(() => new Set());
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -61,13 +81,15 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
     return counts;
   }, [places]);
 
-  // 固定ランダム順（順位ではない）。
+  // 固定ランダム順（順位ではない）。エリア順でも各エリア内はこの順序を保つ。
   const ordered = useMemo(
     () => [...places].sort((a, b) => hashId(a.id) - hashId(b.id)),
     [places]
   );
 
   const visible = ordered.filter((p) => active.has(groupOfPlace(p)));
+  const areaGroups = useMemo(() => groupPlacesByArea(visible), [visible]);
+  const allAreaSlugs = useMemo(() => areaGroups.map((g) => g.area.slug), [areaGroups]);
 
   const toggleGroup = (g: DirectoryGroup) => {
     setActive((prev) => {
@@ -78,11 +100,30 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
     });
   };
 
+  const toggleArea = (slug: string) => {
+    setOpenAreas((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
+  };
+
+  const allOpen = allAreaSlugs.length > 0 && allAreaSlugs.every((s) => openAreas.has(s));
+  const toggleAllAreas = () => {
+    setOpenAreas(allOpen ? new Set() : new Set(allAreaSlugs));
+  };
+
   const selectPlace = (id: string) => {
-    // フィルタで隠れている場合は表示してからスクロール。
-    const g = groupOfPlace(places.find((p) => p.id === id) ?? ({} as DirectoryPlace));
+    const place = places.find((p) => p.id === id);
+    // フィルタで隠れている場合はカテゴリを表示。
+    const g = place ? groupOfPlace(place) : null;
     if (g && !active.has(g)) {
       setActive((prev) => new Set(prev).add(g));
+    }
+    // エリア順で畳まれている場合は該当エリアを開く。
+    if (sortMode === "area" && place?.area?.slug) {
+      setOpenAreas((prev) => new Set(prev).add(place.area!.slug));
     }
     setHighlightedId(id);
     if (highlightTimer.current) clearTimeout(highlightTimer.current);
@@ -90,16 +131,38 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
     // レイアウト確定後にスクロール。
     setTimeout(() => {
       document.getElementById(`place-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 60);
+    }, 80);
   };
+
+  const renderCardGrid = (list: DirectoryPlace[]) => (
+    <div style={GRID_STYLE}>
+      {list.map((p) => (
+        <DirectoryPlaceCard key={p.id} place={p} highlighted={highlightedId === p.id} />
+      ))}
+    </div>
+  );
+
+  const segBtn = (mode: DirectorySortMode, label: string): React.CSSProperties => ({
+    appearance: "none",
+    border: "none",
+    padding: "7px 16px",
+    borderRadius: "var(--radius-ww-sm)",
+    backgroundColor: sortMode === mode ? "var(--color-ww-bg)" : "transparent",
+    color: sortMode === mode ? "var(--color-ww-text)" : "var(--color-ww-text-secondary)",
+    fontFamily: "var(--font-ww-sans)",
+    fontSize: 13,
+    fontWeight: sortMode === mode ? 600 : 500,
+    cursor: "pointer",
+    boxShadow: sortMode === mode ? "0 1px 2px rgba(42,42,42,0.06)" : "none",
+  });
 
   return (
     <div>
-      {/* 凡例兼フィルタ */}
+      {/* 凡例兼カテゴリフィルタ */}
       <div
         role="group"
         aria-label="カテゴリで絞り込む"
-        style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}
+        style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}
       >
         {DIRECTORY_GROUP_ORDER.map((g) => {
           const def = DIRECTORY_GROUPS[g];
@@ -147,38 +210,198 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
         })}
       </div>
 
+      {/* 並び替えトグル */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+        <span style={{ fontSize: 12, color: "var(--color-ww-text-tertiary)" }}>並び替え</span>
+        <div
+          role="group"
+          aria-label="並び替え"
+          style={{
+            display: "inline-flex",
+            padding: 3,
+            gap: 2,
+            backgroundColor: "var(--color-ww-bg-secondary)",
+            border: "1px solid var(--color-ww-border-subtle)",
+            borderRadius: "var(--radius-ww-md)",
+          }}
+        >
+          <button type="button" aria-pressed={sortMode === "area"} onClick={() => setSortMode("area")} style={segBtn("area", "エリア順")}>
+            エリア順
+          </button>
+          <button type="button" aria-pressed={sortMode === "recommended"} onClick={() => setSortMode("recommended")} style={segBtn("recommended", "おすすめ順")}>
+            おすすめ順
+          </button>
+        </div>
+      </div>
+
       {/* 地図 */}
       <HakoneDogMap places={places} activeGroups={Array.from(active)} onSelectPlace={selectPlace} />
 
       {/* 並び順の明示（中立: 順位ではない） */}
-      <p
+      <div
         style={{
-          fontSize: 12,
-          color: "var(--color-ww-text-tertiary)",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          gap: 12,
+          flexWrap: "wrap",
           margin: "20px 0 12px",
-          lineHeight: 1.6,
         }}
       >
-        {visible.length}件を表示中。並び順は固定のランダム順で、施設の優劣・おすすめ度を示すものではありません。
-      </p>
+        <p style={{ fontSize: 12, color: "var(--color-ww-text-tertiary)", margin: 0, lineHeight: 1.6 }}>
+          {sortMode === "area"
+            ? `${visible.length}件をエリア別に表示中。エリア内・エリアの並びは施設の優劣を示すものではありません。`
+            : `${visible.length}件を表示中。並び順は固定のランダム順で、施設の優劣・おすすめ度を示すものではありません。`}
+        </p>
+        {sortMode === "area" && areaGroups.length > 0 && (
+          <button
+            type="button"
+            onClick={toggleAllAreas}
+            style={{
+              appearance: "none",
+              border: "none",
+              background: "none",
+              color: "var(--color-ww-accent)",
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {allOpen ? "すべて閉じる" : "すべて開く"}
+          </button>
+        )}
+      </div>
 
       {/* 施設カード */}
-      {visible.length > 0 ? (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: 20,
-          }}
-        >
-          {visible.map((p) => (
-            <DirectoryPlaceCard key={p.id} place={p} highlighted={highlightedId === p.id} />
-          ))}
-        </div>
-      ) : (
+      {visible.length === 0 ? (
         <p style={{ color: "var(--color-ww-text-secondary)", fontSize: 14, padding: "24px 0" }}>
           表示するカテゴリが選ばれていません。上のボタンでカテゴリを選んでください。
         </p>
+      ) : sortMode === "recommended" ? (
+        renderCardGrid(visible)
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {areaGroups.map(({ area, places: areaPlaces }) => {
+            const open = openAreas.has(area.slug);
+            const { intro, access } = splitAreaDescription(area.description);
+            const isReal = area.slug !== "__other__";
+            return (
+              <section
+                key={area.slug}
+                style={{
+                  border: "1px solid var(--color-ww-border-subtle)",
+                  borderRadius: "var(--radius-ww-md)",
+                  overflow: "hidden",
+                  backgroundColor: "var(--color-ww-bg)",
+                }}
+              >
+                {/* 見出し（クリックで開閉） */}
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  onClick={() => toggleArea(area.slug)}
+                  style={{
+                    appearance: "none",
+                    border: "none",
+                    background: "none",
+                    width: "100%",
+                    textAlign: "left",
+                    cursor: "pointer",
+                    padding: "16px 20px 0",
+                    display: "block",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                    <h2
+                      style={{
+                        fontFamily: "var(--font-ww-serif)",
+                        fontSize: 22,
+                        fontWeight: 600,
+                        color: "var(--color-ww-text)",
+                        letterSpacing: "0.01em",
+                        margin: 0,
+                      }}
+                    >
+                      {area.name}
+                    </h2>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      <span className="numeric" style={{ fontSize: 13, color: "var(--color-ww-text-secondary)" }}>
+                        {areaPlaces.length}件
+                      </span>
+                      <CaretDown
+                        size={18}
+                        weight="regular"
+                        aria-hidden
+                        style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s", color: "var(--color-ww-text-tertiary)" }}
+                      />
+                    </span>
+                  </div>
+                  {intro && (
+                    <p style={{ fontSize: 13, color: "var(--color-ww-text-secondary)", margin: "8px 0 0", lineHeight: 1.7 }}>
+                      {intro}
+                    </p>
+                  )}
+                </button>
+
+                {/* 交通案内（常時表示・既存の渋滞回避文を再利用） */}
+                {access && (
+                  <div style={{ padding: "10px 20px 0", display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <Car size={18} weight="regular" aria-hidden style={{ color: "var(--color-ww-accent)", flexShrink: 0, marginTop: 2 }} />
+                    <p style={{ fontSize: 12.5, color: "var(--color-ww-text-secondary)", margin: 0, lineHeight: 1.7 }}>
+                      <span style={{ fontWeight: 600, color: "var(--color-ww-text)" }}>アクセス</span>　{access}
+                    </p>
+                  </div>
+                )}
+
+                {/* このエリアの散歩ルートへの導線 */}
+                {isReal && (
+                  <div style={{ padding: "10px 20px 0" }}>
+                    <Link
+                      href={`/areas/${area.slug}`}
+                      style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 13, fontWeight: 500, color: "var(--color-ww-accent)" }}
+                    >
+                      {area.name}の散歩ルートを見る
+                      <ArrowRight size={15} weight="regular" aria-hidden />
+                    </Link>
+                  </div>
+                )}
+
+                {/* 展開トグル + カード */}
+                <div style={{ padding: "12px 20px 20px" }}>
+                  {open ? (
+                    renderCardGrid(areaPlaces)
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => toggleArea(area.slug)}
+                      style={{
+                        appearance: "none",
+                        width: "100%",
+                        padding: "10px 16px",
+                        borderRadius: "var(--radius-ww-md)",
+                        border: "1px solid var(--color-ww-border-subtle)",
+                        backgroundColor: "var(--color-ww-bg-secondary)",
+                        color: "var(--color-ww-text)",
+                        fontFamily: "var(--font-ww-sans)",
+                        fontSize: 13,
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                      }}
+                    >
+                      施設を見る（{areaPlaces.length}件）
+                      <CaretDown size={16} weight="regular" aria-hidden />
+                    </button>
+                  )}
+                </div>
+              </section>
+            );
+          })}
+        </div>
       )}
     </div>
   );

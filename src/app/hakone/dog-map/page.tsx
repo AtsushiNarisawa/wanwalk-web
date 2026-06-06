@@ -43,7 +43,7 @@ export default async function HakoneDogMapPage({
   return (
     <main
       className="mx-auto"
-      style={{ maxWidth: 1200, padding: "32px 16px 64px" }}
+      style={{ maxWidth: 1320, padding: "32px 16px 64px" }}
     >
       {safeRef && <DirectoryRefTracker refSlug={safeRef} />}
 
