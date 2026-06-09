@@ -2,7 +2,7 @@
 
 import { trackEvent, type SourcePage } from "@/lib/analytics";
 
-const APP_STORE_URL = "https://apps.apple.com/app/id6757466888";
+export const APP_STORE_URL = "https://apps.apple.com/app/id6757466888";
 
 type Props = {
   sourcePage?: SourcePage;

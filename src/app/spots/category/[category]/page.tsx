@@ -247,7 +247,7 @@ export default async function SpotsCategoryPage({
       )}
 
       <div className="py-8">
-        <WalksAppCTA />
+        <WalksAppCTA sourcePage="spots_category" />
       </div>
       <SupportedBadge />
 

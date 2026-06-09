@@ -21,7 +21,10 @@ export type SourcePage =
   | "area_detail"
   | "routes_list"
   | "route_detail"
-  | "spot_detail";
+  | "spot_detail"
+  | "spots_list"
+  | "spots_category"
+  | "about";
 
 export type ShareChannel = "native" | "copy" | "x" | "facebook" | "line";
 

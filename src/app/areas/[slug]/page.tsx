@@ -9,6 +9,7 @@ import {
   parseCartParam,
 } from "@/lib/walks/filter-routes";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
+import WalkInAppCTA from "@/components/walks/WalkInAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import ShareMenu from "@/components/walks/ShareMenu";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
@@ -155,6 +156,13 @@ export default async function AreaDetailPage({
         </p>
       )}
 
+      <WalkInAppCTA
+        sourcePage="area_detail"
+        placement="area_detail_walk"
+        title="このエリアの散歩をアプリで歩く"
+        subcopy="GPSで現在地を確認しながら、愛犬との散歩を記録できます。"
+      />
+
       {routes.length > 0 ? (
         <div style={{ marginBottom: 48 }}>
           <SeasonFilterControls
@@ -198,7 +206,7 @@ export default async function AreaDetailPage({
         </div>
       )}
 
-      <WalksAppCTA />
+      <WalksAppCTA sourcePage="area_detail" />
       <SupportedBadge />
 
       {/* 構造化データ: TouristDestination */}

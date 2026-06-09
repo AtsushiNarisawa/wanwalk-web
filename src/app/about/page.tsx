@@ -265,7 +265,7 @@ export default async function AboutPage() {
         </section>
 
         <div className="py-8">
-          <WalksAppCTA />
+          <WalksAppCTA sourcePage="about" />
         </div>
 
         {/* WanWalkが生まれた理由 */}

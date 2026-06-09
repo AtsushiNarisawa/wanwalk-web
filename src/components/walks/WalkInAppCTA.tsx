@@ -1,17 +1,30 @@
 import { DeviceMobile } from "@phosphor-icons/react/dist/ssr";
 import AppStoreBadge from "./AppStoreBadge";
+import AppWalkButton from "./AppWalkButton";
 import type { SourcePage } from "@/lib/analytics";
 
 type Props = {
   sourcePage?: SourcePage;
+  /** GA4 app_store_badge_click の placement。ページ種別ごとに区別する。 */
+  placement?: string;
+  /** 見出し（ページ文脈に合わせて差し替え可）。 */
+  title?: string;
+  /** 補足コピー。 */
+  subcopy?: string;
 };
 
 /**
- * ルート詳細の文脈付き Web→App 導線 CTA（Cross統一 ③）。
- * 最下部の汎用 WalksAppCTA とは別物で、ヘッダー直下に置く小型の横型ストリップ。
- * 計測は既存 AppStoreBadge の app_store_badge_click を流用し placement で区別する。
+ * 文脈付き Web→App 導線 CTA（Cross統一 ③ → Phase 1 でエリア/スポットへ横展開）。
+ * 最下部の汎用 WalksAppCTA とは別物で、ページ上部の文脈内に置く小型の横型ストリップ。
+ * 主役は深緑 Primary ボタン（AppWalkButton）、その下に公式 Apple バッジを副次配置。
+ * 計測は app_store_badge_click を流用し placement / source_page で発火元を区別する。
  */
-export default function WalkInAppCTA({ sourcePage = "route_detail" }: Props) {
+export default function WalkInAppCTA({
+  sourcePage = "route_detail",
+  placement = "route_detail_walk",
+  title = "このルートをアプリで歩く",
+  subcopy = "GPSで現在地を確認しながら、歩いた距離や時間を記録できます。",
+}: Props) {
   return (
     <section
       className="walk-in-app-cta"
@@ -63,7 +76,7 @@ export default function WalkInAppCTA({ sourcePage = "route_detail" }: Props) {
               marginBottom: 2,
             }}
           >
-            このルートをアプリで歩く
+            {title}
           </p>
           <p
             style={{
@@ -72,22 +85,34 @@ export default function WalkInAppCTA({ sourcePage = "route_detail" }: Props) {
               color: "var(--color-ww-text-secondary)",
             }}
           >
-            GPSで現在地を確認しながら、歩いた距離や時間を記録できます。
+            {subcopy}
           </p>
         </div>
       </div>
 
-      <AppStoreBadge
-        sourcePage={sourcePage}
-        placement="route_detail_walk"
-        height={44}
-        className="walk-in-app-cta__badge"
-      />
+      <div
+        className="walk-in-app-cta__actions"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: 8,
+          flexShrink: 0,
+        }}
+      >
+        <AppWalkButton sourcePage={sourcePage} placement={placement} />
+        <AppStoreBadge
+          sourcePage={sourcePage}
+          placement={placement}
+          height={36}
+          className="walk-in-app-cta__badge"
+        />
+      </div>
 
       <style>{`
         @media (max-width: 639px) {
           .walk-in-app-cta { flex-direction: column; align-items: flex-start; gap: 14px; }
-          .walk-in-app-cta__badge { align-self: flex-start; }
+          .walk-in-app-cta__actions { align-items: flex-start; align-self: stretch; }
         }
       `}</style>
     </section>

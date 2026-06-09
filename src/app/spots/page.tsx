@@ -169,7 +169,7 @@ export default async function SpotsHubPage() {
       )}
 
       <div className="py-8">
-        <WalksAppCTA />
+        <WalksAppCTA sourcePage="spots_list" />
       </div>
       <SupportedBadge />
 
