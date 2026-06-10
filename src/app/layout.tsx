@@ -54,6 +54,12 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     images: [DEFAULT_OG_IMAGE],
   },
+  // iOS Safari の Smart App Banner（<meta name="apple-itunes-app">）。
+  // インストール済みなら「開く」でアプリ起動、未インストールなら App Store へ。
+  // app-id は AppStoreBadge.tsx の APP_STORE_URL(id6757466888) と同一値（SSoT）。
+  // ここはサイト全体の基底（app-id のみ）。ルート詳細は generateMetadata 側で
+  // app-argument（正規 URL）を付与し、インストール済み時に該当ルートへ直接遷移させる。
+  itunes: { appId: "6757466888" },
 };
 
 export default function RootLayout({

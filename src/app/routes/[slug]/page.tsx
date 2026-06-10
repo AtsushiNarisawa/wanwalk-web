@@ -178,6 +178,10 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical: `/routes/${slug}` },
+    // Smart App Banner の app-argument に正規 URL を渡す。インストール済み端末では
+    // バナーの「開く」/ Universal Link 経由でアプリがこの URL を受け取り、該当ルート詳細へ遷移する。
+    // app-id は layout.tsx・AppStoreBadge.tsx と同一値（SSoT）。
+    itunes: { appId: "6757466888", appArgument: `https://wanwalk.jp/routes/${slug}` },
     ...buildOgMetadata({
       title,
       description,
