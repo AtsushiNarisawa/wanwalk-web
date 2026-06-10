@@ -8,6 +8,7 @@ import {
   getFeaturedRoutesForTop,
 } from "@/lib/walks/data";
 import RouteCard from "@/components/walks/RouteCard";
+import SavedRoutesLink from "@/components/walks/SavedRoutesLink";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import AppStoreBadge from "@/components/walks/AppStoreBadge";
@@ -400,6 +401,9 @@ export default async function WalksTopPage() {
               すべての散歩コース（<span className="ww-numeric">{totalRoutes}</span>件）を見る
               <ArrowRight size={14} weight="regular" />
             </Link>
+            <div className="mt-4">
+              <SavedRoutesLink align="center" />
+            </div>
           </div>
         </section>
 

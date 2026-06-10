@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getAllPublishedRoutes, getAreasWithRouteCount } from "@/lib/walks/data";
 import SeasonFilterControls from "@/components/walks/SeasonFilterControls";
 import RouteCard from "@/components/walks/RouteCard";
+import SavedRoutesLink from "@/components/walks/SavedRoutesLink";
 import {
   filterRoutes,
   parseSeasonParam,
@@ -90,6 +91,9 @@ export default async function RoutesIndexPage({
           <span className="ww-numeric">{activeAreas.length}</span>エリアの
           <span className="ww-numeric">{routes.length}</span>ルートから、季節やカート走行可で絞り込めます。
         </p>
+        <div className="mt-3">
+          <SavedRoutesLink />
+        </div>
       </header>
 
       <SeasonFilterControls

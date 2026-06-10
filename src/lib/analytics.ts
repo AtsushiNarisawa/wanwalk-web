@@ -24,6 +24,7 @@ export type SourcePage =
   | "spot_detail"
   | "spots_list"
   | "spots_category"
+  | "saved_list"
   | "about";
 
 export type ShareChannel = "native" | "copy" | "x" | "facebook" | "line";
@@ -35,6 +36,7 @@ export type TrackEventName =
   | "area_card_click"
   | "spot_card_click"
   | "route_bookmark_toggle"
+  | "saved_list_view" // 行きたいリスト閲覧（保存・再訪=北極星の代理指標）
   | "share_open"
   | "share_channel_click"
   | "route_feedback_open"

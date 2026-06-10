@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookmarkSimple } from "@phosphor-icons/react";
+import Link from "next/link";
+import { ArrowRight, BookmarkSimple } from "@phosphor-icons/react";
 import ShareMenu from "./ShareMenu";
 import { trackEvent } from "@/lib/analytics";
+import {
+  readBookmarkIds as readBookmarks,
+  writeBookmarkIds as writeBookmarks,
+} from "@/lib/walks/bookmarks";
 
 type Props = {
   routeId: string;
@@ -11,27 +16,6 @@ type Props = {
   routeName: string;
   areaName: string;
 };
-
-const STORAGE_KEY = "wanwalk_bookmarks";
-
-type BookmarkStorage = { routeIds: string[]; updatedAt: string };
-
-function readBookmarks(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as BookmarkStorage;
-    return Array.isArray(parsed.routeIds) ? parsed.routeIds : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeBookmarks(ids: string[]) {
-  const data: BookmarkStorage = { routeIds: ids, updatedAt: new Date().toISOString() };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
 
 export default function RouteActions({ routeId, routeSlug, routeName, areaName }: Props) {
   const [bookmarked, setBookmarked] = useState(false);
@@ -53,6 +37,7 @@ export default function RouteActions({ routeId, routeSlug, routeName, areaName }
     trackEvent("route_bookmark_toggle", {
       route_slug: routeSlug,
       action: adding ? "add" : "remove",
+      source_page: "route_detail",
     });
   };
 
@@ -66,7 +51,8 @@ export default function RouteActions({ routeId, routeSlug, routeName, areaName }
   }
 
   return (
-    <div style={{ display: "flex", gap: 8 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", gap: 8 }}>
       <button
         type="button"
         onClick={toggleBookmark}
@@ -101,6 +87,23 @@ export default function RouteActions({ routeId, routeSlug, routeName, areaName }
         shareKind="route"
         shareTargetSlug={routeSlug}
       />
+      </div>
+
+      {bookmarked && (
+        <Link
+          href="/saved"
+          className="inline-flex items-center gap-1"
+          style={{
+            fontSize: 12,
+            color: "var(--color-ww-accent)",
+            fontWeight: 500,
+            letterSpacing: "0.02em",
+          }}
+        >
+          行きたいリストを見る
+          <ArrowRight size={12} weight="regular" />
+        </Link>
+      )}
 
       <style>{`
         .route-action-btn:hover { border-color: var(--color-ww-accent) !important; }
