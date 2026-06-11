@@ -14,14 +14,17 @@ import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { ArrowUpRight } from "@phosphor-icons/react";
 import type { DirectoryGroup, DirectoryPlace } from "@/types/directory";
 import {
   DIRECTORY_GROUPS,
   DIRECTORY_CATEGORY_LABELS,
+  buildOutboundUrl,
   formatDirectoryDogChips,
   groupOfPlace,
   isConditional,
 } from "@/lib/walks/directory-groups";
+import { trackEvent } from "@/lib/analytics";
 
 const PIN_SIZE = 32;
 const GLYPH_SIZE = 17;
@@ -177,24 +180,58 @@ export default function HakoneDogMap({
                       {chips.length > 0 ? ` ・ ${chips.join(" / ")}` : ""}
                     </div>
                   )}
-                  {onSelectPlace && (
-                    <button
-                      type="button"
-                      onClick={() => onSelectPlace(place.id)}
-                      style={{
-                        appearance: "none",
-                        border: "1px solid var(--color-ww-border-strong)",
-                        background: "var(--color-ww-bg)",
-                        color: "var(--color-ww-text)",
-                        borderRadius: 8,
-                        padding: "5px 10px",
-                        fontSize: 12,
-                        cursor: "pointer",
-                      }}
-                    >
-                      詳細を見る
-                    </button>
-                  )}
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {onSelectPlace && (
+                      <button
+                        type="button"
+                        onClick={() => onSelectPlace(place.id)}
+                        style={{
+                          appearance: "none",
+                          border: "1px solid var(--color-ww-border-strong)",
+                          background: "var(--color-ww-bg)",
+                          color: "var(--color-ww-text)",
+                          borderRadius: 8,
+                          padding: "5px 10px",
+                          fontSize: 12,
+                          cursor: "pointer",
+                        }}
+                      >
+                        詳細を見る
+                      </button>
+                    )}
+                    {place.official_url && (
+                      <a
+                        href={buildOutboundUrl(place.official_url)}
+                        target="_blank"
+                        rel="noopener nofollow"
+                        onClick={() => {
+                          trackEvent("outbound_click", {
+                            place: place.utm_slug ?? undefined,
+                            group,
+                            category: place.category,
+                            surface: "hakone_dogmap",
+                            channel: "web_map_popup",
+                          });
+                        }}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                          border: "1px solid var(--color-ww-border-subtle)",
+                          background: "var(--color-ww-bg)",
+                          color: "var(--color-ww-accent)",
+                          borderRadius: 8,
+                          padding: "5px 10px",
+                          fontSize: 12,
+                          fontWeight: 500,
+                          textDecoration: "none",
+                        }}
+                      >
+                        公式サイト
+                        <ArrowUpRight size={13} weight="regular" aria-hidden />
+                      </a>
+                    )}
+                  </div>
                 </div>
               </Popup>
             </Marker>

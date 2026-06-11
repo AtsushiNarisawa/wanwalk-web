@@ -128,7 +128,16 @@ export default async function HakoneDogMapPage({
         }}
       >
         <p style={{ margin: "0 0 6px" }}>
-          このマップは{" "}
+          このマップは、箱根・仙石原の犬のホテル&カフェ「
+          <a
+            href="https://dog-hub.shop/?utm_source=wanwalk&utm_medium=referral&utm_campaign=hakone-dogmap&utm_content=operator_disclosure"
+            target="_blank"
+            rel="noopener"
+            style={{ color: "var(--color-ww-text-secondary)" }}
+          >
+            DogHub箱根仙石原
+          </a>
+          」の運営チームが手がける{" "}
           <Link href="/about" style={{ color: "var(--color-ww-text-secondary)" }}>
             WanWalk
           </Link>{" "}

@@ -99,6 +99,22 @@ export const DIRECTORY_CATEGORY_LABELS: Record<DirectoryCategory, string> = {
 
 const VALID_GROUPS = new Set<string>(DIRECTORY_GROUP_ORDER);
 
+/**
+ * 公式 URL に WanWalk 出典の utm を付与（解析を持つ施設向けの無害なオマケ）。
+ * 送客の真実のソースは自分側の outbound_click（GA4）。カード・地図ポップアップ共通。
+ */
+export function buildOutboundUrl(officialUrl: string): string {
+  try {
+    const u = new URL(officialUrl);
+    u.searchParams.set("utm_source", "wanwalk");
+    u.searchParams.set("utm_medium", "referral");
+    u.searchParams.set("utm_campaign", "hakone-dogmap");
+    return u.toString();
+  } catch {
+    return officialUrl;
+  }
+}
+
 /** 施設のグループを決定。subcategory を優先し、無ければ category から逆引き。 */
 export function groupOfPlace(place: Pick<DirectoryPlace, "subcategory" | "category">): DirectoryGroup {
   if (place.subcategory && VALID_GROUPS.has(place.subcategory)) {

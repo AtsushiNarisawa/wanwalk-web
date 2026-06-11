@@ -14,11 +14,12 @@
  */
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Path } from "@phosphor-icons/react";
+import { ArrowUpRight, Path, Phone } from "@phosphor-icons/react";
 import type { DirectoryPlace } from "@/types/directory";
 import {
   DIRECTORY_GROUPS,
   DIRECTORY_CATEGORY_LABELS,
+  buildOutboundUrl,
   formatDirectoryDogChips,
   groupOfPlace,
   isConditional,
@@ -26,17 +27,9 @@ import {
 import { formatSpotDistance } from "@/lib/walks/format";
 import { trackEvent } from "@/lib/analytics";
 
-// 公式 URL に WanWalk 出典の utm を付与（解析を持つ施設向けの無害なオマケ）。
-function buildOutboundUrl(officialUrl: string): string {
-  try {
-    const u = new URL(officialUrl);
-    u.searchParams.set("utm_source", "wanwalk");
-    u.searchParams.set("utm_medium", "referral");
-    u.searchParams.set("utm_campaign", "hakone-dogmap");
-    return u.toString();
-  } catch {
-    return officialUrl;
-  }
+// "+81 460-83-8800" → "tel:+81460838800"（タップ発信用に空白・ハイフン除去）
+function telHref(phone: string): string {
+  return `tel:${phone.replace(/[^+0-9]/g, "")}`;
 }
 
 const VERIFIED_LABEL = "情報は2026年6月時点・最新は公式サイトでご確認ください。";
@@ -202,34 +195,76 @@ export default function DirectoryPlaceCard({
           </div>
         )}
 
-        {/* 公式サイト */}
-        {place.official_url && (
-          <a
-            href={buildOutboundUrl(place.official_url)}
-            target="_blank"
-            rel="noopener nofollow"
-            onClick={() => {
-              // place は施設識別子（utm_slug）で統一。欠損時は送らない（UUID と粒度を混ぜない）。
-              trackEvent("outbound_click", {
-                place: place.utm_slug ?? undefined,
-                group,
-                category: place.category,
-                surface: "hakone_dogmap",
-              });
-            }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              alignSelf: "flex-start",
-              fontSize: 14,
-              fontWeight: 500,
-              color: "var(--color-ww-accent)",
-            }}
-          >
-            公式サイト
-            <ArrowUpRight size={16} weight="regular" aria-hidden />
-          </a>
+        {/* 公式サイト・電話（流出導線。全施設同一スタイル＝中立） */}
+        {(place.official_url || place.phone) && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {place.official_url && (
+              <a
+                href={buildOutboundUrl(place.official_url)}
+                target="_blank"
+                rel="noopener nofollow"
+                onClick={() => {
+                  // place は施設識別子（utm_slug）で統一。欠損時は送らない（UUID と粒度を混ぜない）。
+                  trackEvent("outbound_click", {
+                    place: place.utm_slug ?? undefined,
+                    group,
+                    category: place.category,
+                    surface: "hakone_dogmap",
+                    channel: "web",
+                  });
+                }}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  minHeight: 40,
+                  padding: "8px 16px",
+                  borderRadius: "var(--radius-ww-md)",
+                  border: "1px solid var(--color-ww-border-strong)",
+                  backgroundColor: "var(--color-ww-bg)",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: "var(--color-ww-text)",
+                }}
+              >
+                公式サイトを見る
+                <ArrowUpRight size={16} weight="regular" aria-hidden />
+              </a>
+            )}
+            {place.phone && (
+              <a
+                href={telHref(place.phone)}
+                onClick={() => {
+                  trackEvent("outbound_click", {
+                    place: place.utm_slug ?? undefined,
+                    group,
+                    category: place.category,
+                    surface: "hakone_dogmap",
+                    channel: "phone",
+                  });
+                }}
+                aria-label={`${place.name}に電話する`}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  minHeight: 40,
+                  padding: "8px 14px",
+                  borderRadius: "var(--radius-ww-md)",
+                  border: "1px solid var(--color-ww-border-subtle)",
+                  backgroundColor: "var(--color-ww-bg)",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: "var(--color-ww-text-secondary)",
+                }}
+              >
+                <Phone size={16} weight="regular" aria-hidden />
+                電話
+              </a>
+            )}
+          </div>
         )}
 
         {/* ここから歩ける最寄りルート */}
