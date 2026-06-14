@@ -23,7 +23,9 @@ export default function WalkInAppCTA({
   sourcePage = "route_detail",
   placement = "route_detail_walk",
   title = "このルートをアプリで歩く",
-  subcopy = "GPSで現在地を確認しながら、歩いた距離や時間を記録できます。",
+  // LAYER1_NAV_SPEC §13: 記録訴求（日米で死亡実証）→ ナビ訴求へ。
+  // 価値ステートメント（WANWALK_STRATEGY.md 正本）準拠。「取りこぼす」は使わない。
+  subcopy = "知らない土地でも、見どころや愛犬と入れるお店を見逃さないよう、現地ではアプリが静かに道案内します。",
 }: Props) {
   return (
     <section
