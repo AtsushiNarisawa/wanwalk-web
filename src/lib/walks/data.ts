@@ -27,7 +27,7 @@ export async function getFeaturedRoute(): Promise<RouteWithArea | null> {
 export async function getAreas(): Promise<Area[]> {
   const { data, error } = await supabase
     .from("areas")
-    .select("id, name, slug, prefecture, description")
+    .select("id, name, slug, prefecture, description, tier")
     .not("slug", "is", null)
     .order("prefecture")
     .order("name");
@@ -39,7 +39,7 @@ export async function getAreas(): Promise<Area[]> {
 export async function getAreaBySlug(slug: string): Promise<Area | null> {
   const { data, error } = await supabase
     .from("areas")
-    .select("id, name, slug, prefecture, description, hero_image_url")
+    .select("id, name, slug, prefecture, description, hero_image_url, tier")
     .eq("slug", slug)
     .single();
 
@@ -288,7 +288,7 @@ export async function getAreasWithRouteCount(): Promise<
   const { data, error } = await supabase
     .from("areas")
     .select(
-      "id, name, slug, prefecture, description, hero_image_url, official_routes(count)"
+      "id, name, slug, prefecture, description, hero_image_url, tier, official_routes(count)"
     )
     .eq("official_routes.is_published", true)
     .not("slug", "is", null)
@@ -305,6 +305,7 @@ export async function getAreasWithRouteCount(): Promise<
       prefecture: a.prefecture,
       description: a.description,
       hero_image_url: a.hero_image_url ?? null,
+      tier: a.tier,
       route_count: routes?.[0]?.count ?? 0,
     };
   });

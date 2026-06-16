@@ -5,6 +5,8 @@ export interface Area {
   prefecture: string;
   description: string | null;
   hero_image_url?: string | null;
+  /** 粒度: region / sub / spot（AREA_TAXONOMY_SPEC.md）。/areas は県軸維持のため未使用だが将来用に保持。 */
+  tier?: string;
 }
 
 export interface RoutePinWithPhoto {

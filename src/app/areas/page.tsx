@@ -5,6 +5,7 @@ import SupportedBadge from "@/components/walks/SupportedBadge";
 import AreaCard from "@/components/walks/AreaCard";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { getSiteStats } from "@/lib/walks/stats";
+import { prefectureOrderIndex } from "@/lib/walks/area-taxonomy";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
@@ -38,13 +39,17 @@ export default async function AreasPage() {
     {}
   );
 
-  const prefOrder = ["神奈川県", "東京都"];
-  const sortedPrefs = [
-    ...prefOrder.filter((p) => byPrefecture[p]),
-    ...Object.keys(byPrefecture)
-      .filter((p) => !prefOrder.includes(p))
-      .sort(),
-  ];
+  // 都道府県は需要順（PREFECTURE_ORDER）→ 未掲載は末尾であいうえお順。
+  const sortedPrefs = Object.keys(byPrefecture).sort((a, b) => {
+    const c = prefectureOrderIndex(a) - prefectureOrderIndex(b);
+    return c !== 0 ? c : a.localeCompare(b, "ja");
+  });
+  // 県内はルート数降順（同数は名前順）に統一。
+  for (const pref of sortedPrefs) {
+    byPrefecture[pref].sort(
+      (a, b) => b.route_count - a.route_count || a.name.localeCompare(b.name, "ja")
+    );
+  }
 
   return (
     <div
