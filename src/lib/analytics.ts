@@ -50,7 +50,8 @@ export type TrackEventName =
   // 箱根 犬連れおでかけマップβ（/hakone/dog-map）
   | "outbound_click" // 施設公式サイトへの外部クリック（送客の真実のソース）
   | "directory_route_click" // 施設カード → 最寄りルート（内部リンク）
-  | "directory_qr_landing"; // ホテルQR（?ref=）からの着地
+  | "directory_qr_landing" // ホテルQR（?ref=）からの着地
+  | "directory_correction_click"; // 施設情報の修正・削除依頼（アグリゲーター型の必須動線）
 
 type EventParams = Record<string, string | number | boolean | undefined | null>;
 

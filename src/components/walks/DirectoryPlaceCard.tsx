@@ -34,6 +34,9 @@ function telHref(phone: string): string {
 
 const VERIFIED_LABEL = "情報は2026年6月時点・最新は公式サイトでご確認ください。";
 
+// アグリゲーター型の必須動線「情報の修正・削除はこちら」の問い合わせ先（WanWalk/DogHub 運営受付）。
+const CORRECTION_EMAIL = "info@dog-hub.shop";
+
 export default function DirectoryPlaceCard({
   place,
   highlighted = false,
@@ -47,6 +50,12 @@ export default function DirectoryPlaceCard({
   const conditional = isConditional(place.dog_policy);
   const notes = place.dog_policy?.notes?.trim() || null;
   const nearest = place.nearest_routes ?? [];
+
+  // 修正・削除依頼メール（件名に施設名＋utm_slug を自動付与）。全カード同一＝中立。
+  const correctionSubject = `【箱根 愛犬とおでかけマップ】情報の修正・削除依頼: ${place.name}${
+    place.utm_slug ? ` (${place.utm_slug})` : ""
+  }`;
+  const correctionMailto = `mailto:${CORRECTION_EMAIL}?subject=${encodeURIComponent(correctionSubject)}`;
 
   return (
     <article
@@ -318,10 +327,31 @@ export default function DirectoryPlaceCard({
           </div>
         )}
 
-        {/* 免責 */}
-        <p style={{ fontSize: 11, color: "var(--color-ww-text-tertiary)", margin: 0, lineHeight: 1.6 }}>
-          {VERIFIED_LABEL}
-        </p>
+        {/* 免責 ＋ アグリゲーター型の「情報の修正・削除」動線（全カード同一＝中立） */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <p style={{ fontSize: 11, color: "var(--color-ww-text-tertiary)", margin: 0, lineHeight: 1.6 }}>
+            {VERIFIED_LABEL}
+          </p>
+          <a
+            href={correctionMailto}
+            onClick={() =>
+              trackEvent("directory_correction_click", {
+                place: place.utm_slug ?? undefined,
+                surface: "hakone_dogmap",
+                channel: "web",
+              })
+            }
+            style={{
+              width: "fit-content",
+              fontSize: 11,
+              color: "var(--color-ww-text-tertiary)",
+              textDecoration: "underline",
+              textUnderlineOffset: 2,
+            }}
+          >
+            情報の修正・削除はこちら
+          </a>
+        </div>
       </div>
     </article>
   );
