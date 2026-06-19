@@ -5,7 +5,7 @@ import { MapTrifold, ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { getHakoneAreasWithRoutes } from "@/lib/walks/data";
 import RouteCard from "@/components/walks/RouteCard";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
-import HakoneOfficialBadge from "@/components/walks/HakoneOfficialBadge";
+import SupportedBadge from "@/components/walks/SupportedBadge";
 import GoogleMapEmbed from "@/components/walks/GoogleMapEmbed";
 import HakoneHubRefTracker from "@/components/walks/HakoneHubRefTracker";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
@@ -147,8 +147,9 @@ export default async function HakoneHubPage() {
         </div>
       )}
 
-      {/* 帰属（箱根町・箱根全山が主体・WanWalk が制作。本体の SupportedBadge とは上下が逆） */}
-      <HakoneOfficialBadge />
+      {/* このハブは WanWalk 自体（既存ルートの一覧）＝「Supported by 箱根DMO」。
+          DMO 主体の「公式」は犬連れ施設のエリアマップ（/hakone/dog-map）側に置く。 */}
+      <SupportedBadge />
 
       {/* 箱根エリアマップ（C5: Google由来サムネと同一ページに Googleマップを同時表示） */}
       <section style={{ marginBottom: 48 }}>
