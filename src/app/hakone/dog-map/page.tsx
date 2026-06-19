@@ -4,7 +4,7 @@ import Link from "next/link";
 import { getDirectoryPlaces } from "@/lib/walks/directory";
 import HakoneDogMapView from "@/components/walks/HakoneDogMapView";
 import DirectoryRefTracker from "@/components/walks/DirectoryRefTracker";
-import SupportedBadge from "@/components/walks/SupportedBadge";
+import HakoneOfficialBadge from "@/components/walks/HakoneOfficialBadge";
 
 /**
  * 箱根 犬連れ「おでかけマップ」β（非公開・リンク限定）。
@@ -127,8 +127,8 @@ export default async function HakoneDogMapPage({
       {/* 地図 + フィルタ + カード */}
       <HakoneDogMapView places={places} />
 
-      {/* 後援名義（WanWalk 本体と同形式・SupportedBadge を流用） */}
-      <SupportedBadge />
+      {/* 帰属（箱根町・箱根全山が主体・WanWalk が制作）。運営者開示は下部フッターで別途。 */}
+      <HakoneOfficialBadge />
 
       {/* 運営者開示・免責 */}
       <footer
