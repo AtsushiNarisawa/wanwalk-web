@@ -4,9 +4,11 @@ import type { SourcePage } from "@/lib/analytics";
 
 type Props = {
   sourcePage?: SourcePage;
+  /** GA4 app_store_badge_click の placement。既定 walks_app_cta（既存ページ後方互換）。 */
+  placement?: string;
 };
 
-export default function WalksAppCTA({ sourcePage = "home" }: Props) {
+export default function WalksAppCTA({ sourcePage = "home", placement = "walks_app_cta" }: Props) {
   return (
     <section
       className="text-center"
@@ -54,7 +56,7 @@ export default function WalksAppCTA({ sourcePage = "home" }: Props) {
         散歩ルートをGPSで自動記録。
         歩いた距離や時間を振り返りながら、愛犬との時間を残せます。
       </p>
-      <AppStoreBadge sourcePage={sourcePage} placement="walks_app_cta" height={48} />
+      <AppStoreBadge sourcePage={sourcePage} placement={placement} height={48} />
     </section>
   );
 }

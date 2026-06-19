@@ -61,7 +61,21 @@ export default async function HakoneDogMapPage({
       className="mx-auto"
       style={{ maxWidth: 1320, padding: "32px 16px 64px" }}
     >
-      {safeRef && <DirectoryRefTracker refSlug={safeRef} />}
+      {safeRef && <DirectoryRefTracker refSlug={safeRef} surface="hakone_dogmap" />}
+
+      {/* ハブ（散歩コース一覧）への戻り導線。/hakone は公開ページ。
+          referrer:no-referrer のため内部遷移でも ?k は Referer に漏れない。 */}
+      <nav
+        style={{
+          fontSize: 13,
+          color: "var(--color-ww-text-tertiary)",
+          marginBottom: 20,
+        }}
+      >
+        <Link href="/hakone" style={{ color: "var(--color-ww-accent)" }}>
+          ← 箱根 愛犬さんぽマップ（散歩コース一覧）へ
+        </Link>
+      </nav>
 
       {/* ヘッダー */}
       <header style={{ marginBottom: 28 }}>
@@ -127,6 +141,11 @@ export default async function HakoneDogMapPage({
           color: "var(--color-ww-text-tertiary)",
         }}
       >
+        <p style={{ margin: "0 0 10px" }}>
+          <Link href="/hakone" style={{ color: "var(--color-ww-accent)" }}>
+            箱根 愛犬さんぽマップ（散歩コース一覧）→
+          </Link>
+        </p>
         <p style={{ margin: "0 0 6px" }}>
           このマップは、箱根・仙石原の犬のホテル&カフェ「
           <a

@@ -29,11 +29,13 @@ const difficultyStyles: Record<
 type Props = {
   route: OfficialRoute | RouteWithArea;
   sourcePage?: SourcePage;
+  /** GA4 route_card_click の placement（任意・面の識別。既登録ディメンション）。 */
+  placement?: string;
   /** LCP 候補画像（一覧ページの先頭1件のみ true）。fetchpriority=high + 即時ロード */
   priority?: boolean;
 };
 
-export default function RouteCard({ route, sourcePage, priority = false }: Props) {
+export default function RouteCard({ route, sourcePage, placement, priority = false }: Props) {
   const distanceLabel = formatDistance(route.distance_meters);
   const diff = difficultyStyles[route.difficulty_level];
   const areaSlug =
@@ -46,6 +48,7 @@ export default function RouteCard({ route, sourcePage, priority = false }: Props
       route_slug: route.slug,
       area_slug: areaSlug,
       source_page: sourcePage,
+      placement,
     });
   };
 

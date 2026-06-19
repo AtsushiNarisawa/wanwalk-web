@@ -14,6 +14,7 @@ import WalkInAppCTA from "@/components/walks/WalkInAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import RouteFeedback from "@/components/walks/RouteFeedback";
 import RouteMapWrapper from "@/components/walks/RouteMapWrapper";
+import GoogleMapEmbed from "@/components/walks/GoogleMapEmbed";
 import SpecBar from "@/components/walks/SpecBar";
 import PetInfoGrid from "@/components/walks/PetInfoGrid";
 import RouteActions from "@/components/walks/RouteActions";
@@ -221,6 +222,18 @@ export default async function RouteDetailPage({
     ? Number(String(petInfo.elevation_gain).replace(/[^0-9.-]/g, "")) || null
     : null;
   const elevationGain = route.elevation_gain_meters ?? elevationGainFromPet;
+
+  // C5（箱根DMO許諾条件）: hero/gallery が Google由来写真のため、同一ページに Googleマップを併設。
+  // area型は施設中心、line型は出発地点を中心に表示。座標が無ければ非表示。
+  const gmapLat = (isArea ? areaInfo?.area_center_lat : null) ?? route.start_lat;
+  const gmapLng = (isArea ? areaInfo?.area_center_lng : null) ?? route.start_lng;
+  // parseRouteLocation は start_location 欠落時に 0 を入れる（sentinel）。
+  // 0,0（null island）を明示的に除外して誤った地点の埋め込みを防ぐ。
+  const hasGmap =
+    Number.isFinite(gmapLat) &&
+    Number.isFinite(gmapLng) &&
+    gmapLat !== 0 &&
+    gmapLng !== 0;
 
   return (
     <article
@@ -439,6 +452,21 @@ export default async function RouteDetailPage({
           areaCenterLng={areaInfo?.area_center_lng ?? null}
           areaRadiusM={areaInfo?.area_radius_m ?? null}
         />
+        {hasGmap && (
+          <div style={{ marginTop: 16 }}>
+            <GoogleMapEmbed
+              query={`${gmapLat},${gmapLng}`}
+              title={`${route.name}の場所（Googleマップ）`}
+              zoom={15}
+              height={280}
+              caption={
+                isArea
+                  ? "施設の場所（地図：Googleマップ）"
+                  : "出発地点（地図：Googleマップ）"
+              }
+            />
+          </div>
+        )}
       </section>
 
       {/* コースガイド（line型のみ。area型は順序がないため見どころ1本に統合） */}

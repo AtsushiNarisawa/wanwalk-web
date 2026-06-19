@@ -25,3 +25,16 @@ export function prefectureOrderIndex(prefecture: string): number {
   const i = (PREFECTURE_ORDER as readonly string[]).indexOf(prefecture);
   return i < 0 ? 9999 : i;
 }
+
+/**
+ * 箱根サブエリアの地理順（湯本→宮ノ下→強羅→仙石原→芦ノ湖）。
+ * /hakone ハブのセクション並び順に使用。
+ * 5件はすべて group_key='hakone' / tier='sub'（AREA_TAXONOMY_SPEC.md・DB実査確認済）。
+ */
+export const HAKONE_SUB_AREA_ORDER = [
+  "hakone-yumoto",
+  "hakone-miyanoshita",
+  "hakone-gora",
+  "hakone-sengokuhara",
+  "hakone-ashinoko",
+] as const;

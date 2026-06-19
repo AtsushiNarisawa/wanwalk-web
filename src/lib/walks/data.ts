@@ -2,6 +2,7 @@ import { cache } from "react";
 import { wanwalkSupabase as supabase } from "./supabase";
 import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
 import type { Area, OfficialRoute, RouteSpot, RouteWithArea, SpotWithRoute, RouteAreaInfo } from "@/types/walks";
+import { HAKONE_SUB_AREA_ORDER } from "./area-taxonomy";
 
 const NON_SEO_CATEGORIES_ARR = Array.from(NON_SEO_SPOT_CATEGORIES);
 
@@ -310,6 +311,51 @@ export async function getAreasWithRouteCount(): Promise<
     };
   });
 }
+
+// /hakone ハブ（箱根 愛犬さんぽマップ）専用。
+// group_key='hakone' のサブエリア5件と、その公開ルートをまとめて取得する。
+//
+// 設計（HAKONE_DMO_SPRINT_CTO_SPEC C1）:
+// - PostgREST の nested embed フィルタ（official_routes(...).is_published）は
+//   過去にバグ実績があるため使わず（commit e269e98）、エリアごとに既存の
+//   getRoutesByAreaId() を呼ぶ（server 側で is_published=true 済）。さらに JS 側でも再フィルタ。
+// - 並びは HAKONE_SUB_AREA_ORDER（湯本→宮ノ下→強羅→仙石原→芦ノ湖）。
+// - 公開ルート0本のエリアは描画しない（空セクション防止）。
+// - generateMetadata と Page 本体の双方から呼ばれるため React.cache でラップ。
+export interface HakoneAreaWithRoutes {
+  area: Area;
+  routes: OfficialRoute[];
+}
+
+export const getHakoneAreasWithRoutes = cache(
+  async (): Promise<HakoneAreaWithRoutes[]> => {
+    const { data: areas, error } = await supabase
+      .from("areas")
+      .select("id, name, slug, prefecture, description, hero_image_url, tier")
+      .eq("group_key", "hakone")
+      .not("slug", "is", null);
+
+    if (error || !areas) return [];
+
+    const withRoutes = await Promise.all(
+      areas.map(async (area) => ({
+        area: area as Area,
+        routes: (await getRoutesByAreaId(area.id)).filter(
+          (r) => r.is_published === true
+        ),
+      }))
+    );
+
+    const orderIndex = (slug: string): number => {
+      const i = (HAKONE_SUB_AREA_ORDER as readonly string[]).indexOf(slug);
+      return i < 0 ? 999 : i;
+    };
+
+    return withRoutes
+      .filter((x) => x.routes.length > 0)
+      .sort((a, b) => orderIndex(a.area.slug) - orderIndex(b.area.slug));
+  }
+);
 
 export async function getRoutePinsWithPhotos(
   routeId: string
