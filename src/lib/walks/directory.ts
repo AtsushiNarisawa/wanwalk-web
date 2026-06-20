@@ -6,9 +6,9 @@
  *   region 内全施設分を 1 往復で取得し、place_id でグループ化して各施設に結合する
  *   （PostGIS KNN を DB 側に閉じ込め、44 回のラウンドトリップを避ける）。
  *
- * ⚠️ β 段階の RLS は anon read using(true) のため、is_published=false の β 行も
- *    anon（サーバ）から読める。一般公開時に using(is_published) へ絞り、
- *    ドラフトは service role 読みへ切り替える（HAKONE_DOGMAP_SPEC §10-8・今回スコープ外）。
+ * 公開行のみ表示する。RLS を using(is_published) に締め済み（A1）＋本データ層でも
+ *    .eq("is_published", true) で二重に絞る（多層防御）。未公開ドラフトは
+ *    service role 読みでのみ取得する（HAKONE_DOGMAP_SPEC §10-8）。
  */
 import { cache } from "react";
 import { wanwalkSupabase as supabase } from "./supabase";
@@ -43,7 +43,7 @@ async function fetchAreasByIds(ids: string[]): Promise<Map<string, DirectoryArea
 
 /**
  * region 内の施設を、最寄りルート（距離昇順 3 本）を結合して返す。
- * 既定では region='hakone'。β は is_published 不問（全 hakone 行）で読む。
+ * 既定では region='hakone'。公開行のみ（is_published=true）で絞る（RLS と二重）。
  */
 export const getDirectoryPlaces = cache(
   async (region: string = "hakone"): Promise<DirectoryPlace[]> => {
@@ -52,6 +52,7 @@ export const getDirectoryPlaces = cache(
         .from("directory_places_with_latlng")
         .select(DIRECTORY_SELECT)
         .eq("region", region)
+        .eq("is_published", true) // RLS(A1)と二重で公開行のみ。未公開ドラフトは service role 読みのみ。
         .order("name"),
       supabase.rpc("get_directory_nearest_routes", {
         p_region: region,
