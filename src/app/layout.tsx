@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_JP, Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
+import SiteFooter from "@/components/walks/SiteFooter";
+import { siteGraph } from "@/lib/walks/structured-data";
 
 // next/font で self-host 化。
 // - 外部 fonts.googleapis.com への DNS/TLS 不要
@@ -75,7 +77,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://jkpenklhrlbctebkpvax.supabase.co" />
       </head>
       <body className="walks-root min-h-screen">
+        {/* 発行者 Organization + WebSite を全ページに出力（E-E-A-T author/publisher の @id 実体）。 */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteGraph()) }}
+        />
         {children}
+        <SiteFooter />
         {GA_ID && (
           <>
             <script

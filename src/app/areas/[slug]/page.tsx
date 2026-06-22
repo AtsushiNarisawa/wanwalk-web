@@ -12,8 +12,14 @@ import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import WalkInAppCTA from "@/components/walks/WalkInAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import ShareMenu from "@/components/walks/ShareMenu";
+import TrustByline from "@/components/walks/TrustByline";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { formatDistance } from "@/lib/walks/format";
+import {
+  ORG_REF,
+  webPageSchema,
+  breadcrumbSchema,
+} from "@/lib/walks/structured-data";
 import Link from "next/link";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
@@ -156,6 +162,10 @@ export default async function AreaDetailPage({
         </p>
       )}
 
+      <div style={{ marginBottom: 24 }}>
+        <TrustByline scopeNote="このエリアの犬連れ散歩コースを、駐車場や犬同伴ルールまで確認して掲載しています。" />
+      </div>
+
       <WalkInAppCTA
         sourcePage="area_detail"
         placement="area_detail_walk"
@@ -219,6 +229,8 @@ export default async function AreaDetailPage({
             name: area.name,
             description: area.description ?? `${area.name}の犬連れ散歩コース`,
             touristType: ["犬連れ", "ペット同伴"],
+            author: ORG_REF,
+            publisher: ORG_REF,
             containsPlace: routes.map((route) => ({
               "@type": "TouristTrip",
               name: route.name,
@@ -259,6 +271,35 @@ export default async function AreaDetailPage({
           }}
         />
       )}
+
+      {/* WebPage（発行者 author/publisher） */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            webPageSchema({
+              path: `/areas/${area.slug}`,
+              name: `${area.name}の犬連れ散歩コース`,
+              description: area.description,
+              primaryImage: area.hero_image_url ?? null,
+            })
+          ),
+        }}
+      />
+
+      {/* パンくず構造化データ */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            breadcrumbSchema([
+              { name: "トップ", path: "/" },
+              { name: "エリア一覧", path: "/areas" },
+              { name: area.name, path: `/areas/${area.slug}` },
+            ])
+          ),
+        }}
+      />
     </div>
   );
 }

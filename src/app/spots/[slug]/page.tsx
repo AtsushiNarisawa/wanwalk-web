@@ -26,7 +26,13 @@ import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import WalkInAppCTA from "@/components/walks/WalkInAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import ShareMenu from "@/components/walks/ShareMenu";
+import TrustByline from "@/components/walks/TrustByline";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
+import {
+  ORG_REF,
+  webPageSchema,
+  breadcrumbSchema,
+} from "@/lib/walks/structured-data";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
@@ -112,6 +118,8 @@ export default async function SpotDetailPage({
     : null;
   const CatIcon = catConfig?.icon;
   const policy = spot.dog_policy as DogPolicy | null;
+  // updated_at / created_at は SELECT * で取得済みだが型に無いため runtime で参照。
+  const spotDates = spot as unknown as { updated_at?: string; created_at?: string };
 
   // FAQ items for structured data
   const faqItems: { q: string; a: string }[] = [];
@@ -276,6 +284,13 @@ export default async function SpotDetailPage({
           title="アプリで愛犬との散歩を記録する"
           subcopy="GPSで現在地を確認しながら、歩いた距離や時間を残せます。"
         />
+
+        <div style={{ margin: "24px 0" }}>
+          <TrustByline
+            updatedAt={spotDates.updated_at}
+            scopeNote="掲載の犬連れ情報（テラス可否・リード要否・サイズ制限など）は公開情報をもとに整備し、随時見直しています。"
+          />
+        </div>
 
         {/* 説明文 */}
         {spot.description && (
@@ -514,6 +529,8 @@ export default async function SpotDetailPage({
                   : "TouristAttraction",
             name: spot.name,
             description: spot.description ?? undefined,
+            author: ORG_REF,
+            publisher: ORG_REF,
             ...(spot.lat && spot.lng
               ? {
                   geo: {
@@ -556,6 +573,38 @@ export default async function SpotDetailPage({
           }}
         />
       )}
+
+      {/* WebPage（発行者 author/publisher + 公開日/更新日） */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            webPageSchema({
+              path: `/spots/${slug}`,
+              name: spot.name,
+              description: spot.description,
+              datePublished: spotDates.created_at,
+              dateModified: spotDates.updated_at,
+              primaryImage: spot.photo_url,
+            })
+          ),
+        }}
+      />
+
+      {/* パンくず構造化データ */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            breadcrumbSchema([
+              { name: "トップ", path: "/" },
+              { name: "スポット一覧", path: "/spots" },
+              { name: spot.area_name, path: `/areas/${spot.area_slug}` },
+              { name: spot.name, path: `/spots/${slug}` },
+            ])
+          ),
+        }}
+      />
     </>
   );
 }

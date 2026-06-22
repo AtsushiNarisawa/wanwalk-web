@@ -76,9 +76,9 @@ export default function RouteFeedback({ routeId, routeSlug }: Props) {
           className="text-sm leading-relaxed"
           style={{ color: "var(--color-ww-text-secondary)" }}
         >
-          このルートの情報は最新でない場合があります。
-          お気づきの点があれば、ぜひ教えてください。
-          みなさんの声でルート情報を一緒に育てていきます。
+          WanWalkは公開ルートの駐車場・犬同伴ルール・写真を継続的に見直しています。
+          現地で変更にお気づきの点があれば、ぜひ教えてください。
+          みなさんの声で情報をより確かにしていきます。
         </p>
 
         {submitted ? (

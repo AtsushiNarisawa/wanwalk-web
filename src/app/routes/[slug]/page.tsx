@@ -22,8 +22,14 @@ import RouteTimeline from "@/components/walks/RouteTimeline";
 import FeaturedSpots from "@/components/walks/FeaturedSpots";
 import RelatedRoutes from "@/components/walks/RelatedRoutes";
 import AreaRouteLinks from "@/components/walks/AreaRouteLinks";
+import TrustByline from "@/components/walks/TrustByline";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { formatDistance } from "@/lib/walks/format";
+import {
+  ORG_REF,
+  webPageSchema,
+  breadcrumbSchema,
+} from "@/lib/walks/structured-data";
 
 // ISR: 24時間ごとに再検証（Vercel無料枠ISR Writes対策）
 export const revalidate = 86400;
@@ -368,6 +374,11 @@ export default async function RouteDetailPage({
         />
       </header>
 
+      {/* E-E-A-T: 運営・編集バイライン（誰が編集し、いつ更新したか） */}
+      <div style={{ marginTop: 20 }}>
+        <TrustByline updatedAt={route.updated_at} />
+      </div>
+
       {/* Cross統一③: ヘッダー直下の Web→App 文脈付き導線 */}
       <WalkInAppCTA sourcePage="route_detail" />
 
@@ -603,6 +614,8 @@ export default async function RouteDetailPage({
             name: route.name,
             description: route.description,
             touristType: ["犬連れ", "ペット同伴"],
+            author: ORG_REF,
+            publisher: ORG_REF,
             additionalType: isArea ? "DogFriendlyArea" : "DogFriendlyRoute",
             image: route.thumbnail_url ?? undefined,
             // area型は施設中心座標、line型は出発地点
@@ -674,6 +687,38 @@ export default async function RouteDetailPage({
             "@type": "FAQPage",
             mainEntity: buildRouteFaq(route, spots, distanceLabel, isArea),
           }),
+        }}
+      />
+
+      {/* WebPage（発行者 author/publisher + 公開日/更新日 = E-E-A-T Freshness） */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            webPageSchema({
+              path: `/routes/${route.slug}`,
+              name: route.name,
+              description: route.meta_description ?? route.description,
+              datePublished: route.created_at,
+              dateModified: route.updated_at,
+              primaryImage: route.thumbnail_url,
+            })
+          ),
+        }}
+      />
+
+      {/* パンくず構造化データ */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            breadcrumbSchema([
+              { name: "トップ", path: "/" },
+              { name: "エリア一覧", path: "/areas" },
+              { name: route.areas.name, path: `/areas/${route.areas.slug}` },
+              { name: route.name, path: `/routes/${route.slug}` },
+            ])
+          ),
         }}
       />
     </article>
