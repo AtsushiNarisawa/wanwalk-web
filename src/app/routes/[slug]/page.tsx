@@ -167,6 +167,13 @@ export async function generateMetadata({
     "odawara-castle-saigoji": "小田原城 犬連れ散歩｜城下町から御幸の浜の海岸へ",
     "kamakura-kita-engakuji-walk": "北鎌倉 犬連れ散歩｜円覚寺・あじさい寺明月院の門前めぐり",
     "karuizawa-taliesin-lakeside": "軽井沢タリアセン 犬連れ散歩｜塩沢湖畔とバラ園さんぽ",
+    // 2026-06-22 追加（GSC 高表示・低CTR ＋ 7月中旬 箱根DMO被リンクの受け皿）。
+    // 「愛犬」ではなく検索語「犬連れ」に統一（CEO 合意）。井の頭は現タイトル「井の頭池」と
+    // 検索語「井の頭公園」のズレ修正も兼ねる。6/3 既存9本は計測のため非変更。
+    "tokyo-inokashira-park-loop": "井の頭公園 犬連れ散歩｜池を一周30分・桜の名所と吉祥寺カフェ",
+    "chichibu-hitsujiyama-shibazakura": "羊山公園 犬連れ散歩｜芝桜の丘と秩父の街並み(見頃4月中旬〜5月)",
+    "hakone-sengokuhara-owakudani-ropeway": "大涌谷・桃源台 犬連れ散歩｜ロープウェイと芦ノ湖畔の絶景",
+    "hakone-sengokuhara-pola-museum-trail": "ポーラ美術館 犬連れ散歩｜箱根の森の遊歩道さんぽ(館内は犬不可)",
   };
   const displayName = TITLE_SHORTEN_SLUGS.has(slug)
     ? route.name.split(" ")[0]
