@@ -18,8 +18,8 @@ import GoogleMapEmbed from "@/components/walks/GoogleMapEmbed";
 import SpecBar from "@/components/walks/SpecBar";
 import PetInfoGrid from "@/components/walks/PetInfoGrid";
 import RouteActions from "@/components/walks/RouteActions";
-import RouteTimeline from "@/components/walks/RouteTimeline";
-import FeaturedSpots from "@/components/walks/FeaturedSpots";
+import RouteItinerary from "@/components/walks/RouteItinerary";
+import SeasonHighlight from "@/components/walks/SeasonHighlight";
 import RelatedRoutes from "@/components/walks/RelatedRoutes";
 import AreaRouteLinks from "@/components/walks/AreaRouteLinks";
 import TrustByline from "@/components/walks/TrustByline";
@@ -414,6 +414,9 @@ export default async function RouteDetailPage({
         )}
       </p>
 
+      {/* 見頃キャプション（C2: best_season を表に出す） */}
+      <SeasonHighlight bestSeason={petInfo?.best_season} />
+
       {/* 体験ストーリー */}
       {route.description && (
         <section style={{ marginBottom: 48 }}>
@@ -487,7 +490,7 @@ export default async function RouteDetailPage({
         )}
       </section>
 
-      {/* コースガイド（line型のみ。area型は順序がないため見どころ1本に統合） */}
+      {/* コースガイド（line型）= 歩く順の写真旅程に統合（旧コースガイド＋おすすめスポット） */}
       {!isArea && spots.length > 0 && (
         <section style={{ marginBottom: 48 }}>
           <h2
@@ -502,26 +505,28 @@ export default async function RouteDetailPage({
           >
             コースガイド
           </h2>
-          <RouteTimeline spots={spots} isArea={false} routeSlug={route.slug} />
+          <RouteItinerary spots={spots} isArea={false} routeSlug={route.slug} />
         </section>
       )}
 
-      {/* おすすめスポット（line型）/ 見どころ（area型） */}
-      <section style={{ marginBottom: 48 }}>
-        <h2
-          style={{
-            fontFamily: "var(--font-ww-serif)",
-            fontSize: 28,
-            fontWeight: 600,
-            color: "var(--color-ww-text)",
-            letterSpacing: "0.01em",
-            marginBottom: 24,
-          }}
-        >
-          {isArea ? "見どころ" : "おすすめスポット"}
-        </h2>
-        <FeaturedSpots spots={spots} routeSlug={route.slug} />
-      </section>
+      {/* 見どころ（area型）= 順序のない写真カード一覧 */}
+      {isArea && spots.length > 0 && (
+        <section style={{ marginBottom: 48 }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-ww-serif)",
+              fontSize: 28,
+              fontWeight: 600,
+              color: "var(--color-ww-text)",
+              letterSpacing: "0.01em",
+              marginBottom: 24,
+            }}
+          >
+            見どころ
+          </h2>
+          <RouteItinerary spots={spots} isArea={true} routeSlug={route.slug} />
+        </section>
+      )}
 
       {/* 犬連れメモ（施策④ アイコングリッド） */}
       {petInfo && (
