@@ -40,7 +40,7 @@ export async function getAreas(): Promise<Area[]> {
 export async function getAreaBySlug(slug: string): Promise<Area | null> {
   const { data, error } = await supabase
     .from("areas")
-    .select("id, name, slug, prefecture, description, hero_image_url, tier")
+    .select("id, name, slug, prefecture, description, hero_image_url, tier, faq")
     .eq("slug", slug)
     .single();
 

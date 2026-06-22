@@ -93,6 +93,31 @@ export default async function AreaDetailPage({
   const routes = await getRoutesByAreaId(area.id);
   const filteredRoutes = filterRoutes(routes, season, cartOnly);
 
+  // 可視FAQ＋JSON-LD FAQPage の共通ソース。area.faq（手書き）があれば優先し、
+  // 無いエリアは routes から自動生成にフォールバックする（全エリアで可視FAQが出る）。
+  const faqItems: { q: string; a: string }[] =
+    area.faq && area.faq.length > 0
+      ? area.faq
+      : routes.length > 0
+        ? [
+            {
+              q: `${area.name}で犬と散歩できる場所はありますか？`,
+              a: `はい、${area.name}には${routes.length}本の犬連れ散歩コースがあります。${routes
+                .slice(0, 3)
+                .map((r) => `「${r.name}」`)
+                .join("・")}など、愛犬と楽しめるルートを紹介しています。`,
+            },
+            {
+              q: `${area.name}の犬連れおすすめルートは？`,
+              a: `${area.name}のおすすめは${
+                routes[0]
+                  ? `「${routes[0].name}」（距離${formatDistance(routes[0].distance_meters)}・所要${routes[0].estimated_minutes}分）`
+                  : ""
+              }です。すべてのルートに駐車場情報・犬連れスポット・体験ストーリーが完備されています。`,
+            },
+          ]
+        : [];
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
       <nav
@@ -216,6 +241,59 @@ export default async function AreaDetailPage({
         </div>
       )}
 
+      {/* 可視FAQ（JSON-LD FAQPage と同一ソース） */}
+      {faqItems.length > 0 && (
+        <section
+          aria-labelledby="area-faq-heading"
+          style={{ marginBottom: 48, maxWidth: 768 }}
+        >
+          <h2
+            id="area-faq-heading"
+            className="ww-serif"
+            style={{
+              fontFamily: "var(--font-ww-serif)",
+              fontSize: 24,
+              fontWeight: 600,
+              color: "var(--color-ww-text)",
+              letterSpacing: "0.01em",
+              marginBottom: 16,
+            }}
+          >
+            {area.name}の犬連れ散歩 よくある質問
+          </h2>
+          {faqItems.map((item, i) => (
+            <div
+              key={i}
+              style={{
+                borderTop: "1px solid var(--color-ww-border-subtle)",
+                padding: "20px 0",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: 16,
+                  fontWeight: 600,
+                  color: "var(--color-ww-text)",
+                  margin: "0 0 8px",
+                }}
+              >
+                {item.q}
+              </h3>
+              <p
+                style={{
+                  fontSize: 15,
+                  lineHeight: 1.8,
+                  color: "var(--color-ww-text-secondary)",
+                  margin: 0,
+                }}
+              >
+                {item.a}
+              </p>
+            </div>
+          ))}
+        </section>
+      )}
+
       <WalksAppCTA sourcePage="area_detail" />
       <SupportedBadge />
 
@@ -241,32 +319,22 @@ export default async function AreaDetailPage({
         }}
       />
 
-      {/* FAQ構造化データ（GEO/AIO最適化） */}
-      {routes.length > 0 && (
+      {/* FAQ構造化データ（GEO/AIO最適化）。可視FAQ（faqItems）と同一ソースで内容一致を保証 */}
+      {faqItems.length > 0 && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
-              mainEntity: [
-                {
-                  "@type": "Question",
-                  name: `${area.name}で犬と散歩できる場所はありますか？`,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: `はい、${area.name}には${routes.length}本の犬連れ散歩コースがあります。${routes.slice(0, 3).map((r) => `「${r.name}」`).join("・")}など、愛犬と楽しめるルートを紹介しています。`,
-                  },
+              mainEntity: faqItems.map((item) => ({
+                "@type": "Question",
+                name: item.q,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: item.a,
                 },
-                {
-                  "@type": "Question",
-                  name: `${area.name}の犬連れおすすめルートは？`,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: `${area.name}のおすすめは${routes[0] ? `「${routes[0].name}」（距離${formatDistance(routes[0].distance_meters)}・所要${routes[0].estimated_minutes}分）` : ""}です。すべてのルートに駐車場情報・犬連れスポット・体験ストーリーが完備されています。`,
-                  },
-                },
-              ],
+              })),
             }),
           }}
         />

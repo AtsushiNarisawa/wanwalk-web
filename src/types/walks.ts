@@ -7,6 +7,8 @@ export interface Area {
   hero_image_url?: string | null;
   /** 粒度: region / sub / spot（AREA_TAXONOMY_SPEC.md）。/areas は県軸維持のため未使用だが将来用に保持。 */
   tier?: string;
+  /** 可視FAQ＋JSON-LD FAQPage の共通ソース。NULL のエリアは routes から自動生成にフォールバック。 */
+  faq?: { q: string; a: string }[] | null;
 }
 
 export interface RoutePinWithPhoto {
