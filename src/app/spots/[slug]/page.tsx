@@ -82,7 +82,19 @@ export async function generateMetadata({
 
   const catLabel = cat ? `（${cat}）` : "";
   const dogBadge = spot.pet_friendly ? "犬OK " : "";
-  const title = `${dogBadge}${spot.name}${catLabel}｜${spot.area_name}の犬連れスポット`;
+  // CTR 改善（2026-06 GSC 高表示・低CTR・犬意図クエリ対策 ＋ 7月中旬 箱根DMO被リンクの受け皿）:
+  // 「{名所} 犬連れ」型の検索意図に対し、犬連れ可否の答えを先頭に出したタイトルを slug 単位で上書き。
+  // h1・パンくず・構造化データは spot.name のままなので表示崩れなし。検索語は「犬連れ」に統一（CEO 合意・routes と同方針）。
+  // 内容は監査済み spot.description / route meta_description にトレース可能（誠実性: 境内不可は明記し隠さない）。
+  const SPOT_TITLE_OVERRIDES: Record<string, string> = {
+    "hasedera-monzen": "長谷寺 犬連れ｜境内はペット不可・門前と見晴台の鎌倉さんぽ",
+    "yokohama-hamma-heddo": "横浜ハンマーヘッド 犬連れ｜犬専用水飲み場のある複合施設",
+    "hakone-jinja-keidai": "箱根神社 犬連れ｜杉並木の参道を歩く芦ノ湖さんぽ",
+    "kotokuin-kamakura-daibutsu": "鎌倉大仏（高徳院）犬連れ｜境内はペット不可・大仏ハイキングの道",
+  };
+  const title =
+    SPOT_TITLE_OVERRIDES[slug] ??
+    `${dogBadge}${spot.name}${catLabel}｜${spot.area_name}の犬連れスポット`;
   const ogImage = `https://wanwalk.jp/api/og/spots/${slug}`;
   return {
     title,
