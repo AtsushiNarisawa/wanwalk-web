@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
+import FooterAppLink from "./FooterAppLink";
 
 // グローバルフッタ（2026-06-22 CEO 合意・B3）。
 //
@@ -109,6 +110,7 @@ export default function SiteFooter() {
               <li><Link href="/news" style={linkStyle}>お知らせ</Link></li>
               <li><Link href="/terms" style={linkStyle}>利用規約</Link></li>
               <li><Link href="/privacy" style={linkStyle}>プライバシーポリシー</Link></li>
+              <li><FooterAppLink /></li>
             </ul>
           </nav>
         </div>

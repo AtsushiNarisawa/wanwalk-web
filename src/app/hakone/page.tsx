@@ -4,7 +4,6 @@ import Image from "next/image";
 import { MapTrifold, ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { getHakoneAreasWithRoutes } from "@/lib/walks/data";
 import RouteCard from "@/components/walks/RouteCard";
-import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import GoogleMapEmbed from "@/components/walks/GoogleMapEmbed";
 import HakoneHubRefTracker from "@/components/walks/HakoneHubRefTracker";
@@ -283,9 +282,6 @@ export default async function HakoneHubPage() {
           </ul>
         </section>
       ))}
-
-      {/* アプリ訴求（箱根ハブ起点の DL を placement で区別。既存 walks_app_cta 命名に合わせ _cta） */}
-      <WalksAppCTA sourcePage="hakone_hub" placement="hakone_hub_cta" />
 
       {/* 構造化データ: TouristDestination（5エリアの公開ルートを TouristTrip で内包） */}
       <script

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Path, MapPin, Dog, Camera } from "@phosphor-icons/react/dist/ssr";
-import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { getSiteStats } from "@/lib/walks/stats";
@@ -263,10 +262,6 @@ export default async function AboutPage() {
             エリア一覧を見る →
           </Link>
         </section>
-
-        <div className="py-8">
-          <WalksAppCTA sourcePage="about" />
-        </div>
 
         {/* WanWalkが生まれた理由 */}
         <section style={{ marginBottom: 48 }}>

@@ -9,8 +9,6 @@ import {
   getRouteLineCoordinates,
   getRouteAreaInfo,
 } from "@/lib/walks/data";
-import WalksAppCTA from "@/components/walks/WalksAppCTA";
-import WalkInAppCTA from "@/components/walks/WalkInAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import RouteFeedback from "@/components/walks/RouteFeedback";
 import RouteMapWrapper from "@/components/walks/RouteMapWrapper";
@@ -379,9 +377,6 @@ export default async function RouteDetailPage({
         <TrustByline updatedAt={route.updated_at} />
       </div>
 
-      {/* Cross統一③: ヘッダー直下の Web→App 文脈付き導線 */}
-      <WalkInAppCTA sourcePage="route_detail" />
-
       {/* 直接回答型冒頭文（AI Overview / GEO最適化） */}
       <p
         style={{
@@ -603,10 +598,6 @@ export default async function RouteDetailPage({
           兄弟6本以上のエリアのみ描画。沈んでいる高表示ページに内部リンクを均等配分する。 */}
       <AreaRouteLinks currentRoute={route} />
 
-      {/* CTA */}
-      <div style={{ marginTop: 48 }}>
-        <WalksAppCTA sourcePage="route_detail" />
-      </div>
       <SupportedBadge />
 
       {/* 構造化データ */}

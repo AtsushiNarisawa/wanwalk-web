@@ -252,24 +252,6 @@ export default async function NewsArticlePage({
             >
               ルート一覧を見る
             </Link>
-            <a
-              href="https://apps.apple.com/jp/app/wanwalk/id6757466888"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-block",
-                padding: "12px 24px",
-                fontSize: 14,
-                fontWeight: 600,
-                color: "var(--color-ww-accent)",
-                backgroundColor: "transparent",
-                border: "1px solid var(--color-ww-accent)",
-                borderRadius: "var(--radius-ww-md)",
-                textDecoration: "none",
-              }}
-            >
-              App Store で見る
-            </a>
           </div>
         </section>
 

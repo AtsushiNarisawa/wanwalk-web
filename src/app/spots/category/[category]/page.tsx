@@ -10,7 +10,6 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
 import { getSpotsByCategory } from "@/lib/walks/data";
-import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 
@@ -246,9 +245,6 @@ export default async function SpotsCategoryPage({
         </nav>
       )}
 
-      <div className="py-8">
-        <WalksAppCTA sourcePage="spots_category" />
-      </div>
       <SupportedBadge />
 
       {/* JSON-LD: カテゴリ全件 ItemList。クロウラには全件 visibility を維持し、
