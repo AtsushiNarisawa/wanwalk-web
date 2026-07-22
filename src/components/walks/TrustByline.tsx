@@ -16,13 +16,22 @@ type Props = {
   updatedAt?: string | null;
   /** 整備対象の説明（既定はルート向け）。エリア/スポットで文言を差し替える。 */
   scopeNote?: string;
+  /** 最終実走日（official_routes.last_walked_at・date）。あれば「◯◯さんの実走報告により更新」を表示（決定19）。 */
+  lastWalkedAt?: string | null;
+  /** 実走報告者の表示名（official_routes.last_report_display_name）。 */
+  lastReportName?: string | null;
 };
 
 export default function TrustByline({
   updatedAt,
   scopeNote = "犬連れ目線で、駐車場・路面・犬同伴ルールを一本ずつ見直して整備しています。",
+  lastWalkedAt,
+  lastReportName,
 }: Props) {
   const updated = formatUpdatedYearMonth(updatedAt);
+  // 実走報告（決定19）: 編集部の机上整備とは別に、実際に歩いた投稿者の報告があれば明示する。
+  // これは投稿者由来の事実なので「実走」と言い切ってよい（DogHub 自身の踏破ではない点で誠実性ルールと両立）。
+  const lastWalked = formatUpdatedYearMonth(lastWalkedAt);
   return (
     <div
       style={{
@@ -62,6 +71,21 @@ export default function TrustByline({
         >
           {scopeNote}
         </p>
+        {lastWalked && (
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--color-ww-accent)",
+              fontWeight: 500,
+              lineHeight: 1.7,
+              marginTop: 6,
+            }}
+          >
+            {lastReportName
+              ? `${lastReportName}さんの実走報告により更新（最終実走 ${lastWalked}）`
+              : `実走報告により更新（最終実走 ${lastWalked}）`}
+          </p>
+        )}
         <p
           style={{
             fontSize: 12,

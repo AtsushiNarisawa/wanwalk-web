@@ -21,6 +21,7 @@ import SeasonHighlight from "@/components/walks/SeasonHighlight";
 import RelatedRoutes from "@/components/walks/RelatedRoutes";
 import AreaRouteLinks from "@/components/walks/AreaRouteLinks";
 import TrustByline from "@/components/walks/TrustByline";
+import SubmissionCredit from "@/components/walks/SubmissionCredit";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { formatDistance } from "@/lib/walks/format";
 import {
@@ -186,9 +187,16 @@ export async function generateMetadata({
     TITLE_OVERRIDES[slug] ??
     `${displayName}｜${route.areas.name} 犬連れ散歩 ${sizeHint}`;
   const ogImage = `https://wanwalk.jp/api/og/${slug}`;
+  // 決定18: 投稿ルート（origin='submission'）も index する。ただし GSC で品質問題の兆候が
+  // 出た時点で slug 単位で noindex に倒せるよう、退避用の集合を用意しておく（現状は空＝全 index）。
+  const SUBMISSION_NOINDEX_SLUGS = new Set<string>([]);
+  const robots = SUBMISSION_NOINDEX_SLUGS.has(slug)
+    ? { index: false, follow: true }
+    : undefined;
   return {
     title,
     description,
+    ...(robots ? { robots } : {}),
     alternates: { canonical: `/routes/${slug}` },
     // Smart App Banner の app-argument に正規 URL を渡す。インストール済み端末では
     // バナーの「開く」/ Universal Link 経由でアプリがこの URL を受け取り、該当ルート詳細へ遷移する。
@@ -227,6 +235,7 @@ export default async function RouteDetailPage({
   ]);
 
   const isArea = route.route_type === "area";
+  const isSubmission = route.origin === "submission";
   const distanceLabel = formatDistance(route.distance_meters);
   const petInfo = route.pet_info;
   const elevationGainFromPet = petInfo?.elevation_gain
@@ -372,9 +381,24 @@ export default async function RouteDetailPage({
         />
       </header>
 
-      {/* E-E-A-T: 運営・編集バイライン（誰が編集し、いつ更新したか） */}
+      {/* 投稿ルートの出所クレジット＋確認レベルバッジ（origin='submission'・A-2/決定8/23） */}
+      {isSubmission && (
+        <div style={{ marginTop: 20 }}>
+          <SubmissionCredit
+            submitterName={route.submitter_display_name}
+            guardianOptIn={route.guardian_opt_in}
+            confidenceLevel={route.confidence_level}
+          />
+        </div>
+      )}
+
+      {/* E-E-A-T: 運営・編集バイライン（誰が編集し、いつ更新したか）＋実走報告（決定19） */}
       <div style={{ marginTop: 20 }}>
-        <TrustByline updatedAt={route.updated_at} />
+        <TrustByline
+          updatedAt={route.updated_at}
+          lastWalkedAt={route.last_walked_at}
+          lastReportName={route.last_report_display_name}
+        />
       </div>
 
       {/* 直接回答型冒頭文（AI Overview / GEO最適化） */}
@@ -600,7 +624,8 @@ export default async function RouteDetailPage({
 
       <SupportedBadge />
 
-      {/* 構造化データ */}
+      {/* 構造化データ（editorial=TouristTrip/TouristAttraction。決定18で submission は Article+author に分岐） */}
+      {!isSubmission && (
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -673,6 +698,32 @@ export default async function RouteDetailPage({
           }),
         }}
       />
+      )}
+
+      {/* 投稿ルートの構造化データ（origin='submission'・Article+author／決定18・A-5）。
+          守り人表示に同意した投稿者は author=Person、未同意は発行者 Organization。 */}
+      {isSubmission && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Article",
+              headline: route.name,
+              description: route.description ?? route.meta_description ?? undefined,
+              image: route.thumbnail_url ?? undefined,
+              author:
+                route.guardian_opt_in && route.submitter_display_name
+                  ? { "@type": "Person", name: route.submitter_display_name }
+                  : ORG_REF,
+              publisher: ORG_REF,
+              datePublished: route.created_at,
+              dateModified: route.updated_at,
+              about: { "@type": "Thing", name: `${route.areas.name} 犬連れ散歩` },
+            }),
+          }}
+        />
+      )}
 
       {/* FAQ構造化データ（ルート固有・動的生成） */}
       <script

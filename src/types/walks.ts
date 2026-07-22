@@ -47,6 +47,21 @@ export interface OfficialRoute {
   season_tags: string[];
   created_at: string;
   updated_at: string;
+  // 投稿プログラム / 実走報告（W1で official_routes に追加した8列・決定18/19）
+  /** editorial=公式目的地型 / submission=投稿生活圏型。既定 editorial。 */
+  origin?: "editorial" | "submission";
+  /** 投稿ルートの公開名スナップショット（退会でも記事は存続・決定6）。 */
+  submitter_display_name?: string | null;
+  submitter_profile_id?: string | null;
+  /** 「この道の守り人」表示に同意したか（決定23）。 */
+  guardian_opt_in?: boolean;
+  /** 確認レベル: desk_checked / walked_reported / field_verified（A-2 バッジ）。 */
+  confidence_level?: string | null;
+  source_submission_id?: string | null;
+  /** 最終実走日（date）。field_report 承認で更新（決定19）。 */
+  last_walked_at?: string | null;
+  /** 「◯◯さんの実走報告により更新」の表示名（決定19）。 */
+  last_report_display_name?: string | null;
   // joined
   areas?: Area;
 }

@@ -192,6 +192,79 @@ export default async function AboutPage() {
           </ul>
         </section>
 
+        {/* WanWalkのルートはこう作られています（ラベル凡例＋掲載異議窓口・決定8） */}
+        <section style={{ marginBottom: 48 }}>
+          <h2
+            className="ww-serif"
+            style={{
+              fontFamily: "var(--font-ww-serif)",
+              fontSize: 22,
+              fontWeight: 600,
+              color: "var(--color-ww-accent)",
+              marginBottom: 24,
+            }}
+          >
+            WanWalkのルートはこう作られています
+          </h2>
+          <p
+            style={{
+              fontSize: 16,
+              lineHeight: 2,
+              color: "var(--color-ww-text)",
+              marginBottom: 16,
+            }}
+          >
+            WanWalkのルートには、2つの出所があります。ひとつは、DogHubの案内経験をもとに
+            編集部が整備する<strong>公式ルート</strong>。もうひとつは、実際に愛犬と歩いた方の
+            推薦を編集部が確認して掲載する<strong>投稿ルート</strong>です。
+            どちらのルートにも、確認のレベルを示すバッジを添えています。
+          </p>
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            <FeatureItem title="机上確認">
+              編集部が資料・地図で確認して掲載しています。編集部による現地の再訪はしていません。
+            </FeatureItem>
+            <FeatureItem title="実走報告あり">
+              実際にそのルートを歩いた方の報告をもとに掲載・更新しています。
+              報告があったルートには「◯◯さんの実走報告により更新」と最終実走の月を表示します。
+            </FeatureItem>
+            <FeatureItem title="現地確認済み">
+              編集部が現地で確認して掲載しています。
+            </FeatureItem>
+          </ul>
+
+          <h3
+            style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: "var(--color-ww-text)",
+              marginTop: 24,
+              marginBottom: 8,
+            }}
+          >
+            掲載内容へのご指摘・異議
+          </h3>
+          <p
+            style={{
+              fontSize: 15,
+              lineHeight: 1.9,
+              color: "var(--color-ww-text-secondary)",
+            }}
+          >
+            写真への写り込みに限らず、通行の可否、私有地・生活道路の掲載など、掲載内容に関するご指摘や
+            異議を受け付けています。ご連絡をいただいた場合は、事実確認が完了するまでの間、当該ルートを
+            一時的に非公開とすることがあります。
+            <br />
+            ご連絡は{" "}
+            <a
+              href="mailto:info@dog-hub.shop?subject=WanWalk%20掲載内容へのご指摘"
+              style={{ color: "var(--color-ww-accent)", fontWeight: 500 }}
+            >
+              info@dog-hub.shop
+            </a>{" "}
+            までお願いします。
+          </p>
+        </section>
+
         {/* WanWalkの特徴 */}
         <section style={{ marginBottom: 48 }}>
           <h2
