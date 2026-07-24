@@ -5,6 +5,7 @@ import { getDirectoryPlaces } from "@/lib/walks/directory";
 import HakoneDogMapView from "@/components/walks/HakoneDogMapView";
 import DirectoryRefTracker from "@/components/walks/DirectoryRefTracker";
 import HakoneOfficialBadge from "@/components/walks/HakoneOfficialBadge";
+import HakoneMapToggle from "@/components/walks/HakoneMapToggle";
 
 /**
  * 箱根 犬連れ「おでかけマップ」β（非公開・リンク限定）。
@@ -63,19 +64,15 @@ export default async function HakoneDogMapPage({
     >
       {safeRef && <DirectoryRefTracker refSlug={safeRef} surface="hakone_dogmap" />}
 
-      {/* ハブ（散歩コース一覧）への戻り導線。/hakone は公開ページ。
-          referrer:no-referrer のため内部遷移でも ?k は Referer に漏れない。 */}
-      <nav
-        style={{
-          fontSize: 13,
-          color: "var(--color-ww-text-tertiary)",
-          marginBottom: 20,
-        }}
-      >
-        <Link href="/hakone" style={{ color: "var(--color-ww-accent)" }}>
-          ← 箱根 愛犬さんぽマップ（散歩コース一覧）へ
-        </Link>
-      </nav>
+      {/* 2マップの相互回遊トグル（アクティブ＝犬連れスポット／散歩コース→/hakone）。
+          このページは上の `if (k !== ACCESS_KEY) notFound();` を通過した ?k 到達者だけが見るため、
+          トグルは UI フラグに関係なく常に両タブ表示でよい。
+          ※公開ゲート（?k 必須・notFound・robots noindex・sitemap 非掲載）は上部が authoritative。
+            トグルは UI だけで、公開制御には一切関与しない。
+          /hakone は公開ページ。referrer:no-referrer のため内部遷移でも ?k は Referer に漏れない。 */}
+      <div style={{ marginBottom: 20 }}>
+        <HakoneMapToggle active="spots" />
+      </div>
 
       {/* ヘッダー */}
       <header style={{ marginBottom: 28 }}>

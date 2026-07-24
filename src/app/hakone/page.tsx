@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { MapTrifold, ArrowRight } from "@phosphor-icons/react/dist/ssr";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { getHakoneAreasWithRoutes } from "@/lib/walks/data";
 import RouteCard from "@/components/walks/RouteCard";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import GoogleMapEmbed from "@/components/walks/GoogleMapEmbed";
 import HakoneHubRefTracker from "@/components/walks/HakoneHubRefTracker";
+import HakoneMapToggle from "@/components/walks/HakoneMapToggle";
+import { HAKONE_CROSSLINK_ENABLED } from "@/lib/walks/flags";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 
 /**
@@ -22,12 +24,6 @@ import { buildOgMetadata } from "@/lib/walks/og-meta";
  * force-dynamic にしない（CDN キャッシュ・SEO を維持）。
  */
 export const revalidate = 86400;
-
-// /hakone/dog-map は ?k= 秘密キー付きでのみ閲覧可（A6・CEOゲートで一般公開）。
-// 一般公開までは素リンクが 404 になるため、相互リンクカードを env フラグで封じる。
-// 公開時に Vercel env で NEXT_PUBLIC_HAKONE_DOGMAP_PUBLIC=true を立てる（コード変更不要）。
-const HAKONE_DOGMAP_PUBLIC =
-  process.env.NEXT_PUBLIC_HAKONE_DOGMAP_PUBLIC === "true";
 
 function toOgImage(heroBase: string | null | undefined): string | undefined {
   if (!heroBase) return undefined; // buildOgMetadata が共通 fallback を使う
@@ -126,6 +122,17 @@ export default async function HakoneHubPage() {
         </p>
       </header>
 
+      {/* 2マップの相互回遊トグル（散歩コース ⇄ 犬連れスポット）。
+          UI フラグ HAKONE_CROSSLINK_ENABLED=ON のときだけ表示（＝犬連れスポットへの相互リンクを露出）。
+          ※このトグルは UI だけ。/hakone/dog-map の公開ゲート（?k/notFound/noindex/sitemap 非掲載）
+            とは無関係で、フラグ ON でも ?k 無しの dog-map は 404 のまま＝公開されない。
+            dog-map の一般公開は別途 A6/A7 で行い、リリース時にフラグ ON と一緒に切り替える。 */}
+      {HAKONE_CROSSLINK_ENABLED && (
+        <div style={{ marginBottom: 24 }}>
+          <HakoneMapToggle active="routes" />
+        </div>
+      )}
+
       {heroImage && (
         <div
           className="relative overflow-hidden"
@@ -174,52 +181,8 @@ export default async function HakoneHubPage() {
         />
       </section>
 
-      {/* 立ち寄りスポットへの相互導線（A6・?k 解除まで env フラグで非表示） */}
-      {HAKONE_DOGMAP_PUBLIC && (
-        <Link
-          href="/hakone/dog-map"
-          className="group flex items-center gap-4 transition-colors"
-          style={{
-            border: "1px solid var(--color-ww-border-subtle)",
-            borderRadius: "var(--radius-ww-md)",
-            padding: "20px 24px",
-            marginBottom: 48,
-            backgroundColor: "var(--color-ww-bg-secondary)",
-            color: "var(--color-ww-text)",
-          }}
-        >
-          <span
-            className="inline-flex items-center justify-center shrink-0"
-            style={{ width: 44, height: 44, color: "var(--color-ww-accent)" }}
-          >
-            <MapTrifold size={28} weight="regular" />
-          </span>
-          <span style={{ flex: 1 }}>
-            <span
-              className="ww-serif"
-              style={{
-                display: "block",
-                fontFamily: "var(--font-ww-serif)",
-                fontSize: 18,
-                fontWeight: 600,
-                marginBottom: 2,
-              }}
-            >
-              箱根の犬連れスポットを地図で見る
-            </span>
-            <span
-              style={{ fontSize: 13, color: "var(--color-ww-text-secondary)" }}
-            >
-              泊まる・食べる・遊ぶ・温泉。施設から歩けるルートも一緒にご案内します。
-            </span>
-          </span>
-          <ArrowRight
-            size={20}
-            weight="regular"
-            style={{ color: "var(--color-ww-accent)" }}
-          />
-        </Link>
-      )}
+      {/* 立ち寄りスポット（/hakone/dog-map）への相互導線は上部の HakoneMapToggle に集約した
+          （旧・宣伝カードは廃止）。表示可否は同じ UI フラグ HAKONE_CROSSLINK_ENABLED が制御する。 */}
 
       {/* エリア × コース（地理順・湯本→宮ノ下→強羅→仙石原→芦ノ湖） */}
       {areasWithRoutes.map(({ area, routes }, areaIndex) => (

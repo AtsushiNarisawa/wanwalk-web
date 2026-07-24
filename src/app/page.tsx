@@ -12,6 +12,8 @@ import SavedRoutesLink from "@/components/walks/SavedRoutesLink";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import AppStoreBadge from "@/components/walks/AppStoreBadge";
+import HakoneFeatureBundle from "@/components/walks/HakoneFeatureBundle";
+import { HAKONE_CROSSLINK_ENABLED } from "@/lib/walks/flags";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { getSiteStats } from "@/lib/walks/stats";
 import { formatDistance } from "@/lib/walks/format";
@@ -305,8 +307,19 @@ export default async function WalksTopPage() {
           </div>
         </section>
 
-        {/* おすすめピックアップ */}
-        {pickupRoute && (
+        {/* おすすめピックアップ枠。
+            UI フラグ HAKONE_CROSSLINK_ENABLED=ON のときは、index 可能な公開ハブ /hakone を
+            主 CTA にした「箱根特集」バンドへ差し替える（可逆・フラグを戻せば元に戻る）。
+            OFF（env 未設定＝本番デフォルト）は従来の「おすすめピックアップ」のまま。
+            ※このフラグは UI だけ。非公開の /hakone/dog-map の公開ゲート（?k/notFound/noindex/
+              sitemap 非掲載）には一切関与しない。 */}
+        {HAKONE_CROSSLINK_ENABLED ? (
+          <section className="py-12 md:py-16">
+            <SectionHeading title="箱根特集" seeAllHref="/hakone" />
+            <HakoneFeatureBundle />
+          </section>
+        ) : (
+          pickupRoute && (
           <section className="py-12 md:py-16">
             <SectionHeading title="おすすめピックアップ" />
             <Link
@@ -370,6 +383,7 @@ export default async function WalksTopPage() {
               </div>
             </Link>
           </section>
+          )
         )}
 
         {/* 注目の散歩コース（12件・エリア多様性ピックアップ）*/}
