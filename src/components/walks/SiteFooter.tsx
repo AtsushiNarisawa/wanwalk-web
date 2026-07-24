@@ -77,7 +77,7 @@ export default function SiteFooter() {
                 marginTop: 16,
               }}
             >
-              運営・編集：DogHub株式会社
+              運営・編集：DogHub箱根仙石原
               <br />
               <a
                 href="https://dog-hub.shop"

@@ -436,7 +436,7 @@ export default async function AboutPage() {
               lineHeight: 1.8,
             }}
           >
-            DogHub株式会社（箱根仙石原）
+            DogHub箱根仙石原
           </p>
           <p
             style={{
@@ -495,8 +495,8 @@ export default async function AboutPage() {
             parentOrganization: {
               "@type": "Organization",
               "@id": "https://dog-hub.shop/#organization",
-              name: "DogHub株式会社",
-              alternateName: "DogHub箱根仙石原",
+              name: "DogHub箱根仙石原",
+              alternateName: "DogHub",
               url: "https://dog-hub.shop",
               description:
                 "箱根仙石原で犬のホテル&カフェ「DogHub」を運営。愛犬家のお客様の声をもとにWanWalkを開発。",

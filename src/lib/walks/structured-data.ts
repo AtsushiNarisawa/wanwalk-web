@@ -1,7 +1,7 @@
 // E-E-A-T 信頼シグナルの構造化データ共通ヘルパー。
 //
 // 目的（Tier A / 2026-06-22 CEO 合意）:
-// - author / publisher を実在の発行者 Organization「WanWalk（親=DogHub株式会社）」に統一し、
+// - author / publisher を実在の発行者 Organization「WanWalk（親=DogHub箱根仙石原）」に統一し、
 //   全ページから同一 @id を参照して「同一の発行者による複数コンテンツ」という権威を集約する。
 // - datePublished / dateModified（= created_at / updated_at）で Freshness の機械シグナルを与える。
 // - BreadcrumbList でサイト構造を機械可読化する。
@@ -45,8 +45,8 @@ export function organizationSchema() {
     parentOrganization: {
       "@type": "Organization",
       "@id": "https://dog-hub.shop/#organization",
-      name: "DogHub株式会社",
-      alternateName: "DogHub箱根仙石原",
+      name: "DogHub箱根仙石原",
+      alternateName: "DogHub",
       url: "https://dog-hub.shop",
       description:
         "箱根仙石原で犬のホテル&カフェ「DogHub」を運営。愛犬家のお客様の声をもとに WanWalk を開発・運営。",
