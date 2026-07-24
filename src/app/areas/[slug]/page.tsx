@@ -11,6 +11,8 @@ import {
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import ShareMenu from "@/components/walks/ShareMenu";
 import TrustByline from "@/components/walks/TrustByline";
+import WalksAppCTA from "@/components/walks/WalksAppCTA";
+import WalkInAppCTA from "@/components/walks/WalkInAppCTA";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { formatDistance } from "@/lib/walks/format";
 import {
@@ -189,6 +191,13 @@ export default async function AreaDetailPage({
         <TrustByline scopeNote="このエリアの犬連れ散歩コースを、駐車場や犬同伴ルールまで確認して掲載しています。" />
       </div>
 
+      <WalkInAppCTA
+        sourcePage="area_detail"
+        placement="area_detail_walk"
+        title="このエリアの散歩をアプリで歩く"
+        subcopy="GPSで現在地を確認しながら、愛犬との散歩を記録できます。"
+      />
+
       {routes.length > 0 ? (
         <div style={{ marginBottom: 48 }}>
           <SeasonFilterControls
@@ -284,6 +293,8 @@ export default async function AreaDetailPage({
           ))}
         </section>
       )}
+
+      <WalksAppCTA sourcePage="area_detail" />
 
       <SupportedBadge />
 

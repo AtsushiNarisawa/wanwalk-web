@@ -11,6 +11,7 @@ import {
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
 import { getSpotsByCategory } from "@/lib/walks/data";
 import SupportedBadge from "@/components/walks/SupportedBadge";
+import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 
 // ISR: 24時間
@@ -244,6 +245,10 @@ export default async function SpotsCategoryPage({
           )}
         </nav>
       )}
+
+      <div className="py-8">
+        <WalksAppCTA sourcePage="spots_category" />
+      </div>
 
       <SupportedBadge />
 

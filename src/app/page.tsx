@@ -10,6 +10,8 @@ import {
 import RouteCard from "@/components/walks/RouteCard";
 import SavedRoutesLink from "@/components/walks/SavedRoutesLink";
 import SupportedBadge from "@/components/walks/SupportedBadge";
+import WalksAppCTA from "@/components/walks/WalksAppCTA";
+import AppStoreBadge from "@/components/walks/AppStoreBadge";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { getSiteStats } from "@/lib/walks/stats";
 import { formatDistance } from "@/lib/walks/format";
@@ -241,6 +243,21 @@ export default async function WalksTopPage() {
               <span className="ww-numeric">全{activeAreas.length}エリア</span>・
               <span className="ww-numeric">{totalRoutes}コース</span>
             </p>
+
+            {/* Hero 補助 CTA: App Store 配信中 */}
+            <div className="mt-6 flex flex-col items-center gap-3">
+              <span
+                style={{
+                  fontSize: 12,
+                  color: "var(--color-ww-text-tertiary)",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Also available on
+              </span>
+              <AppStoreBadge sourcePage="home" placement="hero" height={44} />
+            </div>
           </div>
         </div>
       </section>
@@ -443,6 +460,10 @@ export default async function WalksTopPage() {
             />
           </div>
         </section>
+
+        <div className="py-12 md:py-16">
+          <WalksAppCTA />
+        </div>
 
         {/* お知らせ（最新1件・/news への動線） */}
         {latestNews && (

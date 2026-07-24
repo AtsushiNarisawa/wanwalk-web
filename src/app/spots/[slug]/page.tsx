@@ -25,6 +25,8 @@ import type { SpotCategory, DogPolicy } from "@/types/walks";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import ShareMenu from "@/components/walks/ShareMenu";
 import TrustByline from "@/components/walks/TrustByline";
+import WalksAppCTA from "@/components/walks/WalksAppCTA";
+import WalkInAppCTA from "@/components/walks/WalkInAppCTA";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import {
   ORG_REF,
@@ -288,6 +290,13 @@ export default async function SpotDetailPage({
           </div>
         </header>
 
+        <WalkInAppCTA
+          sourcePage="spot_detail"
+          placement="spot_detail_walk"
+          title="アプリで愛犬との散歩を記録する"
+          subcopy="GPSで現在地を確認しながら、歩いた距離や時間を残せます。"
+        />
+
         <div style={{ margin: "24px 0" }}>
           <TrustByline
             updatedAt={spotDates.updated_at}
@@ -511,6 +520,10 @@ export default async function SpotDetailPage({
             </p>
           </section>
         )}
+
+        <div className="py-8">
+          <WalksAppCTA sourcePage="spot_detail" />
+        </div>
 
         <SupportedBadge />
       </article>

@@ -22,6 +22,8 @@ import RelatedRoutes from "@/components/walks/RelatedRoutes";
 import AreaRouteLinks from "@/components/walks/AreaRouteLinks";
 import TrustByline from "@/components/walks/TrustByline";
 import SubmissionCredit from "@/components/walks/SubmissionCredit";
+import WalksAppCTA from "@/components/walks/WalksAppCTA";
+import WalkInAppCTA from "@/components/walks/WalkInAppCTA";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { formatDistance } from "@/lib/walks/format";
 import {
@@ -401,6 +403,9 @@ export default async function RouteDetailPage({
         />
       </div>
 
+      {/* Cross統一③: ヘッダー直下の Web→App 文脈付き導線 */}
+      <WalkInAppCTA sourcePage="route_detail" />
+
       {/* 直接回答型冒頭文（AI Overview / GEO最適化） */}
       <p
         style={{
@@ -621,6 +626,11 @@ export default async function RouteDetailPage({
       {/* 同エリア全コースのテキストリンク索引（鎌倉内部リンク救済・2026-06-04）
           兄弟6本以上のエリアのみ描画。沈んでいる高表示ページに内部リンクを均等配分する。 */}
       <AreaRouteLinks currentRoute={route} />
+
+      {/* CTA */}
+      <div style={{ marginTop: 48 }}>
+        <WalksAppCTA sourcePage="route_detail" />
+      </div>
 
       <SupportedBadge />
 
