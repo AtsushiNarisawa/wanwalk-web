@@ -20,7 +20,13 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { CaretDown, Car, ArrowRight } from "@phosphor-icons/react";
 import type { DirectoryGroup, DirectoryPlace } from "@/types/directory";
-import { DIRECTORY_GROUPS, DIRECTORY_GROUP_ORDER, groupOfPlace } from "@/lib/walks/directory-groups";
+import {
+  DIRECTORY_GROUPS,
+  DIRECTORY_GROUP_ORDER,
+  groupOfPlace,
+  groupsOfPlace,
+  matchesActiveGroups,
+} from "@/lib/walks/directory-groups";
 import { groupPlacesByArea, type DirectorySortMode } from "@/lib/walks/directory-areas";
 import DirectoryPlaceCard from "./DirectoryPlaceCard";
 
@@ -58,13 +64,18 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
   const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 群ごとの件数（凡例チップ表示用）。
+  // ★ 複数群に属する施設（extra_groups あり）は各群で数える。そのため
+  //   チップの合計は施設総数を上回りうる。一覧の「◯件」は下の visible.length
+  //   （実際に描画するカード枚数・重複なし）を使い、合計とは別物として扱う。
   const groupCounts = useMemo(() => {
     // 群の増減に追随させるため DIRECTORY_GROUP_ORDER から 0 初期化する
     // （リテラルで書くと群追加時に初期化漏れ＝NaN になる）。
     const counts = Object.fromEntries(
       DIRECTORY_GROUP_ORDER.map((g) => [g, 0])
     ) as Record<DirectoryGroup, number>;
-    for (const p of places) counts[groupOfPlace(p)] += 1;
+    for (const p of places) {
+      for (const g of groupsOfPlace(p)) counts[g] += 1;
+    }
     return counts;
   }, [places]);
 
@@ -74,7 +85,8 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
     [places]
   );
 
-  const visible = ordered.filter((p) => active.has(groupOfPlace(p)));
+  // 選択中の群のいずれかに該当すれば1回だけ通す（複数群の施設でもカードは1枚）。
+  const visible = ordered.filter((p) => matchesActiveGroups(p, active));
   const areaGroups = useMemo(() => groupPlacesByArea(visible), [visible]);
   const allAreaSlugs = useMemo(() => areaGroups.map((g) => g.area.slug), [areaGroups]);
 
@@ -103,9 +115,9 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
 
   const selectPlace = (id: string) => {
     const place = places.find((p) => p.id === id);
-    // フィルタで隠れている場合はカテゴリを表示。
-    const g = place ? groupOfPlace(place) : null;
-    if (g && !active.has(g)) {
+    // フィルタで隠れている場合はカテゴリを表示（複数群なら主グループを開く）。
+    if (place && !matchesActiveGroups(place, active)) {
+      const g = groupOfPlace(place);
       setActive((prev) => new Set(prev).add(g));
     }
     // エリア順で畳まれている場合は該当エリアを開く。

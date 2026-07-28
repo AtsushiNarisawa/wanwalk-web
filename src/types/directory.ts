@@ -68,6 +68,10 @@ export interface DirectoryPlace {
   name: string;
   category: DirectoryCategory;
   subcategory: DirectoryGroup | null;
+  // 主カテゴリ由来の群に加えて、この施設を出したい群（例: 宿に併設するカフェ）。
+  // 地図ピンの色は主カテゴリのままで、フィルタと凡例の件数にだけ効く。
+  // コードに施設名を持たせない汎用の仕組み（DB の extra_groups 列）。
+  extra_groups: DirectoryGroup[] | null;
   lat: number;
   lng: number;
   description: string | null;

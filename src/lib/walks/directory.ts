@@ -15,7 +15,7 @@ import { wanwalkSupabase as supabase } from "./supabase";
 import type { DirectoryArea, DirectoryPlace, NearestRoute } from "@/types/directory";
 
 const DIRECTORY_SELECT =
-  "id, region, area_id, name, category, subcategory, lat, lng, description, dog_policy, photo_url, official_url, phone, price_range, opening_hours, verified_at, utm_slug, is_published";
+  "id, region, area_id, name, category, subcategory, extra_groups, lat, lng, description, dog_policy, photo_url, official_url, phone, price_range, opening_hours, verified_at, utm_slug, is_published";
 
 type NearestRow = {
   place_id: string;

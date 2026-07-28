@@ -137,12 +137,46 @@ export function buildOutboundUrl(officialUrl: string): string {
   }
 }
 
-/** 施設のグループを決定。subcategory を優先し、無ければ category から逆引き。 */
+/**
+ * 施設の「主」グループを決定。subcategory を優先し、無ければ category から逆引き。
+ * 地図ピンの色・カードの群バッジはこの1つだけを使う（1施設1ピン・1バッジ）。
+ */
 export function groupOfPlace(place: Pick<DirectoryPlace, "subcategory" | "category">): DirectoryGroup {
   if (place.subcategory && VALID_GROUPS.has(place.subcategory)) {
     return place.subcategory;
   }
   return CATEGORY_TO_GROUP[place.category] ?? "play";
+}
+
+/**
+ * 施設が属するグループを全て返す（主グループ ＋ extra_groups）。
+ * フィルタ判定と凡例の件数はこちらを使う。
+ *
+ * 例: 宿に併設するカフェは category='cafe'（主＝食べる）に extra_groups=['stay'] を持たせ、
+ *     「食べる」でも「泊まる」でも表示されるようにする。施設名はコードに持たせない
+ *     （どの施設を複数群に出すかは DB の extra_groups だけで決まる）。
+ *
+ * ※ 1施設が複数群に数えられるため、凡例チップの合計は施設総数を上回りうる。
+ *   一覧の「◯件」は実際に描画するカード枚数（重複なし）を使うこと。
+ */
+export function groupsOfPlace(
+  place: Pick<DirectoryPlace, "subcategory" | "category" | "extra_groups">
+): DirectoryGroup[] {
+  const primary = groupOfPlace(place);
+  const groups: DirectoryGroup[] = [primary];
+  for (const g of place.extra_groups ?? []) {
+    // 未知の値（DB 側の CHECK をすり抜けた場合）と主グループの重複を弾く。
+    if (VALID_GROUPS.has(g) && !groups.includes(g)) groups.push(g);
+  }
+  return groups;
+}
+
+/** 施設が、選択中の群のいずれかに該当するか（フィルタ判定の単一の窓口）。 */
+export function matchesActiveGroups(
+  place: Pick<DirectoryPlace, "subcategory" | "category" | "extra_groups">,
+  active: ReadonlySet<DirectoryGroup>
+): boolean {
+  return groupsOfPlace(place).some((g) => active.has(g));
 }
 
 /** status='conditional'（条件付き）か。 */

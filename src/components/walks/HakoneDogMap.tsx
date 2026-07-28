@@ -22,6 +22,7 @@ import {
   buildOutboundUrl,
   formatDirectoryDogChips,
   groupOfPlace,
+  matchesActiveGroups,
   isConditional,
 } from "@/lib/walks/directory-groups";
 import { trackEvent } from "@/lib/analytics";
@@ -105,9 +106,11 @@ export default function HakoneDogMap({
   // FitAllOnMount が担うので、初期中心が施設データに依存する経路を残さない。
   const center: [number, number] = [35.232, 139.05];
 
+  // 複数群に属する施設（extra_groups あり）は、どちらの群が選ばれていても表示する。
+  // ピンは 1 施設 1 本のまま（色は主グループ）。
   const activeSet = new Set(activeGroups);
   const visible = places.filter(
-    (p) => p.lat != null && p.lng != null && activeSet.has(groupOfPlace(p))
+    (p) => p.lat != null && p.lng != null && matchesActiveGroups(p, activeSet)
   );
 
   return (
