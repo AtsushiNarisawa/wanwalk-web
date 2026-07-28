@@ -150,6 +150,25 @@ export default function DirectoryPlaceCard({
           {place.name}
         </h3>
 
+        {/* 施設の説明（description）。
+            読む順を「これは何の施設か」→「犬はどう入れるか」→「詳細条件」にするため、
+            施設名の直下・犬条件チップの上に置く。dog_policy.notes は下に残す（置換ではない）。
+            本文＝墨色 text-primary、補足の notes＝text-secondary で視覚的な主従をつける。
+            全カード同一構造・全文表示（行数の切り詰めや「続きを読む」は入れない＝中立）。 */}
+        {place.description && (
+          <p
+            style={{
+              fontFamily: "var(--font-ww-sans)",
+              fontSize: 14,
+              lineHeight: 1.8,
+              color: "var(--color-ww-text)",
+              margin: 0,
+            }}
+          >
+            {place.description}
+          </p>
+        )}
+
         {/* 犬条件: チップ + 条件付きマーカー */}
         {(chips.length > 0 || conditional) && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
