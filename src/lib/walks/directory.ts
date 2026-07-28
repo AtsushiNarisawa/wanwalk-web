@@ -24,19 +24,53 @@ type NearestRow = {
   dist_m: number;
 };
 
-type AreaRow = { id: string; slug: string; name: string; description: string | null };
+type AreaRow = {
+  id: string;
+  slug: string;
+  name: string;
+  directory_intro: string | null;
+  directory_access: string | null;
+};
 
-// 施設が参照するエリアを id → {slug,name,description} で取得（エリア順表示・交通案内用）。
+// 施設が参照するエリアを id → {slug,name,紹介,アクセス} で取得（エリア順表示・交通案内用）。
+// ⚠️ areas.description（公開サイト /areas の SEO 資産）は読まない。このマップの文面は
+//    directory_intro / directory_access（マップ専用列）が正本。未投入なら null のまま出さない。
 async function fetchAreasByIds(ids: string[]): Promise<Map<string, DirectoryArea>> {
   const map = new Map<string, DirectoryArea>();
   if (ids.length === 0) return map;
-  const { data, error } = await supabase
-    .from("areas")
-    .select("id, slug, name, description")
-    .in("id", ids);
-  if (error || !data) return map;
-  for (const a of data as AreaRow[]) {
-    map.set(a.id, { slug: a.slug, name: a.name, description: a.description });
+  const [areasRes, routesRes] = await Promise.all([
+    supabase
+      .from("areas")
+      .select("id, slug, name, directory_intro, directory_access")
+      .in("id", ids),
+    // 「このエリアの散歩ルートを見る」導線の出し分け用。公開ルートが 0 本のエリア
+    //（例: 箱根町外をまとめた「箱根周辺」）へは /areas/{slug} リンクを出さない
+    //（公開側でそのエリアページは 404 にしているため、出すとリンク切れになる）。
+    // PostgREST の nested count フィルタは過去にバグ実績があるため使わず、
+    // 素の行を引いて JS 側で集約する。
+    supabase
+      .from("official_routes")
+      .select("area_id")
+      .eq("is_published", true)
+      .in("area_id", ids),
+  ]);
+
+  const areasWithRoutes = new Set<string>();
+  if (!routesRes.error && Array.isArray(routesRes.data)) {
+    for (const r of routesRes.data as { area_id: string | null }[]) {
+      if (r.area_id) areasWithRoutes.add(r.area_id);
+    }
+  }
+
+  if (areasRes.error || !areasRes.data) return map;
+  for (const a of areasRes.data as AreaRow[]) {
+    map.set(a.id, {
+      slug: a.slug,
+      name: a.name,
+      directory_intro: a.directory_intro ?? null,
+      directory_access: a.directory_access ?? null,
+      has_routes: areasWithRoutes.has(a.id),
+    });
   }
   return map;
 }

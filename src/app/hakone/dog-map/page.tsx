@@ -124,7 +124,7 @@ export default async function HakoneDogMapPage({
       {/* 地図 + フィルタ + カード */}
       <HakoneDogMapView places={places} />
 
-      {/* 帰属（箱根町・箱根全山が主体・WanWalk が制作）。運営者開示は下部フッターで別途。 */}
+      {/* 帰属（箱根全山＝箱根DMO が主体・WanWalk が制作）。運営者開示は下部フッターで別途。 */}
       <HakoneOfficialBadge />
 
       {/* 運営者開示・免責 */}
@@ -160,7 +160,7 @@ export default async function HakoneDogMapPage({
           が編集・運営しています。掲載は無料で、掲載順や表示は施設の優劣・おすすめ度を示すものではありません。
         </p>
         <p style={{ margin: 0 }}>
-          犬の同伴条件・営業時間・料金などの情報は2026年6月時点のものです。最新の情報・予約は各施設の公式サイトでご確認ください。
+          犬の同伴条件などの情報は、各施設のカードに記載した確認日時点のものです。営業時間・料金・空き状況は各施設の公式サイトでご確認ください。
         </p>
       </footer>
     </main>

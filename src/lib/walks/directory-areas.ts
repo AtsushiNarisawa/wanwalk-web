@@ -3,37 +3,23 @@
  *
  * - 表示順は「玄関口（湯本）から山側へ」の地理順。順位（おすすめ度）ではない＝中立。
  *   仙石原（DogHub 所在）が先頭に来ない並びにして中立性の優位経路を残さない。
- * - 交通案内は areas.description の CEO 監修文（エリア紹介＋渋滞回避の運転経路）を再利用する。
- *   DMO の「国道1号線の渋滞緩和」の意図に既存文がそのまま乗る（HAKONE_DOGMAP 申し送り）。
+ * - エリア紹介・アクセス案内は areas.directory_intro / directory_access（このマップ専用列）を
+ *   そのまま表示する。areas.description（公開サイト /areas の SEO 資産）は参照しない。
+ *   ※ かつては description を最初の句点で機械分割していたが、文面を専用列へ分離した
+ *     （2026-07-28）。未投入のエリアは該当箇所を出さない（null 安全）。
  */
 import type { DirectoryArea, DirectoryPlace } from "@/types/directory";
 
-// 箱根サブエリアの地理順（湯本→宮ノ下→強羅→仙石原→芦ノ湖）。
+// 箱根サブエリアの地理順（湯本→宮ノ下→強羅→仙石原→芦ノ湖→箱根周辺）。
+// 「箱根周辺」は箱根町外の施設をまとめる末尾エリア（このマップ専用・散歩ルートは0本）。
 export const HAKONE_AREA_ORDER: string[] = [
   "hakone-yumoto",
   "hakone-miyanoshita",
   "hakone-gora",
   "hakone-sengokuhara",
   "hakone-ashinoko",
+  "hakone-shuhen",
 ];
-
-/**
- * areas.description を「エリア紹介」と「アクセス（交通案内）」に分割する。
- * description は "{紹介}。{アクセス文…}" 形式（最初の句点までが紹介）。
- * 分割できない場合は全文を intro として返す。
- */
-export function splitAreaDescription(
-  description: string | null | undefined
-): { intro: string | null; access: string | null } {
-  if (!description) return { intro: null, access: null };
-  const idx = description.indexOf("。");
-  if (idx < 0 || idx === description.length - 1) {
-    return { intro: description.trim() || null, access: null };
-  }
-  const intro = description.slice(0, idx + 1).trim();
-  const access = description.slice(idx + 1).trim();
-  return { intro: intro || null, access: access || null };
-}
 
 export interface AreaGroup {
   area: DirectoryArea;
@@ -56,7 +42,9 @@ export function groupPlacesByArea(
     const area: DirectoryArea = p.area ?? {
       slug: OTHER_SLUG,
       name: "その他",
-      description: null,
+      directory_intro: null,
+      directory_access: null,
+      has_routes: false,
     };
     const g = bySlug.get(area.slug);
     if (g) g.places.push(p);

@@ -7,7 +7,9 @@ vi.mock("@/lib/walks/data", () => ({
     { slug: "route-ok", updated_at: "2026-05-01" },
     { slug: "ルート不正", updated_at: null },
   ]),
-  getAreas: vi.fn(async () => [{ slug: "area-ok" }, { slug: null }]),
+  // sitemap は getListedAreas（公開ルート1本以上のエリアのみ）を使う。
+  // ルート0本のエリアは data 層で落ちるため、ここでは有効/無効 slug の防御だけを固定する。
+  getListedAreas: vi.fn(async () => [{ slug: "area-ok" }, { slug: null }]),
   getAllSpotSlugs: vi.fn(async () => ["spot-ok", "bad spot", "日本語"]),
   getSpotsByCategory: vi.fn(async () =>
     Array.from({ length: 35 }, (_, i) => ({ id: String(i) })),

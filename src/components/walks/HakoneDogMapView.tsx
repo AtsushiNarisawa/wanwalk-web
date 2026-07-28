@@ -2,14 +2,14 @@
 
 /**
  * 箱根 犬連れおでかけマップβ のクライアント親。
- * カテゴリフィルタ（4群）＋並び替え（おすすめ順／エリア順）の useState を持ち、
+ * カテゴリフィルタ（5群）＋並び替え（おすすめ順／エリア順）の useState を持ち、
  * 地図 + 凡例兼フィルタ + 施設カード一覧を統括する。
  *
  * ■ 中立を設計で体現
  *   - あいうえお順＝施設名の五十音（ja ロケール）順。距離順・人気順のような序列を持ち込まず、
  *     誰が見ても順位でないと分かる中立な並び。手動の序列カラムは持たない。
  *   - エリア順＝サブエリアの地理順（湯本→芦ノ湖）。順位ではなく地理。各エリア内もあいうえお順。
- *   - フィルタチップ＝凡例。4群すべて同一スタイル（色のみカテゴリで変わる）。
+ *   - フィルタチップ＝凡例。5群すべて同一スタイル（色のみカテゴリで変わる）。
  *
  * ■ スマホでの長さ対策
  *   エリア順では各エリアを折りたたみ（既定は畳む）。初期はエリア見出し＋交通案内だけが並び、
@@ -21,11 +21,7 @@ import Link from "next/link";
 import { CaretDown, Car, ArrowRight } from "@phosphor-icons/react";
 import type { DirectoryGroup, DirectoryPlace } from "@/types/directory";
 import { DIRECTORY_GROUPS, DIRECTORY_GROUP_ORDER, groupOfPlace } from "@/lib/walks/directory-groups";
-import {
-  groupPlacesByArea,
-  splitAreaDescription,
-  type DirectorySortMode,
-} from "@/lib/walks/directory-areas";
+import { groupPlacesByArea, type DirectorySortMode } from "@/lib/walks/directory-areas";
 import DirectoryPlaceCard from "./DirectoryPlaceCard";
 
 // Leaflet は SSR 非対応のため client wrapper 内で dynamic import（ssr:false）。
@@ -63,7 +59,11 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
 
   // 群ごとの件数（凡例チップ表示用）。
   const groupCounts = useMemo(() => {
-    const counts: Record<DirectoryGroup, number> = { stay: 0, eat: 0, play: 0, onsen: 0 };
+    // 群の増減に追随させるため DIRECTORY_GROUP_ORDER から 0 初期化する
+    // （リテラルで書くと群追加時に初期化漏れ＝NaN になる）。
+    const counts = Object.fromEntries(
+      DIRECTORY_GROUP_ORDER.map((g) => [g, 0])
+    ) as Record<DirectoryGroup, number>;
     for (const p of places) counts[groupOfPlace(p)] += 1;
     return counts;
   }, [places]);
@@ -271,8 +271,13 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {areaGroups.map(({ area, places: areaPlaces }) => {
             const open = openAreas.has(area.slug);
-            const { intro, access } = splitAreaDescription(area.description);
-            const isReal = area.slug !== "__other__";
+            // 文面は areas.directory_intro / directory_access（マップ専用列）をそのまま表示。
+            // 未投入なら該当ブロックを出さない（null 安全）。
+            const intro = area.directory_intro?.trim() || null;
+            const access = area.directory_access?.trim() || null;
+            // 公開ルートを持つ実エリアだけ /areas/{slug} へ導線を出す
+            //（0本のエリアは公開側で 404 になるためリンク切れを作らない）。
+            const showRouteLink = area.slug !== "__other__" && area.has_routes;
             return (
               <section
                 key={area.slug}
@@ -342,7 +347,7 @@ export default function HakoneDogMapView({ places }: { places: DirectoryPlace[] 
                 )}
 
                 {/* このエリアの散歩ルートへの導線 */}
-                {isReal && (
+                {showRouteLink && (
                   <div style={{ padding: "10px 20px 0" }}>
                     <Link
                       href={`/areas/${area.slug}`}

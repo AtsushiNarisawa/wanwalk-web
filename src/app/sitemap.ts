@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import {
   getAllPublishedRoutes,
-  getAreas,
+  getListedAreas,
   getAllSpotSlugs,
   getSpotsByCategory,
 } from "@/lib/walks/data";
@@ -27,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [routes, areas, spotSlugs, newsArticles, ...categorySpotsArr] =
     await Promise.all([
       getAllPublishedRoutes(),
-      getAreas(),
+      getListedAreas(),
       getAllSpotSlugs(),
       getAllNewsArticles(),
       ...CATEGORIES_FOR_SITEMAP.map((cat) => getSpotsByCategory(cat)),

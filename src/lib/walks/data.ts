@@ -37,6 +37,25 @@ export async function getAreas(): Promise<Area[]> {
   return data ?? [];
 }
 
+/**
+ * 公開サイトに載せてよいエリア＝公開中の散歩コースを 1 本以上持つエリアだけを返す。
+ *
+ * /areas は「散歩コースのあるエリア一覧」であり、コース 0 本のエリアを出すと
+ * 空のエリアページ（thin page）へリンクしてしまう。sitemap と
+ * /areas/[slug] の generateStaticParams はこの関数を使う。
+ *
+ * ※ 2026-07-28 追加。箱根 愛犬とおでかけマップ（非公開 /hakone/dog-map）専用に
+ *   作った「箱根周辺」のような、施設ディレクトリ側でしか使わないエリアを
+ *   公開サイトへ露出させないための門。実測時点では全 43 エリアが 1 本以上を
+ *   持つため、既存エリアの出力は変わらない。
+ */
+export async function getListedAreas(): Promise<Area[]> {
+  const areas = await getAreasWithRouteCount();
+  return areas
+    .filter((a) => a.route_count > 0)
+    .map(({ route_count: _rc, ...area }) => area);
+}
+
 export async function getAreaBySlug(slug: string): Promise<Area | null> {
   const { data, error } = await supabase
     .from("areas")

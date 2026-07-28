@@ -8,10 +8,11 @@
  *    status(ok/conditional)、dog_fee(文字列) を持つため専用型を切る（HAKONE_DOGMAP_SPEC §10-7）。
  */
 
-// 4 つの表示グループ（地図フィルタ・色分けの単位）。DB の subcategory に格納。
-export type DirectoryGroup = "stay" | "eat" | "play" | "onsen";
+// 5 つの表示グループ（地図フィルタ・色分けの単位）。DB の subcategory に格納。
+// hospital（動物病院）は「遊ぶ」に混ぜない＝ドッグラン等のレジャーと誤解させないため独立群。
+export type DirectoryGroup = "stay" | "eat" | "play" | "onsen" | "hospital";
 
-// 施設カテゴリ（DB の category・8値CHECK）。
+// 施設カテゴリ（DB の category・9値CHECK）。
 export type DirectoryCategory =
   | "accommodation"
   | "cafe"
@@ -20,7 +21,8 @@ export type DirectoryCategory =
   | "onsen"
   | "footbath"
   | "dog_run"
-  | "shop";
+  | "shop"
+  | "animal_hospital";
 
 export type DirectoryDogSize = "all" | "small_medium" | "small_only" | "unknown";
 export type DirectoryDogStatus = "ok" | "conditional";
@@ -45,11 +47,17 @@ export interface NearestRoute {
 }
 
 // 施設が属するサブエリア（エリア順表示・交通案内に使用）。
-// description は areas テーブルの CEO 監修文（エリア紹介＋渋滞回避の運転経路を含む）。
+// 文面は areas.directory_intro / directory_access（このマップ専用列）をそのまま使う。
+// ⚠️ areas.description（公開サイト /areas の SEO 資産）は参照しない。
+//    かつては description を句点で機械分割していたが、専用列へ移行して分離した。
 export interface DirectoryArea {
   slug: string;
   name: string;
-  description: string | null;
+  directory_intro: string | null;
+  directory_access: string | null;
+  // 公開中の散歩ルートを 1 本以上持つか（データ層で算出）。
+  // false のエリアは /areas/{slug} が公開側で 404 になるため導線を出さない。
+  has_routes: boolean;
 }
 
 // directory_places_with_latlng ビューの1行（表示に必要な列のみ）。

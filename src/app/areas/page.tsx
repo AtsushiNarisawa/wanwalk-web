@@ -27,7 +27,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AreasPage() {
-  const areas = await getAreasWithRouteCount();
+  const allAreas = await getAreasWithRouteCount();
+  // 公開中の散歩コースを 1 本以上持つエリアだけを載せる（このページは
+  // 「散歩コースのあるエリア一覧」。0 本のエリアは空ページへのリンクになる）。
+  // トップ / と /routes は既に同じフィルタを掛けており、ここだけ抜けていた。
+  const areas = allAreas.filter((a) => a.route_count > 0);
 
   const byPrefecture = areas.reduce<Record<string, (typeof areas)[number][]>>(
     (acc, area) => {

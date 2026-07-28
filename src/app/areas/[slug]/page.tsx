@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getAreas, getAreaBySlug, getRoutesByAreaId } from "@/lib/walks/data";
+import { getListedAreas, getAreaBySlug, getRoutesByAreaId } from "@/lib/walks/data";
 import SeasonFilterControls from "@/components/walks/SeasonFilterControls";
 import RouteCard from "@/components/walks/RouteCard";
 import {
@@ -27,7 +27,7 @@ export const revalidate = 86400;
 
 export async function generateStaticParams() {
   try {
-    const areas = await getAreas();
+    const areas = await getListedAreas();
     return areas.filter((a) => a.slug && typeof a.slug === "string").map((a) => ({ slug: a.slug }));
   } catch {
     return [];
@@ -91,6 +91,13 @@ export default async function AreaDetailPage({
   if (!area) notFound();
 
   const routes = await getRoutesByAreaId(area.id);
+  // 公開中の散歩コースが 0 本のエリアはページを持たない（404）。
+  // 中身の無いページを公開しないための門であり、施設ディレクトリ専用に作った
+  // エリア（例: /hakone/dog-map の「箱根周辺」）を公開側へ露出させない歯止めでもある。
+  // generateStaticParams は getListedAreas() で 0 本を除外済みだが、
+  // dynamicParams による直リンク到達があるためページ側でも判定する。
+  if (routes.length === 0) notFound();
+
   const filteredRoutes = filterRoutes(routes, season, cartOnly);
 
   // 可視FAQ＋JSON-LD FAQPage の共通ソース。area.faq（手書き）があれば優先し、

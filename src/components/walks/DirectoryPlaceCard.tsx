@@ -9,8 +9,12 @@
  *
  * ■ 構成
  *   写真 / 群バッジ＋カテゴリ / 施設名 / 犬条件（チップ＋全文 notes・誇張しない）/
- *   営業時間（折りたたみ）/ 公式サイト（utm 付与＋outbound_click 計測）/
+ *   公式サイト（utm 付与＋outbound_click 計測）/
  *   ここから歩ける最寄りルート 3 本（距離付き・内部リンク）/ 確認日＋免責。
+ *
+ * ■ 載せないもの
+ *   価格帯・営業時間（2026-07-28 に表示中止）。変動が早く欠損も多いため公式サイトへ一本化した。
+ *   DB 列（price_range / opening_hours）とデータ取得は残してあるので復帰は可逆。
  */
 import Image from "next/image";
 import Link from "next/link";
@@ -32,7 +36,16 @@ function telHref(phone: string): string {
   return `tel:${phone.replace(/[^+0-9]/g, "")}`;
 }
 
-const VERIFIED_LABEL = "情報は2026年6月時点・最新は公式サイトでご確認ください。";
+// 確認日はカードごとに異なる（施設を追加・再確認したタイミングで verified_at が動く）。
+// 固定文言だと実際の確認日とズレるため、その施設の verified_at から年月で組み立てる。
+// verified_at が無い施設は日付を断定せず「最新は公式サイトで」だけを出す。
+function verifiedLabel(verifiedAt: string | null): string {
+  const suffix = "最新は公式サイトでご確認ください。";
+  if (!verifiedAt) return suffix;
+  const m = /^(\d{4})-(\d{2})/.exec(verifiedAt);
+  if (!m) return suffix;
+  return `情報は${m[1]}年${Number(m[2])}月時点・${suffix}`;
+}
 
 // アグリゲーター型の必須動線「情報の修正・削除はこちら」の問い合わせ先（WanWalk/DogHub 運営受付）。
 const CORRECTION_EMAIL = "info@dog-hub.shop";
@@ -187,22 +200,9 @@ export default function DirectoryPlaceCard({
           </p>
         )}
 
-        {/* 価格帯・営業時間 */}
-        {(place.price_range || place.opening_hours) && (
-          <div style={{ fontSize: 12, color: "var(--color-ww-text-tertiary)" }}>
-            {place.price_range && <span>価格帯 {place.price_range}</span>}
-            {place.opening_hours && (
-              <details style={{ marginTop: 4 }}>
-                <summary style={{ cursor: "pointer", color: "var(--color-ww-text-secondary)" }}>
-                  営業時間
-                </summary>
-                <div style={{ whiteSpace: "pre-line", marginTop: 4, lineHeight: 1.6 }}>
-                  {place.opening_hours}
-                </div>
-              </details>
-            )}
-          </div>
-        )}
+        {/* 価格帯・営業時間はカードに載せない（2026-07-28）。
+            変動しやすい情報は公式サイトに一本化する方針。DB の price_range /
+            opening_hours とデータ取得は残してあるので、表示を戻すのは可逆。 */}
 
         {/* 公式サイト・電話（流出導線。全施設同一スタイル＝中立） */}
         {(place.official_url || place.phone) && (
@@ -330,7 +330,7 @@ export default function DirectoryPlaceCard({
         {/* 免責 ＋ アグリゲーター型の「情報の修正・削除」動線（全カード同一＝中立） */}
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <p style={{ fontSize: 11, color: "var(--color-ww-text-tertiary)", margin: 0, lineHeight: 1.6 }}>
-            {VERIFIED_LABEL}
+            {verifiedLabel(place.verified_at)}
           </p>
           <a
             href={correctionMailto}
