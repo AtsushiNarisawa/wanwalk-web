@@ -8,13 +8,15 @@
  *   DogHub もリトナも他施設と同じ 1 カード。群バッジの色だけがカテゴリで変わる（序列ではない）。
  *
  * ■ 構成
- *   写真 / 群バッジ＋カテゴリ / 施設名 / 犬条件（チップ＋全文 notes・誇張しない）/
+ *   写真 / 群バッジ＋カテゴリ / 施設名 / 施設の説明（description）/
+ *   犬条件チップ（サイズ・同伴場所・リード必須等の短いラベル）/
  *   公式サイト（utm 付与＋outbound_click 計測）/
  *   ここから歩ける最寄りルート 3 本（距離付き・内部リンク）/ 確認日＋免責。
  *
- * ■ 載せないもの
- *   価格帯・営業時間（2026-07-28 に表示中止）。変動が早く欠損も多いため公式サイトへ一本化した。
- *   DB 列（price_range / opening_hours）とデータ取得は残してあるので復帰は可逆。
+ * ■ 載せないもの（いずれも 2026-07-28 に表示中止・DB は無変更＝可逆）
+ *   - 価格帯・営業時間: 変動が早く欠損も多いため公式サイトへ一本化
+ *   - 犬条件の全文（dog_policy.notes）: カードは「どんな施設か」＋見比べ用チップまでとし、
+ *     詳細条件は公式サイトで確認してもらう。チップの生成には dog_policy を使い続ける。
  */
 import Image from "next/image";
 import Link from "next/link";
@@ -61,7 +63,6 @@ export default function DirectoryPlaceCard({
   const def = DIRECTORY_GROUPS[group];
   const chips = formatDirectoryDogChips(place.dog_policy, place.category);
   const conditional = isConditional(place.dog_policy);
-  const notes = place.dog_policy?.notes?.trim() || null;
   const nearest = place.nearest_routes ?? [];
 
   // 修正・削除依頼メール（件名に施設名＋utm_slug を自動付与）。全カード同一＝中立。
@@ -204,20 +205,12 @@ export default function DirectoryPlaceCard({
           </div>
         )}
 
-        {/* 犬条件の全文（誇張せず一次情報を提示） */}
-        {notes && (
-          <p
-            style={{
-              fontFamily: "var(--font-ww-sans)",
-              fontSize: 13,
-              lineHeight: 1.7,
-              color: "var(--color-ww-text-secondary)",
-              margin: 0,
-            }}
-          >
-            {notes}
-          </p>
-        )}
+        {/* 犬条件の全文（dog_policy.notes）はカードに載せない（2026-07-28）。
+            カードは「どんな施設か（description）＋一目で見比べられる条件チップ」までとし、
+            詳細条件は公式サイトで確認してもらう方針。価格帯・営業時間と同じ扱いで、
+            DB の dog_policy は一切変更していない＝表示だけ止める可逆な対応。
+            ※ チップ（サイズ・同伴場所・リード必須・条件付き等）は dog_policy から
+              生成し続けるため、dog_policy への依存は残る。 */}
 
         {/* 価格帯・営業時間はカードに載せない（2026-07-28）。
             変動しやすい情報は公式サイトに一本化する方針。DB の price_range /
