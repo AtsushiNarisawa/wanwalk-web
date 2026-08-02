@@ -1,100 +1,136 @@
-import { describe, it, expect } from "vitest";
+// @vitest-environment jsdom
+import { describe, it, expect, vi } from "vitest";
+import { render } from "@testing-library/react";
+import { createElement } from "react";
+import type { DirectoryDogPolicy, DirectoryPlace } from "@/types/directory";
+
+// 2026-08-02 CEO 確定の回帰ガード。
+//
+// 「犬の同伴条件（受け入れできる犬のサイズ・同伴できる場所・リード/キャリーの要否・
+//   ペット料金・ワクチン要件）は WanWalk のどのページにも載せない。条件は公式サイトへ誘導する」
+//
+// 以前はこのファイルで formatDirectoryDogChips の文言（テラスの語彙・サイズの断定）を固定していたが、
+// チップそのものを出さない方針になったため、**カードに条件が現れないこと**を固定するテストへ置き換えた。
+// 関数自体は directory-groups.ts に温存してある（方針が戻ったときに配線し直せるように）。
+// このテストは「関数が復活して配線された」ことを検出するのが目的なので、
+// dog_policy を全項目そろえた最悪ケースで描画する。
+
+vi.mock("@/lib/analytics", () => ({ trackEvent: vi.fn() }));
+vi.mock("next/image", () => ({
+  default: (props: Record<string, unknown>) =>
+    createElement("img", { src: String(props.src ?? ""), alt: String(props.alt ?? "") }),
+}));
+
+import DirectoryPlaceCard from "@/components/walks/DirectoryPlaceCard";
 import { formatDirectoryDogChips } from "@/lib/walks/directory-groups";
-import type { DirectoryDogPolicy } from "@/types/directory";
 
-// 2026-08-02 箱根DMO14施設 点検 第4章(1)(2) の再発防止。
-// 「テラス席」の語が飲食・物販以外に漏れないこと、サイズを推測で断定しないことを固定する。
+// 条件系の語をひととおり出させる dog_policy（これが1語でも描画されたら退行）。
+const fullPolicy: DirectoryDogPolicy = {
+  status: "conditional",
+  size: "all",
+  size_note: "30kg以下",
+  indoor: true,
+  terrace: true,
+  leash_required: true,
+  carrier_required: true,
+  dog_fee: "1頭 300円",
+  notes: "ワクチン接種証明書の提示が必要です。",
+};
 
-const base: DirectoryDogPolicy = { status: "conditional" };
+function makePlace(overrides: Partial<DirectoryPlace> = {}): DirectoryPlace {
+  return {
+    id: "p1",
+    region: "hakone",
+    area_id: null,
+    name: "テスト施設",
+    category: "cafe",
+    subcategory: null,
+    extra_groups: null,
+    lat: 35.23,
+    lng: 139.02,
+    description: "芦ノ湖のほとりに建つカフェ。",
+    dog_policy: fullPolicy,
+    photo_url: null,
+    official_url: "https://example.com/",
+    phone: "+81 460-83-8800",
+    price_range: "￥￥",
+    opening_hours: "10:00-17:00",
+    verified_at: "2026-07-15",
+    utm_slug: "test-place",
+    is_published: true,
+    nearest_routes: [{ slug: "hakone-test-route", name: "テストルート", dist_m: 320 }],
+    ...overrides,
+  };
+}
 
-describe("formatDirectoryDogChips — 同伴場所の語彙は業態で変わる", () => {
-  it("飲食（cafe / restaurant）だけが『テラス』の語を使う", () => {
-    const outdoorOnly = { ...base, size: "all" as const, indoor: false, terrace: true };
-    expect(formatDirectoryDogChips(outdoorOnly, "cafe")).toContain("テラスのみ");
-    expect(formatDirectoryDogChips(outdoorOnly, "restaurant")).toContain("テラスのみ");
+// 出してはいけない語。旧チップの全語彙 ＋ CEO が名指しした条件語を含む。
+const FORBIDDEN = [
+  "全犬種",
+  "大型犬",
+  "中型犬",
+  "小型犬",
+  "サイズは要確認",
+  "30kg以下",
+  "リード",
+  "キャリー",
+  "ペット料金",
+  "1頭 300円",
+  "ワクチン",
+  "接種",
+  "証明書",
+  "条件付き",
+  "同伴可",
+  "店内",
+  "テラス",
+  "屋内も同伴可",
+  "屋外エリアのみ",
+  "客室",
+];
 
-    const both = { ...base, size: "all" as const, indoor: true, terrace: true };
-    expect(formatDirectoryDogChips(both, "cafe")).toContain("店内・テラスOK");
+describe("DirectoryPlaceCard — 犬の同伴条件は表示しない（2026-08-02 CEO 確定）", () => {
+  // 上のテストが「たまたま何も出ていないだけ」で通るのを防ぐ土台の確認。
+  // チップ生成関数は温存してあり、配線し直せば下の FORBIDDEN 語が実際に出る状態にある。
+  it("前提: チップ生成関数は健在で、配線すれば条件語が出る（テストが空振りでないことの確認）", () => {
+    const chips = formatDirectoryDogChips(fullPolicy, "cafe").join(" ");
+    expect(chips).not.toBe("");
+    expect(FORBIDDEN.some((w) => chips.includes(w))).toBe(true);
   });
 
-  it("観光・温泉・足湯・ドッグランには『テラス』も『店内』も出さない", () => {
-    const outdoorOnly = { ...base, size: "all" as const, indoor: false, terrace: true };
-    for (const c of ["sightseeing", "onsen", "footbath", "dog_run"] as const) {
-      const chips = formatDirectoryDogChips(outdoorOnly, c);
-      expect(chips).toContain("屋外エリアのみ");
-      expect(chips.join(" ")).not.toMatch(/テラス|店内/);
+  it("dog_policy が全項目そろっていても、条件を示す語を一切描画しない", () => {
+    const { container } = render(createElement(DirectoryPlaceCard, { place: makePlace() }));
+    const text = container.textContent ?? "";
+    for (const word of FORBIDDEN) {
+      expect(text, `「${word}」がカードに表示されている`).not.toContain(word);
     }
-
-    // 美術館・水族館のように屋内へ入れるケースも「店内」とは呼ばない。
-    const indoorOk = { ...base, size: "small_only" as const, indoor: true, terrace: true };
-    const chips = formatDirectoryDogChips(indoorOk, "sightseeing");
-    expect(chips).toContain("屋内も同伴可");
-    expect(chips.join(" ")).not.toMatch(/テラス|店内/);
   });
 
-  it("宿は客室／屋外の語彙のまま（回帰）", () => {
-    const both = { ...base, size: "all" as const, indoor: true, terrace: true };
-    expect(formatDirectoryDogChips(both, "accommodation")).toContain("客室・屋外OK");
-    const outdoorOnly = { ...base, indoor: false, terrace: true };
-    expect(formatDirectoryDogChips(outdoorOnly, "accommodation")).toContain("屋外スペースOK");
-  });
-});
-
-describe("formatDirectoryDogChips — サイズは断定しない", () => {
-  it("'all' は犬種ではなくサイズの上限として表示する", () => {
-    const chips = formatDirectoryDogChips({ ...base, size: "all" }, "accommodation");
-    expect(chips).toContain("大型犬も可");
-    expect(chips.join(" ")).not.toContain("全犬種");
+  it("業態を変えても条件語は出ない（宿・観光・動物病院）", () => {
+    for (const category of ["accommodation", "sightseeing", "animal_hospital"] as const) {
+      const { container } = render(
+        createElement(DirectoryPlaceCard, { place: makePlace({ category }) })
+      );
+      const text = container.textContent ?? "";
+      for (const word of FORBIDDEN) {
+        expect(text, `[${category}]「${word}」がカードに表示されている`).not.toContain(word);
+      }
+    }
   });
 
-  it("'unknown' は黙って消さず『要確認』として見せる", () => {
-    expect(formatDirectoryDogChips({ ...base, size: "unknown" }, "sightseeing")).toContain(
-      "サイズは要確認"
-    );
-    // size キー自体が無い場合も同じ（欠損＝制限なし、にしない）。
-    expect(formatDirectoryDogChips({ ...base }, "cafe")).toContain("サイズは要確認");
+  it("概要（施設名・カテゴリ・説明・公式サイト・最寄りルート・確認日）は従来どおり出る", () => {
+    const { container } = render(createElement(DirectoryPlaceCard, { place: makePlace() }));
+    const text = container.textContent ?? "";
+    expect(text).toContain("テスト施設");
+    expect(text).toContain("カフェ");
+    expect(text).toContain("芦ノ湖のほとりに建つカフェ。");
+    expect(text).toContain("公式サイトを見る");
+    expect(text).toContain("テストルート");
+    expect(text).toContain("2026年7月時点");
   });
 
-  it("size_note があればバケットより優先して上限をそのまま出す", () => {
-    const chips = formatDirectoryDogChips(
-      { ...base, size: "unknown", size_note: "30kg以下" },
-      "sightseeing"
-    );
-    expect(chips).toContain("30kg以下");
-    expect(chips.join(" ")).not.toContain("サイズは要確認");
-
-    // 'all' が残っていても size_note が勝つ（データ移行途中でも誤った断定を出さない）。
-    const overridden = formatDirectoryDogChips(
-      { ...base, size: "all", size_note: "一部客室は大型犬不可" },
-      "accommodation"
-    );
-    expect(overridden).toContain("一部客室は大型犬不可");
-    expect(overridden.join(" ")).not.toContain("大型犬も可");
-  });
-
-  it("動物病院にはサイズのチップを出さない", () => {
-    const chips = formatDirectoryDogChips({ ...base, size: "unknown" }, "animal_hospital");
-    expect(chips.join(" ")).not.toMatch(/サイズ|大型犬|小型犬|中型犬/);
-  });
-});
-
-describe("formatDirectoryDogChips — その他の回帰", () => {
-  it("dog_policy が無ければ何も出さない", () => {
-    expect(formatDirectoryDogChips(null, "cafe")).toEqual([]);
-    expect(formatDirectoryDogChips(undefined, "cafe")).toEqual([]);
-  });
-
-  it("リード・キャリー・料金は true / 非空のときだけ出る", () => {
-    const chips = formatDirectoryDogChips(
-      { ...base, size: "all", leash_required: true, carrier_required: true, dog_fee: "1頭 300円" },
-      "sightseeing"
-    );
-    expect(chips).toEqual(["大型犬も可", "リード必須", "キャリー必須", "ペット料金あり"]);
-
-    const none = formatDirectoryDogChips(
-      { ...base, size: "all", leash_required: null, carrier_required: false, dog_fee: "  " },
-      "sightseeing"
-    );
-    expect(none).toEqual(["大型犬も可"]);
+  it("価格帯・営業時間も引き続き出さない（2026-07-28 の撤去の回帰）", () => {
+    const { container } = render(createElement(DirectoryPlaceCard, { place: makePlace() }));
+    const text = container.textContent ?? "";
+    expect(text).not.toContain("￥￥");
+    expect(text).not.toContain("10:00-17:00");
   });
 });

@@ -50,11 +50,13 @@ const CATEGORY_CONFIG: Record<SpotCategory, { icon: Icon; label: string }> = {
   landmark: { icon: MapPin, label: "ランドマーク" },
 };
 
-const SIZE_LABELS: Record<string, string> = {
-  all: "全犬種OK",
-  small_medium: "中型犬以下",
-  small_only: "小型犬のみ",
-};
+// 犬の同伴条件（受入サイズ・同伴できる場所・リード/キャリーの要否・ペット料金・
+// ワクチン要件）は、このページのどこにも出さない（2026-08-02 CEO 確定）。
+// 施設ごとにばらつきがあり、しかも変わるため。本文・FAQ（JSON-LD）・meta の3箇所すべてから外し、
+// 公式サイトへの誘導に一本化する。DB の dog_policy と型は温存＝表示だけ止める可逆な対応。
+// 撤去したもの: SIZE_LABELS（全犬種OK / 中型犬以下 / 小型犬のみ）、「犬連れ情報」の
+// 対象犬種・店内・テラス席・リード・キャリー・犬料金・notes、FAQ の「大型犬も利用できますか？」
+// 「テラス席はありますか？」と Q1 内の条件列挙。
 
 export async function generateStaticParams() {
   try {
@@ -134,26 +136,14 @@ export default async function SpotDetailPage({
   const spotDates = spot as unknown as { updated_at?: string; created_at?: string };
 
   // FAQ items for structured data
+  // ⚠️ 個別の同伴条件は答えに含めない（2026-08-02 CEO 確定）。JSON-LD は本文と同じ扱いで、
+  //    条件を書くと検索結果・AI 回答に条件が転載される。誘導先は公式サイトに一本化する。
   const faqItems: { q: string; a: string }[] = [];
   if (spot.pet_friendly) {
     faqItems.push({
       q: `${spot.name}は犬連れで入れますか？`,
-      a: policy
-        ? `はい、${spot.name}は犬連れで利用できます。${policy.size ? `対象: ${SIZE_LABELS[policy.size] ?? policy.size}。` : ""}${policy.terrace ? "テラス席あり。" : ""}${policy.leash_required ? "リード必須。" : ""}${policy.notes ?? ""}`
-        : `はい、${spot.name}は犬連れで利用可能です。詳しい条件は現地でご確認ください。`,
+      a: `はい、${spot.name}は愛犬と一緒に利用できます。受け入れできる犬のサイズや同伴できる場所などの条件は変更されることがあるため、おでかけ前に公式サイトでご確認ください。`,
     });
-    if (policy?.size === "all") {
-      faqItems.push({
-        q: `${spot.name}は大型犬も利用できますか？`,
-        a: `はい、${spot.name}は全犬種に対応しています。`,
-      });
-    }
-    if (policy?.terrace) {
-      faqItems.push({
-        q: `${spot.name}にテラス席はありますか？`,
-        a: `はい、${spot.name}にはテラス席があり、愛犬と一緒に利用できます。`,
-      });
-    }
   }
 
   return (
@@ -300,7 +290,7 @@ export default async function SpotDetailPage({
         <div style={{ margin: "24px 0" }}>
           <TrustByline
             updatedAt={spotDates.updated_at}
-            scopeNote="掲載の犬連れ情報（テラス可否・リード要否・サイズ制限など）は公開情報をもとに整備し、随時見直しています。"
+            scopeNote="掲載内容は公開情報をもとに整備し、随時見直しています。"
           />
         </div>
 
@@ -319,7 +309,9 @@ export default async function SpotDetailPage({
           </section>
         )}
 
-        {/* 犬連れ情報 */}
+        {/* 犬連れ情報。
+            条件そのもの（対象犬種・店内/テラス・リード・キャリー・犬料金・notes）は
+            2026-08-02 の CEO 確定により非表示。ここは公式サイトへの誘導だけを残す。 */}
         {policy && (
           <section
             style={{
@@ -341,54 +333,17 @@ export default async function SpotDetailPage({
             >
               犬連れ情報
             </h2>
-            <div
-              className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-              style={{ fontSize: 14 }}
+            <p
+              style={{
+                fontSize: 14,
+                lineHeight: 1.8,
+                color: "var(--color-ww-text-secondary)",
+                margin: 0,
+              }}
             >
-              {policy.size && (
-                <InfoRow
-                  label="対象犬種"
-                  value={SIZE_LABELS[policy.size] ?? policy.size}
-                />
-              )}
-              {policy.indoor !== undefined && (
-                <InfoRow
-                  label="店内"
-                  value={policy.indoor ? "同伴可" : "不可"}
-                  ok={policy.indoor}
-                />
-              )}
-              {policy.terrace !== undefined && (
-                <InfoRow
-                  label="テラス席"
-                  value={policy.terrace ? "あり" : "なし"}
-                  ok={policy.terrace}
-                />
-              )}
-              {policy.leash_required !== undefined && (
-                <InfoRow
-                  label="リード"
-                  value={policy.leash_required ? "必須" : "不要"}
-                />
-              )}
-              {policy.carrier_required !== undefined && (
-                <InfoRow
-                  label="キャリー"
-                  value={policy.carrier_required ? "必須" : "不要"}
-                />
-              )}
-              {policy.dog_fee && (
-                <InfoRow label="犬料金" value={policy.dog_fee} />
-              )}
-              {policy.notes && (
-                <div
-                  className="sm:col-span-2"
-                  style={{ color: "var(--color-ww-text-secondary)" }}
-                >
-                  {policy.notes}
-                </div>
-              )}
-            </div>
+              愛犬の同伴条件（受け入れできる犬のサイズ、同伴できる場所、料金など）は変更されることがあります。
+              おでかけ前に公式サイトまたは現地の案内でご確認ください。
+            </p>
           </section>
         )}
 

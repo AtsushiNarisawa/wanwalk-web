@@ -109,16 +109,11 @@ function buildRouteFaq(
   ];
 
   if (dogOkCafes.length > 0) {
-    const terraceOnly = dogOkCafes.every((s) => s.dog_policy?.indoor === false && s.dog_policy?.terrace === true);
-    const indoorOk = dogOkCafes.some((s) => s.dog_policy?.indoor === true);
-    const styleNote = terraceOnly
-      ? "テラス席のみペット同伴可"
-      : indoorOk
-        ? "店内・テラスとも犬同伴OKの店舗あり"
-        : "ペット同伴可（席種は店舗により異なる）";
+    // ⚠️ 席種（店内/テラス）は書かない（2026-08-02 CEO 確定）。dog_policy 由来の同伴条件は
+    //    JSON-LD にも出さない。条件は店舗ごとに変わるため、公式・店舗への確認に一本化する。
     const sample = dogOkCafes[0].name;
     const countText = dogOkCafes.length === 1 ? `1店` : `${dogOkCafes.length}店`;
-    const q5Answer = `はい、${route.name}沿いには犬連れOKのカフェ・飲食スポットが${countText}あります（例: ${sample}）。${styleNote}。最新の同伴ルールは各店舗に直接ご確認ください。`;
+    const q5Answer = `はい、${route.name}沿いには犬連れOKのカフェ・飲食スポットが${countText}あります（例: ${sample}）。席種や同伴の条件は店舗により異なり変更されることもあるため、最新の同伴ルールは各店舗に直接ご確認ください。`;
     faqs.push({
       "@type": "Question",
       name: `${route.name}沿いに犬連れで入れるカフェ・レストランはありますか？`,

@@ -9,14 +9,16 @@
  *
  * ■ 構成
  *   写真 / 群バッジ＋カテゴリ / 施設名 / 施設の説明（description）/
- *   犬条件チップ（サイズ・同伴場所・リード必須等の短いラベル）/
  *   公式サイト（utm 付与＋outbound_click 計測）/
  *   ここから歩ける最寄りルート 3 本（距離付き・内部リンク）/ 確認日＋免責。
  *
- * ■ 載せないもの（いずれも 2026-07-28 に表示中止・DB は無変更＝可逆）
- *   - 価格帯・営業時間: 変動が早く欠損も多いため公式サイトへ一本化
- *   - 犬条件の全文（dog_policy.notes）: カードは「どんな施設か」＋見比べ用チップまでとし、
- *     詳細条件は公式サイトで確認してもらう。チップの生成には dog_policy を使い続ける。
+ * ■ 載せないもの（DB は無変更＝表示だけ止める可逆な対応）
+ *   - 価格帯・営業時間（2026-07-28）: 変動が早く欠損も多いため公式サイトへ一本化
+ *   - 犬条件の全文（dog_policy.notes）（2026-07-28）
+ *   - 犬の同伴条件そのもの（2026-08-02 CEO 確定）: 受入サイズ・同伴できる場所・
+ *     リード/キャリーの要否・ペット料金・ワクチン要件。施設ごとにばらつきがあり変わるため、
+ *     条件は一切載せずページ冒頭の一文で公式サイトへ誘導する。
+ *     dog_policy の取得・型は温存（表示だけ落とす）。
  */
 import Image from "next/image";
 import Link from "next/link";
@@ -26,9 +28,7 @@ import {
   DIRECTORY_GROUPS,
   DIRECTORY_CATEGORY_LABELS,
   buildOutboundUrl,
-  formatDirectoryDogChips,
   groupOfPlace,
-  isConditional,
 } from "@/lib/walks/directory-groups";
 import { formatSpotDistance } from "@/lib/walks/format";
 import { trackEvent } from "@/lib/analytics";
@@ -61,8 +61,6 @@ export default function DirectoryPlaceCard({
 }) {
   const group = groupOfPlace(place);
   const def = DIRECTORY_GROUPS[group];
-  const chips = formatDirectoryDogChips(place.dog_policy, place.category);
-  const conditional = isConditional(place.dog_policy);
   const nearest = place.nearest_routes ?? [];
 
   // 修正・削除依頼メール（件名に施設名＋utm_slug を自動付与）。全カード同一＝中立。
@@ -151,10 +149,7 @@ export default function DirectoryPlaceCard({
           {place.name}
         </h3>
 
-        {/* 施設の説明（description）。
-            読む順を「これは何の施設か」→「犬はどう入れるか」→「詳細条件」にするため、
-            施設名の直下・犬条件チップの上に置く。dog_policy.notes は下に残す（置換ではない）。
-            本文＝墨色 text-primary、補足の notes＝text-secondary で視覚的な主従をつける。
+        {/* 施設の説明（description）。「これは何の施設か」だけを伝える概要。
             全カード同一構造・全文表示（行数の切り詰めや「続きを読む」は入れない＝中立）。 */}
         {place.description && (
           <p
@@ -170,51 +165,12 @@ export default function DirectoryPlaceCard({
           </p>
         )}
 
-        {/* 犬条件: チップ + 条件付きマーカー */}
-        {(chips.length > 0 || conditional) && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {conditional && (
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: "var(--color-ww-text-secondary)",
-                  backgroundColor: "var(--color-ww-bg-tertiary)",
-                  borderRadius: "var(--radius-ww-sm)",
-                  padding: "3px 8px",
-                }}
-              >
-                条件付き
-              </span>
-            )}
-            {chips.map((c) => (
-              <span
-                key={c}
-                style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: "var(--color-ww-accent)",
-                  backgroundColor: "var(--color-ww-accent-soft)",
-                  borderRadius: "var(--radius-ww-sm)",
-                  padding: "3px 8px",
-                }}
-              >
-                {c}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* 犬条件の全文（dog_policy.notes）はカードに載せない（2026-07-28）。
-            カードは「どんな施設か（description）＋一目で見比べられる条件チップ」までとし、
-            詳細条件は公式サイトで確認してもらう方針。価格帯・営業時間と同じ扱いで、
-            DB の dog_policy は一切変更していない＝表示だけ止める可逆な対応。
-            ※ チップ（サイズ・同伴場所・リード必須・条件付き等）は dog_policy から
-              生成し続けるため、dog_policy への依存は残る。 */}
-
-        {/* 価格帯・営業時間はカードに載せない（2026-07-28）。
-            変動しやすい情報は公式サイトに一本化する方針。DB の price_range /
-            opening_hours とデータ取得は残してあるので、表示を戻すのは可逆。 */}
+        {/* 犬の同伴条件はカードに一切載せない（2026-08-02 CEO 確定）。
+            受入サイズ・同伴できる場所・リード/キャリーの要否・ペット料金・ワクチン要件は、
+            施設ごとにばらつきがあり変わるため、条件チップも条件付きマーカーも出さない。
+            誘導はページ冒頭の一文（/hakone/dog-map）＋各カードの「公式サイトを見る」に一本化する。
+            価格帯・営業時間・dog_policy.notes も同じ理由で非表示（2026-07-28）。
+            DB の dog_policy / price_range / opening_hours とデータ取得は温存＝表示だけ止める可逆な対応。 */}
 
         {/* 公式サイト・電話（流出導線。全施設同一スタイル＝中立） */}
         {(place.official_url || place.phone) && (

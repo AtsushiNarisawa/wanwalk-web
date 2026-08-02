@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Polyline, Polygon, Circle, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { RouteSpot, DogPolicy, RouteType } from "@/types/walks";
+import type { RouteSpot, RouteType } from "@/types/walks";
 
 // DESIGN_TOKENS.md §12-A
 const ACCENT = "#6B7F5B";
@@ -91,17 +91,10 @@ function buildSpotIcon(category: string): L.DivIcon {
   });
 }
 
-function formatDogPolicySummary(policy: DogPolicy): string {
-  const parts: string[] = [];
-  if (policy.size === "all") parts.push("全犬種OK");
-  else if (policy.size === "small_medium") parts.push("中型犬以下");
-  else if (policy.size === "small_only") parts.push("小型犬のみ");
-  if (policy.indoor) parts.push("店内OK");
-  if (policy.terrace) parts.push("テラスOK");
-  if (policy.leash_required) parts.push("リード必須");
-  if (policy.carrier_required) parts.push("キャリー必須");
-  return parts.join(" / ");
-}
+// 地図ポップアップの犬条件サマリ（formatDogPolicySummary）は 2026-08-02 の CEO 確定により撤去した。
+// 受入サイズ（全犬種OK 等）・同伴できる場所（店内/テラス）・リード/キャリーの要否を出していた。
+// 施設ごとにばらつきがあり変わるため、条件は載せず公式サイトで確認してもらう方針。
+// DB の dog_policy と型は温存＝表示だけ止める可逆な対応。
 
 // 半径円の外周上を8方位にサンプリング（fitBounds計算用）
 function circleBoundary(
@@ -292,9 +285,6 @@ export default function RouteMap({
         {/* スポットマーカー */}
         {spotsWithCoords.map((spot) => {
           const cat = CATEGORY_ICONS[spot.category ?? ""] ?? DEFAULT_ICON;
-          const policySummary = spot.dog_policy
-            ? formatDogPolicySummary(spot.dog_policy)
-            : null;
           return (
             <Marker
               key={spot.id}
@@ -306,21 +296,10 @@ export default function RouteMap({
                   <div style={{ fontSize: 11, fontWeight: 500, color: cat.color, marginBottom: 2, letterSpacing: "0.05em" }}>
                     {cat.label}
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#2A2A2A", marginBottom: policySummary ? 6 : 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#2A2A2A", marginBottom: 0 }}>
                     {spot.name}
                   </div>
-                  {policySummary && (
-                    <div style={{
-                      fontSize: 11,
-                      color: "#6B7F5B",
-                      backgroundColor: "#E8EDE1",
-                      padding: "3px 6px",
-                      borderRadius: 4,
-                      display: "inline-block",
-                    }}>
-                      {policySummary}
-                    </div>
-                  )}
+                  {/* 犬の同伴条件はポップアップに出さない（2026-08-02 CEO 確定）。 */}
                 </div>
               </Popup>
             </Marker>

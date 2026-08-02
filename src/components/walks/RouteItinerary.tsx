@@ -22,7 +22,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
 import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
-import type { RouteSpot, SpotCategory, DogPolicy } from "@/types/walks";
+import type { RouteSpot, SpotCategory } from "@/types/walks";
 import { trackEvent } from "@/lib/analytics";
 import { formatSpotDistance } from "@/lib/walks/format";
 
@@ -30,7 +30,7 @@ import { formatSpotDistance } from "@/lib/walks/format";
 // RouteItinerary: 「コースガイド（文字だけ）」と「おすすめスポット（写真は最下部）」を
 // 1本の "歩く順の写真旅程" に統合したコンポーネント。
 // - 見どころ系カテゴリ（viewpoint/cafe/restaurant/park/shop/dog_run/shrine_temple）で
-//   写真 or 説明があるスポット → 写真カード（写真・名前・距離・説明・犬同伴バッジ・季節キャプション）
+//   写真 or 説明があるスポット → 写真カード（写真・名前・距離・説明・季節キャプション）
 // - インフラ系（parking/restroom/water_station/landmark）→ 写真なしの小行（流れを切らない）
 // - 季節キャプション（seasonal_notes）は「あるものだけ」表示（DB 68件・現状サイト未表示）
 // ※ 構造化データ（page.tsx 側 itinerary/amenityFeature）とは独立。誠実性ルール: 季節は事実情報のみ。
@@ -79,57 +79,11 @@ function isLinkable(spot: RouteSpot): boolean {
   return true;
 }
 
-const SIZE_LABELS: Record<string, string> = {
-  all: "全犬種OK",
-  small_medium: "中型犬以下",
-  small_only: "小型犬のみ",
-};
-
-function DogPolicyBadge({ policy }: { policy: DogPolicy }) {
-  const tags: string[] = [];
-  if (policy.size) tags.push(SIZE_LABELS[policy.size] ?? policy.size);
-  if (policy.indoor && policy.terrace) tags.push("店内・テラスOK");
-  else if (policy.indoor) tags.push("店内OK");
-  else if (policy.terrace) tags.push("テラスのみ");
-  if (policy.leash_required) tags.push("リード必須");
-  if (policy.carrier_required) tags.push("キャリー必須");
-  if (policy.dog_fee && policy.dog_fee !== "無料") tags.push(policy.dog_fee);
-  if (tags.length === 0) return null;
-
-  return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
-      {tags.map((tag) => (
-        <span
-          key={tag}
-          style={{
-            fontSize: 12,
-            fontWeight: 500,
-            color: "var(--color-ww-accent)",
-            backgroundColor: "var(--color-ww-accent-soft)",
-            padding: "3px 8px",
-            borderRadius: "var(--radius-ww-sm)",
-            lineHeight: 1.4,
-          }}
-        >
-          {tag}
-        </span>
-      ))}
-      {policy.notes && (
-        <p
-          style={{
-            width: "100%",
-            fontSize: 12,
-            color: "var(--color-ww-text-secondary)",
-            lineHeight: 1.6,
-            marginTop: 2,
-          }}
-        >
-          {policy.notes}
-        </p>
-      )}
-    </div>
-  );
-}
+// 犬の同伴条件バッジ（DogPolicyBadge）は 2026-08-02 の CEO 確定により撤去した。
+// 受入サイズ（全犬種OK 等）・同伴できる場所（店内/テラス）・リード/キャリーの要否・
+// ペット料金（dog_fee の実額）・dog_policy.notes 全文を、いずれも旅程カードに出していた。
+// 施設ごとにばらつきがあり、しかも変わるため、条件は載せず公式サイトで確認してもらう。
+// DB の dog_policy と型（RouteSpot.dog_policy）は温存＝表示だけ止める可逆な対応。
 
 // 季節キャプション（あるものだけ・最大2件）。誠実性: 季節の見どころ情報という事実のみを記載。
 function SeasonalCaptions({ notes }: { notes: Record<string, string> | null }) {
@@ -490,8 +444,7 @@ function SpotCard({
       {/* 季節キャプション（あるものだけ） */}
       <SeasonalCaptions notes={spot.seasonal_notes} />
 
-      {/* 犬同伴ポリシー */}
-      {spot.dog_policy && <DogPolicyBadge policy={spot.dog_policy} />}
+      {/* 犬の同伴条件（dog_policy 由来のバッジ・notes）はここに出さない（2026-08-02 CEO 確定）。 */}
 
       {/* 詳細リンク */}
       {linkable && (

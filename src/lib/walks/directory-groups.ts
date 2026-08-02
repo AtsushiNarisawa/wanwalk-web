@@ -179,7 +179,20 @@ export function matchesActiveGroups(
   return groupsOfPlace(place).some((g) => active.has(g));
 }
 
-/** status='conditional'（条件付き）か。 */
+// ──────────────────────────────────────────────────────────────────────────
+// ⚠️ 以下（isConditional / formatDirectoryDogChips とその補助テーブル）は
+//    2026-08-02 の CEO 確定により、どの画面からも呼ばれていない。
+//
+//    「犬の同伴条件（受入サイズ・同伴できる場所・リード/キャリーの要否・ペット料金・
+//     ワクチン要件）は WanWalk のどのページにも載せない。条件はすべて公式サイトへ誘導する」
+//    施設ごとにばらつきがあり、しかも変わるため（feedback_no_volatile_shop_data の射程内）。
+//
+//    関数は削除せず残す＝方針が変わったときに配線し直すだけで戻せる状態にしておく。
+//    表示に戻すときは DirectoryPlaceCard / HakoneDogMap の呼び出しを復活させる。
+//    回帰ガードは test/directory-chips.test.ts（「条件が表示されないこと」を固定）。
+// ──────────────────────────────────────────────────────────────────────────
+
+/** status='conditional'（条件付き）か。※現在どの画面でも未使用（上記コメント参照）。 */
 export function isConditional(policy: DirectoryDogPolicy | null | undefined): boolean {
   return policy?.status === "conditional";
 }
@@ -265,8 +278,9 @@ function formatDogSizeChip(
 
 /**
  * dog_policy → 一目で分かる短い事実チップの配列。
- * 誇張しない・断定しない。詳細は公式サイトで確認してもらう。
  * category により語彙を業態に合わせる（VENUE_VOCAB / SIZE_CHIP_EXCLUDED_CATEGORIES）。
+ *
+ * ⚠️ 2026-08-02 CEO 確定により、この関数の出力はどの画面にも表示していない（上記ブロックコメント参照）。
  */
 export function formatDirectoryDogChips(
   policy: DirectoryDogPolicy | null | undefined,

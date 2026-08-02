@@ -9,6 +9,8 @@
  * - 初期表示は「全 hakone 施設」の fitBounds（マウント時 1 回・仙石原中心化しない）。
  * - フィルタ変更では再フィットせず、表示するピンだけ絞る（視点が飛ばないように）。
  * - ピンクリックで onSelectPlace を呼び、親がカードへスクロールする。
+ * - ポップアップに犬の同伴条件は出さない（2026-08-02 CEO 確定）。カードと同じ扱いで、
+ *   条件チップ・「条件付き犬連れ可」の表示を落とし、公式サイトリンクへ誘導する。
  */
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
@@ -20,10 +22,8 @@ import {
   DIRECTORY_GROUPS,
   DIRECTORY_CATEGORY_LABELS,
   buildOutboundUrl,
-  formatDirectoryDogChips,
   groupOfPlace,
   matchesActiveGroups,
-  isConditional,
 } from "@/lib/walks/directory-groups";
 import { trackEvent } from "@/lib/analytics";
 
@@ -136,7 +136,6 @@ export default function HakoneDogMap({
         {visible.map((place) => {
           const group = groupOfPlace(place);
           const def = DIRECTORY_GROUPS[group];
-          const chips = formatDirectoryDogChips(place.dog_policy, place.category);
           return (
             <Marker
               key={place.id}
@@ -177,12 +176,8 @@ export default function HakoneDogMap({
                   >
                     {place.name}
                   </div>
-                  {(chips.length > 0 || isConditional(place.dog_policy)) && (
-                    <div style={{ fontSize: 11, color: "var(--color-ww-text-secondary)", marginBottom: 8 }}>
-                      {isConditional(place.dog_policy) ? "条件付き犬連れ可" : "犬連れ可"}
-                      {chips.length > 0 ? ` ・ ${chips.join(" / ")}` : ""}
-                    </div>
-                  )}
+                  {/* 犬の同伴条件（サイズ・同伴場所・リード/キャリー・料金・条件付き表示）は
+                      ポップアップにも出さない（2026-08-02 CEO 確定）。条件は公式サイトで確認してもらう。 */}
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     {onSelectPlace && (
                       <button
