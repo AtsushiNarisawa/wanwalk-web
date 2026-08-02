@@ -184,16 +184,89 @@ export function isConditional(policy: DirectoryDogPolicy | null | undefined): bo
   return policy?.status === "conditional";
 }
 
+/**
+ * 受入サイズのバケット → チップ。
+ *
+ * ⚠️ 'all' を「全犬種OK」と出していたのを 2026-08-02 に改めた（箱根DMO14施設 点検 第4章(2)）。
+ *   この欄が持っているのは犬の「サイズ」であって「犬種」ではない。仙石高原一の湯（11犬種不可）・
+ *   ポイントバケーション箱根（秋田犬/闘犬不可）・リトナ箱根（特定犬種不可）のように、
+ *   大型犬は可でも犬種で断っている施設が複数あり、「全犬種OK」は施設が読めば誤りと分かる。
+ */
 const SIZE_LABELS: Record<string, string> = {
-  all: "全犬種OK",
+  all: "大型犬も可",
   small_medium: "中型犬まで",
   small_only: "小型犬のみ",
 };
 
 /**
+ * サイズが不明なときのチップ。
+ *
+ * 以前は「不明なら何も出さない」だったが、それだと編集者が「何も出ないのは寂しい」と感じて
+ * 根拠なく 'all'（＝制限なし）を選ぶ圧力になっていた。**「情報がない」を黙って消さず、
+ * 「制限がない」と区別して見せる**のがこのチップの目的。
+ */
+const SIZE_UNKNOWN_LABEL = "サイズは要確認";
+
+// 動物病院は受診が前提で、「犬の受入サイズ」という概念がない。サイズのチップ自体を出さない。
+const SIZE_CHIP_EXCLUDED_CATEGORIES: ReadonlySet<DirectoryCategory> = new Set<DirectoryCategory>([
+  "animal_hospital",
+]);
+
+/**
+ * 「どこまで同伴できるか」の言い回し（indoor / terrace の組み合わせ → 表示語）。
+ *
+ * ⚠️ 業態ごとに語彙を分けるのがこの表の存在理由（2026-08-02 箱根DMO14施設 点検 第4章(1)）。
+ *   以前は accommodation か否かの 2 分岐しかなく、宿以外はすべて飲食店の語彙
+ *   （「店内」「テラス」）で処理していた。その結果、80,000㎡の芝生公園（富士芦ノ湖パノラマパーク）・
+ *   美術館（ポーラ／成川）・遊覧船（箱根遊船）・温泉（箱根の湯）・足湯（箱根の森足湯）にまで
+ *   「テラスのみ」「店内・テラスOK」が出ていた。テラス席という概念が無い業態に、
+ *   テラス席のラベルが機械的に付いていた状態。
+ *
+ *   「テラス」「店内」の語を使ってよいのは飲食（cafe / restaurant）と物販（shop）だけ。
+ *   観光・温泉・足湯・ドッグラン・動物病院は、屋内/屋外という中立語彙で表す。
+ */
+type VenueVocab = {
+  both: string; // indoor=true かつ terrace=true
+  indoor: string; // indoor=true のみ
+  outdoor: string; // terrace=true のみ（indoor は false / 不明）
+};
+
+const VENUE_VOCAB: Record<DirectoryCategory, VenueVocab> = {
+  accommodation: { both: "客室・屋外OK", indoor: "客室同伴可", outdoor: "屋外スペースOK" },
+  cafe: { both: "店内・テラスOK", indoor: "店内OK", outdoor: "テラスのみ" },
+  restaurant: { both: "店内・テラスOK", indoor: "店内OK", outdoor: "テラスのみ" },
+  shop: { both: "店内・屋外OK", indoor: "店内OK", outdoor: "屋外スペースのみ" },
+  // 以下は「テラス席」が存在しない業態。屋内/屋外の中立語彙のみを使う。
+  // both と indoor が同じ文言なのは意図的（屋内に入れることが伝われば十分で、
+  // 屋外の可否をわざわざ足すと「テラス席がある」という誤読を招くため）。
+  sightseeing: { both: "屋内も同伴可", indoor: "屋内も同伴可", outdoor: "屋外エリアのみ" },
+  onsen: { both: "屋内も同伴可", indoor: "屋内も同伴可", outdoor: "屋外エリアのみ" },
+  footbath: { both: "屋内も同伴可", indoor: "屋内も同伴可", outdoor: "屋外エリアのみ" },
+  dog_run: { both: "屋内も同伴可", indoor: "屋内も同伴可", outdoor: "屋外エリアのみ" },
+  animal_hospital: { both: "屋内も同伴可", indoor: "屋内も同伴可", outdoor: "屋外エリアのみ" },
+};
+
+/** サイズのチップ 1 個（出さない場合は null）。size_note > size バケット > 要確認 の優先順。 */
+function formatDogSizeChip(
+  policy: DirectoryDogPolicy,
+  category: DirectoryCategory
+): string | null {
+  if (SIZE_CHIP_EXCLUDED_CATEGORIES.has(category)) return null;
+
+  // 公式が示す上限をそのまま出せる逃げ道（4値のバケットに収まらない施設用）。
+  const note = policy.size_note?.trim();
+  if (note) return note;
+
+  if (policy.size && SIZE_LABELS[policy.size]) return SIZE_LABELS[policy.size];
+
+  // 'unknown' / null / 未知値 = 公式に記載がない。断定せず「要確認」と見せる。
+  return SIZE_UNKNOWN_LABEL;
+}
+
+/**
  * dog_policy → 一目で分かる短い事実チップの配列。
- * 誇張しない・断定しない（情報が無い項目は出さない）。詳細は notes 全文で補う。
- * category により「店内/客室」のラベルを文脈に合わせる。
+ * 誇張しない・断定しない。詳細は公式サイトで確認してもらう。
+ * category により語彙を業態に合わせる（VENUE_VOCAB / SIZE_CHIP_EXCLUDED_CATEGORIES）。
  */
 export function formatDirectoryDogChips(
   policy: DirectoryDogPolicy | null | undefined,
@@ -202,17 +275,17 @@ export function formatDirectoryDogChips(
   if (!policy) return [];
   const chips: string[] = [];
 
-  // サイズ（unknown は出さない）
-  if (policy.size && SIZE_LABELS[policy.size]) chips.push(SIZE_LABELS[policy.size]);
+  const sizeChip = formatDogSizeChip(policy, category);
+  if (sizeChip) chips.push(sizeChip);
 
-  // 同伴できる場所（カテゴリで文言を変える）
-  const isStay = category === "accommodation";
+  // 同伴できる場所（業態ごとの語彙で）
+  const vocab = VENUE_VOCAB[category] ?? VENUE_VOCAB.sightseeing;
   if (policy.indoor === true && policy.terrace === true) {
-    chips.push(isStay ? "客室・屋外OK" : "店内・テラスOK");
+    chips.push(vocab.both);
   } else if (policy.indoor === true) {
-    chips.push(isStay ? "客室同伴可" : "店内OK");
+    chips.push(vocab.indoor);
   } else if (policy.terrace === true) {
-    chips.push(isStay ? "屋外スペースOK" : "テラスのみ");
+    chips.push(vocab.outdoor);
   }
 
   if (policy.leash_required === true) chips.push("リード必須");

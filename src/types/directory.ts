@@ -29,7 +29,16 @@ export type DirectoryDogStatus = "ok" | "conditional";
 
 // route_spots の DogPolicy より広い。各 bool は null（情報なし）を取りうる。
 export interface DirectoryDogPolicy {
+  // 受入サイズの「バケット」。4値しか無いため、実際の上限（30kg以下・大型犬不可 等）は
+  // 表現できない。バケットに収まらない施設は size='unknown' + size_note を使う。
+  // ⚠️ 'all' は「大型犬まで受け入れる」の意。犬"種"の無制限を意味しない
+  //    （多くの宿が土佐犬・秋田犬等を除外している）。公式がサイズに言及していない施設は
+  //    'all' ではなく 'unknown' にする（＝「情報がない」と「制限がない」を混ぜない）。
   size?: DirectoryDogSize | null;
+  // 公式が示している受入上限を、そのまま出せる短い文字列（例: "30kg以下" / "一部客室は大型犬不可"）。
+  // 値があれば size バケットより優先してチップに出す。無ければ null/未設定のままでよい
+  // （後方互換: 未設定なら従来どおり size バケットで表示される）。
+  size_note?: string | null;
   status?: DirectoryDogStatus | null;
   indoor?: boolean | null;
   terrace?: boolean | null;
