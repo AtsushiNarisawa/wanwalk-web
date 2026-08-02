@@ -57,6 +57,11 @@ const CATEGORY_CONFIG: Record<SpotCategory, { icon: Icon; label: string }> = {
 // 撤去したもの: SIZE_LABELS（全犬種OK / 中型犬以下 / 小型犬のみ）、「犬連れ情報」の
 // 対象犬種・店内・テラス席・リード・キャリー・犬料金・notes、FAQ の「大型犬も利用できますか？」
 // 「テラス席はありますか？」と Q1 内の条件列挙。
+//
+// 営業時間・価格帯も同じ理由で非表示（2026-07-28 CEO 決定。箱根 dog-map では同日撤去済みだったが、
+// このページに適用漏れが残っていたのを 2026-08-03 に回収）。「基本情報」の営業時間・価格帯の行と、
+// JSON-LD の openingHours を外した。DB のカラム・SELECT（getSpotBySlug は SELECT *）・
+// 型定義（RouteSpot.opening_hours / price_range）は温存＝表示だけ止める可逆な対応。
 
 export async function generateStaticParams() {
   try {
@@ -346,53 +351,51 @@ export default async function SpotDetailPage({
           </section>
         )}
 
-        {/* 基本情報 */}
-        <section style={{ marginBottom: 32 }}>
-          <h2
-            className="ww-serif"
-            style={{
-              fontFamily: "var(--font-ww-serif)",
-              fontSize: 18,
-              fontWeight: 600,
-              color: "var(--color-ww-text)",
-              marginBottom: 16,
-            }}
-          >
-            基本情報
-          </h2>
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-            style={{ fontSize: 14 }}
-          >
-            {spot.opening_hours && (
-              <InfoRow label="営業時間" value={spot.opening_hours} />
-            )}
-            {spot.phone && <InfoRow label="電話" value={spot.phone} />}
-            {spot.price_range && (
-              <InfoRow label="価格帯" value={spot.price_range} />
-            )}
-            {spot.website_url && (
-              <div className="flex items-start gap-2">
-                <span
-                  style={{
-                    color: "var(--color-ww-text-secondary)",
-                    minWidth: 80,
-                  }}
-                >
-                  公式サイト
-                </span>
-                <a
-                  href={spot.website_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "var(--color-ww-accent)" }}
-                >
-                  公式サイトを見る
-                </a>
-              </div>
-            )}
-          </div>
-        </section>
+        {/* 基本情報。
+            営業時間・価格帯は非表示（2026-07-28 CEO 決定）。残るのは電話と公式サイトのみなので、
+            どちらも無いスポットでは見出しだけが残らないようセクションごと出さない。 */}
+        {(spot.phone || spot.website_url) && (
+          <section style={{ marginBottom: 32 }}>
+            <h2
+              className="ww-serif"
+              style={{
+                fontFamily: "var(--font-ww-serif)",
+                fontSize: 18,
+                fontWeight: 600,
+                color: "var(--color-ww-text)",
+                marginBottom: 16,
+              }}
+            >
+              基本情報
+            </h2>
+            <div
+              className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+              style={{ fontSize: 14 }}
+            >
+              {spot.phone && <InfoRow label="電話" value={spot.phone} />}
+              {spot.website_url && (
+                <div className="flex items-start gap-2">
+                  <span
+                    style={{
+                      color: "var(--color-ww-text-secondary)",
+                      minWidth: 80,
+                    }}
+                  >
+                    公式サイト
+                  </span>
+                  <a
+                    href={spot.website_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--color-ww-accent)" }}
+                  >
+                    公式サイトを見る
+                  </a>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* このスポットを通るルート */}
         <section style={{ marginBottom: 32 }}>
@@ -508,9 +511,8 @@ export default async function SpotDetailPage({
                 }
               : {}),
             ...(spot.photo_url ? { image: spot.photo_url } : {}),
-            ...(spot.opening_hours
-              ? { openingHours: spot.opening_hours }
-              : {}),
+            // openingHours / priceRange は出さない（2026-07-28 CEO 決定）。
+            // JSON-LD は本文と同じ扱いで、書くと検索結果・AI 回答に転載される。
             ...(spot.phone ? { telephone: spot.phone } : {}),
             ...(spot.website_url ? { url: spot.website_url } : {}),
             ...(spot.pet_friendly
