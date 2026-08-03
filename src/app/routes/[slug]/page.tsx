@@ -77,7 +77,7 @@ function buildRouteFaq(
     const supplement = parkingSpots.length > 0 ? `（コース上の駐車場目印: ${parkingSpots.slice(0, 2).join("・")}）` : "";
     q2Answer = `${petInfo.parking}。${supplement}`.trim();
   } else if (parkingSpots.length > 0) {
-    q2Answer = `コース上の駐車場目印: ${parkingSpots.slice(0, 2).join("・")}。詳細は現地でご確認ください。`;
+    q2Answer = `コース上の駐車場目印: ${parkingSpots.slice(0, 2).join("・")}。`;
   } else {
     q2Answer = "公式の駐車場情報は登録されていません。最寄りの有料駐車場をご利用ください。";
   }
@@ -110,10 +110,11 @@ function buildRouteFaq(
 
   if (dogOkCafes.length > 0) {
     // ⚠️ 席種（店内/テラス）は書かない（2026-08-02 CEO 確定）。dog_policy 由来の同伴条件は
-    //    JSON-LD にも出さない。条件は店舗ごとに変わるため、公式・店舗への確認に一本化する。
+    //    JSON-LD にも出さない。「各店舗に直接ご確認ください」等の確認喚起も対象
+    //    （2026-08-03 追加確定・散歩側には誘導先の店舗URLが実質存在しないため）。
     const sample = dogOkCafes[0].name;
     const countText = dogOkCafes.length === 1 ? `1店` : `${dogOkCafes.length}店`;
-    const q5Answer = `はい、${route.name}沿いには犬連れOKのカフェ・飲食スポットが${countText}あります（例: ${sample}）。席種や同伴の条件は店舗により異なり変更されることもあるため、最新の同伴ルールは各店舗に直接ご確認ください。`;
+    const q5Answer = `はい、${route.name}沿いには犬連れOKのカフェ・飲食スポットが${countText}あります（例: ${sample}）。`;
     faqs.push({
       "@type": "Question",
       name: `${route.name}沿いに犬連れで入れるカフェ・レストランはありますか？`,

@@ -21,7 +21,7 @@ import {
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
 import { getAllSpotSlugs, getSpotBySlug } from "@/lib/walks/data";
 import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
-import type { SpotCategory, DogPolicy } from "@/types/walks";
+import type { SpotCategory } from "@/types/walks";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import ShareMenu from "@/components/walks/ShareMenu";
 import TrustByline from "@/components/walks/TrustByline";
@@ -52,11 +52,16 @@ const CATEGORY_CONFIG: Record<SpotCategory, { icon: Icon; label: string }> = {
 
 // 犬の同伴条件（受入サイズ・同伴できる場所・リード/キャリーの要否・ペット料金・
 // ワクチン要件）は、このページのどこにも出さない（2026-08-02 CEO 確定）。
-// 施設ごとにばらつきがあり、しかも変わるため。本文・FAQ（JSON-LD）・meta の3箇所すべてから外し、
-// 公式サイトへの誘導に一本化する。DB の dog_policy と型は温存＝表示だけ止める可逆な対応。
+// 施設ごとにばらつきがあり、しかも変わるため。本文・FAQ（JSON-LD）・meta の3箇所すべてから外した。
+// DB の dog_policy と型は温存＝表示だけ止める可逆な対応。
 // 撤去したもの: SIZE_LABELS（全犬種OK / 中型犬以下 / 小型犬のみ）、「犬連れ情報」の
 // 対象犬種・店内・テラス席・リード・キャリー・犬料金・notes、FAQ の「大型犬も利用できますか？」
 // 「テラス席はありますか？」と Q1 内の条件列挙。
+//
+// 2026-08-03 追加: 「犬連れ情報」欄を丸ごと撤去し、「公式サイト/現地でご確認ください」型の
+// 誘導文・確認喚起も全廃した（本文・FAQ両方）。散歩側（route_spots）には誘導先が実質存在しない
+// （website_url 充足率 1/602・phone 0/602）ため、誘導文自体が実体の無い案内だった。
+// 施設紹介である箱根 dog-map（directory_places）は誘導先が 46/46 実在するため対象外・据え置き。
 //
 // 営業時間・価格帯も同じ理由で非表示（2026-07-28 CEO 決定。箱根 dog-map では同日撤去済みだったが、
 // このページに適用漏れが残っていたのを 2026-08-03 に回収）。「基本情報」の営業時間・価格帯の行と、
@@ -136,18 +141,19 @@ export default async function SpotDetailPage({
     ? CATEGORY_CONFIG[spot.category as SpotCategory]
     : null;
   const CatIcon = catConfig?.icon;
-  const policy = spot.dog_policy as DogPolicy | null;
   // updated_at / created_at は SELECT * で取得済みだが型に無いため runtime で参照。
   const spotDates = spot as unknown as { updated_at?: string; created_at?: string };
 
   // FAQ items for structured data
-  // ⚠️ 個別の同伴条件は答えに含めない（2026-08-02 CEO 確定）。JSON-LD は本文と同じ扱いで、
-  //    条件を書くと検索結果・AI 回答に条件が転載される。誘導先は公式サイトに一本化する。
+  // ⚠️ 個別の同伴条件・確認喚起（「公式サイト/現地でご確認ください」等）は答えに含めない
+  //    （2026-08-02 CEO 確定・2026-08-03 誘導文も対象と確定）。JSON-LD は本文と同じ扱いで、
+  //    条件や誘導文を書くと検索結果・AI 回答に転載される。散歩側（route_spots）には誘導先の
+  //    公式URLが実質存在しない（website_url 充足率 1/602）ため、誘導文自体が不誠実だった。
   const faqItems: { q: string; a: string }[] = [];
   if (spot.pet_friendly) {
     faqItems.push({
       q: `${spot.name}は犬連れで入れますか？`,
-      a: `はい、${spot.name}は愛犬と一緒に利用できます。受け入れできる犬のサイズや同伴できる場所などの条件は変更されることがあるため、おでかけ前に公式サイトでご確認ください。`,
+      a: `はい、${spot.name}は愛犬と一緒に利用できます。`,
     });
   }
 
@@ -314,42 +320,12 @@ export default async function SpotDetailPage({
           </section>
         )}
 
-        {/* 犬連れ情報。
-            条件そのもの（対象犬種・店内/テラス・リード・キャリー・犬料金・notes）は
-            2026-08-02 の CEO 確定により非表示。ここは公式サイトへの誘導だけを残す。 */}
-        {policy && (
-          <section
-            style={{
-              marginBottom: 32,
-              padding: 24,
-              backgroundColor: "var(--color-ww-bg-tertiary)",
-              borderRadius: "var(--radius-ww-md)",
-            }}
-          >
-            <h2
-              className="ww-serif"
-              style={{
-                fontFamily: "var(--font-ww-serif)",
-                fontSize: 18,
-                fontWeight: 600,
-                color: "var(--color-ww-text)",
-                marginBottom: 16,
-              }}
-            >
-              犬連れ情報
-            </h2>
-            <p
-              style={{
-                fontSize: 14,
-                lineHeight: 1.8,
-                color: "var(--color-ww-text-secondary)",
-                margin: 0,
-              }}
-            >
-              {"愛犬の同伴条件（受け入れできる犬のサイズ、同伴できる場所、料金など）は変更されることがあります。おでかけ前に公式サイトまたは現地の案内でご確認ください。"}
-            </p>
-          </section>
-        )}
+        {/* 犬連れ情報セクションは撤去（2026-08-03 CEO 確定）。
+            従来この欄は DB の dog_policy を一切描画せず、`dog_policy が非 null` を表示条件にした
+            固定の「公式サイト/現地でご確認ください」文言を出すだけだった。散歩側（route_spots）には
+            誘導先の公式URLが実質存在しない（website_url 充足率 1/602）ため、ブロックごと削除した。
+            DB の dog_policy カラム・型（DogPolicy）・SELECT（getSpotBySlug は SELECT *）は温存＝
+            表示だけ止める可逆な対応。 */}
 
         {/* 基本情報。
             営業時間・価格帯は非表示（2026-07-28 CEO 決定）。残るのは電話と公式サイトのみなので、
