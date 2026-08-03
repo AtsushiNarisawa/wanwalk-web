@@ -14,7 +14,7 @@ import RouteFeedback from "@/components/walks/RouteFeedback";
 import RouteMapWrapper from "@/components/walks/RouteMapWrapper";
 import GoogleMapEmbed from "@/components/walks/GoogleMapEmbed";
 import SpecBar from "@/components/walks/SpecBar";
-import PetInfoGrid from "@/components/walks/PetInfoGrid";
+import PetInfoGrid, { hasPetInfoContent } from "@/components/walks/PetInfoGrid";
 import RouteActions from "@/components/walks/RouteActions";
 import RouteItinerary from "@/components/walks/RouteItinerary";
 import SeasonHighlight from "@/components/walks/SeasonHighlight";
@@ -548,8 +548,11 @@ export default async function RouteDetailPage({
         </section>
       )}
 
-      {/* 犬連れメモ（施策④ アイコングリッド） */}
-      {petInfo && (
+      {/* 犬連れメモ（施策④ アイコングリッド）。
+          pet_info はキー単位で空にする運用があるため、petInfo が非nullでも
+          実際に描画する項目が0件なら見出しだけの空枠になる。
+          hasPetInfoContent で中身の有無を判定してから見出しごと非表示にする（2026-08-03）。 */}
+      {petInfo && hasPetInfoContent(petInfo) && (
         <section style={{ marginBottom: 48 }}>
           <h2
             style={{

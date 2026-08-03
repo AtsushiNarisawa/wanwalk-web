@@ -25,6 +25,22 @@ function seasonIcon(value: string): PhosphorIcon {
   return Leaf;
 }
 
+// PetInfoGrid が実際に描画する項目が1件でもあるか。
+// DB側で tips/pet_info の一部キーを空にする運用があるため、
+// 呼び出し元（見出し付きラッパー）はこの判定で表示可否を揃える（2026-08-03）。
+export function hasPetInfoContent(petInfo: PetInfo | null | undefined): boolean {
+  if (!petInfo) return false;
+  return Boolean(
+    petInfo.parking ||
+      petInfo.restroom ||
+      petInfo.water_station ||
+      petInfo.pet_facilities ||
+      petInfo.surface ||
+      petInfo.best_season ||
+      petInfo.stairs
+  );
+}
+
 export default function PetInfoGrid({ petInfo }: Props) {
   type Item = { label: string; value: string; Icon: PhosphorIcon };
   const items: Item[] = [];
