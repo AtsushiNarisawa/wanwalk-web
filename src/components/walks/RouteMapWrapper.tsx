@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { RouteSpot, RouteType } from "@/types/walks";
+import type { RouteMapSpot, RouteType } from "@/types/walks";
 
 const RouteMap = dynamic(() => import("@/components/walks/RouteMap"), { ssr: false });
 
@@ -10,7 +10,7 @@ interface RouteMapWrapperProps {
   startLat: number;
   startLng: number;
   routeName: string;
-  spots?: RouteSpot[];
+  spots?: RouteMapSpot[];
   routeType?: RouteType;
   areaPolygon?: [number, number][] | null;
   areaCenterLat?: number | null;

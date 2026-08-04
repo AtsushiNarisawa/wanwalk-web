@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Polyline, Polygon, Circle, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { RouteSpot, RouteType } from "@/types/walks";
+import type { RouteMapSpot, RouteType } from "@/types/walks";
 
 // DESIGN_TOKENS.md §12-A
 const ACCENT = "#6B7F5B";
@@ -139,7 +139,7 @@ interface RouteMapProps {
   startLat: number;
   startLng: number;
   routeName: string;
-  spots?: RouteSpot[];
+  spots?: RouteMapSpot[];
   routeType?: RouteType;
   areaPolygon?: [number, number][] | null;
   areaCenterLat?: number | null;

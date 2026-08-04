@@ -163,6 +163,29 @@ export interface RouteSpot {
   lng: number | null;
 }
 
+// RSC ペイロード漏れ対策（2026-08-04）: RouteItinerary / RouteMapWrapper は
+// Client Component のため、渡した prop は丸ごとハイドレーション用ペイロードに
+// シリアライズされる。画面に描かれない dog_policy / opening_hours / price_range /
+// phone / website_url 等を渡さないよう、実際に参照するフィールドだけに絞った型。
+// spots 自体（フル取得）は route_spots_with_latlng の select("*") のまま維持し、
+// サーバー側の FAQ 生成・JSON-LD ではフル情報を使う（app/routes/[slug]/page.tsx 参照）。
+export type RouteItinerarySpot = Pick<
+  RouteSpot,
+  | "id"
+  | "slug"
+  | "name"
+  | "description"
+  | "category"
+  | "photo_url"
+  | "photo_metadata"
+  | "seasonal_notes"
+  | "distance_from_start"
+  | "spot_order"
+  | "is_optional"
+>;
+
+export type RouteMapSpot = Pick<RouteSpot, "id" | "lat" | "lng" | "category" | "name">;
+
 export interface RouteWithArea extends OfficialRoute {
   areas: Area;
 }

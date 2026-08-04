@@ -22,7 +22,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
 import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
-import type { RouteSpot, SpotCategory } from "@/types/walks";
+import type { RouteItinerarySpot, SpotCategory } from "@/types/walks";
 import { trackEvent } from "@/lib/analytics";
 import { formatSpotDistance } from "@/lib/walks/format";
 
@@ -73,7 +73,7 @@ const SEASON_NOTE_META: Record<string, { label: string; Icon: Icon }> = {
 };
 const SEASON_NOTE_ORDER = ["spring", "summer", "autumn", "winter", "newyear", "sunset", "all_year"];
 
-function isLinkable(spot: RouteSpot): boolean {
+function isLinkable(spot: RouteItinerarySpot): boolean {
   if (!spot.slug) return false;
   if (spot.category && NON_SEO_SPOT_CATEGORIES.has(spot.category)) return false;
   return true;
@@ -130,14 +130,14 @@ function SeasonalCaptions({ notes }: { notes: Record<string, string> | null }) {
 }
 
 interface RouteItineraryProps {
-  spots: RouteSpot[];
+  spots: RouteItinerarySpot[];
   isArea?: boolean;
   routeSlug?: string;
 }
 
 type Surface = "title" | "photo" | "detail_cta" | "timeline" | "area_highlight";
 
-function trackSpotClick(spot: RouteSpot, routeSlug: string | undefined, surface: Surface) {
+function trackSpotClick(spot: RouteItinerarySpot, routeSlug: string | undefined, surface: Surface) {
   trackEvent("spot_card_click", {
     spot_slug: spot.slug ?? undefined,
     spot_category: spot.category ?? undefined,
@@ -155,7 +155,7 @@ export default function RouteItinerary({ spots, isArea = false, routeSlug }: Rou
 }
 
 // ── line型: 歩く順（distance_from_start）の番号付き写真旅程 ──────────────
-function LineItinerary({ spots, routeSlug }: { spots: RouteSpot[]; routeSlug?: string }) {
+function LineItinerary({ spots, routeSlug }: { spots: RouteItinerarySpot[]; routeSlug?: string }) {
   const sorted = [...spots]
     .filter((s) => !s.is_optional)
     .sort((a, b) => (a.distance_from_start ?? 0) - (b.distance_from_start ?? 0));
@@ -269,7 +269,7 @@ function LineItinerary({ spots, routeSlug }: { spots: RouteSpot[]; routeSlug?: s
 }
 
 // ── area型: 順序なしの写真カード（番号・距離なし。is_optional は視覚で区別） ──
-function AreaItinerary({ spots, routeSlug }: { spots: RouteSpot[]; routeSlug?: string }) {
+function AreaItinerary({ spots, routeSlug }: { spots: RouteItinerarySpot[]; routeSlug?: string }) {
   const ordered = [...spots].sort((a, b) => {
     if (a.is_optional !== b.is_optional) return a.is_optional ? 1 : -1;
     return (a.spot_order ?? 0) - (b.spot_order ?? 0);
@@ -315,7 +315,7 @@ function SpotCard({
   routeSlug,
   showDistance,
 }: {
-  spot: RouteSpot;
+  spot: RouteItinerarySpot;
   photoUrl: string | null;
   routeSlug?: string;
   showDistance: boolean;
@@ -477,7 +477,7 @@ function SpotRow({
   routeSlug,
   showDistance,
 }: {
-  spot: RouteSpot;
+  spot: RouteItinerarySpot;
   routeSlug?: string;
   showDistance: boolean;
 }) {

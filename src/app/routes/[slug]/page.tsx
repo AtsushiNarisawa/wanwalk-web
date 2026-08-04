@@ -8,6 +8,8 @@ import {
   getRouteSpots,
   getRouteLineCoordinates,
   getRouteAreaInfo,
+  toItinerarySpot,
+  toMapSpot,
 } from "@/lib/walks/data";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import RouteFeedback from "@/components/walks/RouteFeedback";
@@ -231,6 +233,16 @@ export default async function RouteDetailPage({
     getRouteLineCoordinates(route.id),
     getRouteAreaInfo(route.id),
   ]);
+
+  // RSC ペイロード漏れ対策（2026-08-04）: RouteItinerary / RouteMapWrapper は
+  // Client Component なので、渡した prop はハイドレーション用ペイロードにまるごと
+  // シリアライズされる。dog_policy / opening_hours / price_range / phone /
+  // website_url 等の非表示フィールドを渡さないよう、表示に使う列だけへ絞る
+  // （lib/walks/data.ts の toItinerarySpot / toMapSpot）。
+  // spots（フル取得）自体はこの下の FAQ 生成・JSON-LD の itinerary/amenityFeature で
+  // 引き続き使うためそのまま保持する。
+  const itinerarySpots = spots.map(toItinerarySpot);
+  const mapSpots = spots.map(toMapSpot);
 
   const isArea = route.route_type === "area";
   const isSubmission = route.origin === "submission";
@@ -486,7 +498,7 @@ export default async function RouteDetailPage({
           startLat={route.start_lat}
           startLng={route.start_lng}
           routeName={route.name}
-          spots={spots}
+          spots={mapSpots}
           routeType={route.route_type}
           areaPolygon={areaInfo?.area_polygon ?? null}
           areaCenterLat={areaInfo?.area_center_lat ?? null}
@@ -525,7 +537,7 @@ export default async function RouteDetailPage({
           >
             コースガイド
           </h2>
-          <RouteItinerary spots={spots} isArea={false} routeSlug={route.slug} />
+          <RouteItinerary spots={itinerarySpots} isArea={false} routeSlug={route.slug} />
         </section>
       )}
 
@@ -544,7 +556,7 @@ export default async function RouteDetailPage({
           >
             見どころ
           </h2>
-          <RouteItinerary spots={spots} isArea={true} routeSlug={route.slug} />
+          <RouteItinerary spots={itinerarySpots} isArea={true} routeSlug={route.slug} />
         </section>
       )}
 

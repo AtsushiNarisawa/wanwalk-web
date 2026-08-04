@@ -1,7 +1,16 @@
 import { cache } from "react";
 import { wanwalkSupabase as supabase } from "./supabase";
 import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
-import type { Area, OfficialRoute, RouteSpot, RouteWithArea, SpotWithRoute, RouteAreaInfo } from "@/types/walks";
+import type {
+  Area,
+  OfficialRoute,
+  RouteSpot,
+  RouteWithArea,
+  SpotWithRoute,
+  RouteAreaInfo,
+  RouteItinerarySpot,
+  RouteMapSpot,
+} from "@/types/walks";
 import { HAKONE_SUB_AREA_ORDER } from "./area-taxonomy";
 
 const NON_SEO_CATEGORIES_ARR = Array.from(NON_SEO_SPOT_CATEGORIES);
@@ -73,7 +82,10 @@ export async function getRoutesByAreaId(
   const { data, error } = await supabase
     .from("official_routes")
     .select(
-      "id, area_id, name, slug, description, difficulty_level, distance_meters, estimated_minutes, thumbnail_url, pet_info, total_pins, total_walks, is_published, cart_friendly, season_tags, start_location"
+      // pet_info は除外（2026-08-04）: この結果は RouteCard（Client Component）へ渡るため、
+      // 未表示フィールドを RSC ペイロードに含めない。pet_info を必要とするのは
+      // getRouteBySlug（ルート詳細ページのサーバー側レンダリング）のみ。
+      "id, area_id, name, slug, description, difficulty_level, distance_meters, estimated_minutes, thumbnail_url, total_pins, total_walks, is_published, cart_friendly, season_tags, start_location"
     )
     .eq("area_id", areaId)
     .eq("is_published", true)
@@ -126,7 +138,10 @@ export async function getAllPublishedRoutes(): Promise<RouteWithArea[]> {
   const { data, error } = await supabase
     .from("official_routes")
     .select(
-      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, route_type, season_tags, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
+      // pet_info は除外（2026-08-04）: この結果は RouteCard（Client Component）へ渡るため、
+      // 未表示フィールドを RSC ペイロードに含めない。pet_info を必要とするのは
+      // getRouteBySlug（ルート詳細ページのサーバー側レンダリング）のみ。
+      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, total_pins, total_walks, is_published, cart_friendly, route_type, season_tags, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
     )
     .eq("is_published", true)
     .order("name");
@@ -172,7 +187,10 @@ export async function getRelatedRoutes(
   const { data, error } = await supabase
     .from("official_routes")
     .select(
-      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, pet_info, total_pins, total_walks, is_published, cart_friendly, route_type, season_tags, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
+      // pet_info は除外（2026-08-04）: この結果は RouteCard（Client Component）へ渡るため、
+      // 未表示フィールドを RSC ペイロードに含めない。pet_info を必要とするのは
+      // getRouteBySlug（ルート詳細ページのサーバー側レンダリング）のみ。
+      "id, area_id, name, slug, description, meta_description, difficulty_level, distance_meters, estimated_minutes, elevation_gain_meters, thumbnail_url, gallery_images, total_pins, total_walks, is_published, cart_friendly, route_type, season_tags, created_at, updated_at, start_location, areas(id, name, slug, prefecture, description)"
     )
     .eq("is_published", true)
     .neq("id", current.id);
@@ -225,6 +243,39 @@ export async function getRouteSpots(routeId: string): Promise<RouteSpot[]> {
     const { location: _loc, ...rest } = s as Record<string, unknown>;
     return rest as unknown as RouteSpot;
   });
+}
+
+// RSC ペイロード漏れ対策（2026-08-04）: RouteItinerary / RouteMapWrapper は
+// Client Component のため、渡した prop はハイドレーション用ペイロードにまるごと
+// シリアライズされる。dog_policy / opening_hours / price_range / phone /
+// website_url 等の非表示フィールドを渡さないよう、実際に描画で参照する列だけに絞る。
+// spots のフル取得結果自体（route_spots_with_latlng の select("*")）は、呼び出し元
+// （app/routes/[slug]/page.tsx）の FAQ 生成・JSON-LD の itinerary/amenityFeature で
+// 引き続き使うため、この2関数とは別に保持される。
+export function toItinerarySpot(s: RouteSpot): RouteItinerarySpot {
+  return {
+    id: s.id,
+    slug: s.slug,
+    name: s.name,
+    description: s.description,
+    category: s.category,
+    photo_url: s.photo_url,
+    photo_metadata: s.photo_metadata,
+    seasonal_notes: s.seasonal_notes,
+    distance_from_start: s.distance_from_start,
+    spot_order: s.spot_order,
+    is_optional: s.is_optional,
+  };
+}
+
+export function toMapSpot(s: RouteSpot): RouteMapSpot {
+  return {
+    id: s.id,
+    lat: s.lat,
+    lng: s.lng,
+    category: s.category,
+    name: s.name,
+  };
 }
 
 export async function getRouteLineCoordinates(
