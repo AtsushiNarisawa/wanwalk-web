@@ -101,7 +101,32 @@ export default function DirectoryPlaceCard({
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 360px"
           />
-        ) : null}
+        ) : (
+          // 写真なし施設のプレースホルダー（2026-08-04・空箱にしない）。
+          // 施設名は下部の見出しで既に出るため、枠内はカテゴリのアイコンのみ（二重表示を避ける）。
+          // アイコンは地図ピン（HakoneDogMap.tsx）と同じ DIRECTORY_GROUPS[group].iconPath を再利用。
+          // 色は DESIGN_TOKENS の「非活性・プレースホルダ」用トークン（text-tertiary）で統一。
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 256 256"
+              width={40}
+              height={40}
+              fill="var(--color-ww-text-tertiary)"
+            >
+              <path d={def.iconPath} />
+            </svg>
+          </div>
+        )}
       </div>
 
       <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12, flex: 1 }}>
