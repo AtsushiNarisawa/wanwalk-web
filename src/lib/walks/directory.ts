@@ -14,8 +14,17 @@ import { cache } from "react";
 import { wanwalkSupabase as supabase } from "./supabase";
 import type { DirectoryArea, DirectoryPlace, NearestRoute } from "@/types/directory";
 
+// RSC ペイロード漏れ対策（2026-08-05）: /hakone/dog-map の描画チェーン（page.tsx → HakoneDogMapView
+// → HakoneDogMap / DirectoryPlaceCard、すべて Client Component）は取得した行をほぼそのまま props で
+// 渡すため、SELECT した列は描画有無に関わらず配信 HTML（RSC ペイロード）にシリアライズされる。
+// dog_policy（size/status/leash_required/carrier_required/dog_fee/notes 等）・price_range・
+// opening_hours はどのコンポーネントからも参照されていない
+//（DirectoryPlaceCard.tsx / HakoneDogMap.tsx のコメント参照。犬の同伴条件・価格帯・営業時間は
+//  2026-07-28/08-02 CEO 確定で非表示化済みだが、このページはその後の 637dada 全数走査の対象外
+//  だったため列だけ残っていた）。DB のカラム・型（DirectoryPlace.dog_policy 等）は温存し、
+// このページの取得列からのみ外す＝表示は1ミリも変えない完全に可逆な対応。
 const DIRECTORY_SELECT =
-  "id, region, area_id, name, category, subcategory, extra_groups, lat, lng, description, dog_policy, photo_url, official_url, phone, price_range, opening_hours, verified_at, utm_slug, is_published";
+  "id, region, area_id, name, category, subcategory, extra_groups, lat, lng, description, photo_url, official_url, phone, verified_at, utm_slug, is_published";
 
 type NearestRow = {
   place_id: string;

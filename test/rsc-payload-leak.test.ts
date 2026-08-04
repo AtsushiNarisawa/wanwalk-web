@@ -10,6 +10,12 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 //    （getRouteBySlug だけはサーバー側で pet_info を使うため残す）。
 // 2) 純関数テスト: toItinerarySpot / toMapSpot が dog_policy 等の非表示フィールドを
 //    一切含まないオブジェクトを返すこと（値をnull化するのではなくキー自体を含めない）。
+//
+// 追記（2026-08-05）: /hakone/dog-map（directory.ts の getDirectoryPlaces）は、この掃除が
+// 全数走査した対象集合（?k= の鍵の外）から漏れていた。dog_policy / price_range / opening_hours は
+// HakoneDogMapView / HakoneDogMap / DirectoryPlaceCard のどれからも参照されていないため、
+// 637dada と同じ考え方（描画に使わない列は取得しない）で SELECT 自体から外した。
+// 3) クエリ契約テスト: getDirectoryPlaces の select にこれら3列が含まれないこと。
 
 vi.mock("react", () => ({ cache: (fn: unknown) => fn }));
 
@@ -58,6 +64,9 @@ const h = vi.hoisted(() => {
         state.lastBuilder = b;
         return b;
       },
+      // getDirectoryPlaces（directory.ts）が get_directory_nearest_routes RPC を叩くための最小スタブ。
+      // Promise.all([placesRes, nearestRes]) の一要素として使われるだけなので、素の resolved 値で足りる。
+      rpc: () => Promise.resolve({ data: [], error: null }),
     },
   };
 });
@@ -65,6 +74,7 @@ const h = vi.hoisted(() => {
 vi.mock("@/lib/walks/supabase", () => ({ wanwalkSupabase: h.supa }));
 
 import * as data from "@/lib/walks/data";
+import * as directory from "@/lib/walks/directory";
 import type { RouteSpot } from "@/types/walks";
 
 function selectArg(): string {
@@ -191,5 +201,39 @@ describe("toItinerarySpot / toMapSpot は非表示フィールドを一切含ま
     const map = JSON.stringify(data.toMapSpot(spotWithExtraKeys));
     expect(itinerary).not.toMatch(/vaccination_proof_required|registration_required/);
     expect(map).not.toMatch(/vaccination_proof_required|registration_required/);
+  });
+});
+
+describe("/hakone/dog-map（getDirectoryPlaces）は非表示フィールドを選択しない", () => {
+  it("directory_places_with_latlng の select に dog_policy / price_range / opening_hours が含まれない", async () => {
+    await directory.getDirectoryPlaces("hakone");
+    const sel = selectArg();
+    expect(sel).not.toMatch(/\bdog_policy\b/);
+    expect(sel).not.toMatch(/\bprice_range\b/);
+    expect(sel).not.toMatch(/\bopening_hours\b/);
+  });
+
+  it("画面で使う列（名前・カテゴリ・座標・写真・公式サイト・電話・確認日等）は引き続き選択する", async () => {
+    await directory.getDirectoryPlaces("hakone");
+    const sel = selectArg();
+    for (const col of [
+      "id",
+      "area_id",
+      "name",
+      "category",
+      "subcategory",
+      "extra_groups",
+      "lat",
+      "lng",
+      "description",
+      "photo_url",
+      "official_url",
+      "phone",
+      "verified_at",
+      "utm_slug",
+      "is_published",
+    ]) {
+      expect(sel, `select に "${col}" が含まれるべき`).toMatch(new RegExp(`\\b${col}\\b`));
+    }
   });
 });
