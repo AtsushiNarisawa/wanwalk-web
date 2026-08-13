@@ -260,6 +260,34 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "kaede-namiki-no-yuhodo",
   "kumo-ba-ike-no-mizukagami",
   "kumo-jo-chi-suimen-no-utsuri-komi",
+  // --- 2026-08-13 GSC 月次差分: 新規 missing 23件を 410 化 ---
+  // 90日実績は 26件合計で 5 clicks / 138 impressions。うち下記23件は DB に該当 spot が存在しないか、
+  // 存在しても parking/restroom/cafe（NON_SEO_SPOT_CATEGORIES）で単体ページを持たない。
+  // isshiki-kaigan-chusha-jo-end のみ DB に実在するが、非公開ルート hayama-isshiki-morito 配下の parking で
+  // ページを提供しない。同ルート配下の兄弟14件は 2026-05-29 に 410 化済みで、本件はその取りこぼし。
+  "chinese-mid-lake-pavilion",
+  "fujisan-byusupotto",
+  "fukuro-no-kohan-yuhodo",
+  "hakone-no-yamanami-mi-byuu",
+  "hakone-sekisho-ato-chusha-jo",
+  "ike-no-minamigawa-yuhodo",
+  "isshiki-kaigan-chusha-jo-end",
+  "isshoku-kaigan-chusha-jo-hayama-isshiki",
+  "joren-falls-center-toilet",
+  "joryu-seiryu-sansaku-ro",
+  "kayabuki-ki-x-fujisan",
+  "keikoku-no-ishidan-yuuhodou",
+  "kohan-no-yuhodo-hakone-ashinoko",
+  "miyagino-onsen-kaikan-hakone-gora",
+  "momiji-kairo",
+  "nakame-park-bridge",
+  "naraya-cafe-homen",
+  "sakasa-fuji-no-komen",
+  "sangashita-beach",
+  "sansaku-michi-no-shinrin-eria",
+  "sazambichi-koshu-toire",
+  "yuuhodou-no-takadai-byuu",
+  "zaimokuza-kaigan-chusha-jo",
 ]);
 
 // リネームされた slug の旧→新マップ。middleware で 301 redirect される。
@@ -320,4 +348,8 @@ export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
   // 両件とも新 slug は viewpoint（SEO 対象）・description 230字台で healthy・同一意味の同一スポットを確認済み。
   ["takitsubo-sawamei-kawa-seiryuu", "sawa-nagawa-taki-tsubo-eria"],
   ["minato-no-mie-ru-oka-koen-no-tenbo", "minato-no-mieru-oka-koen-tembo-dai"],
+  // 2026-08-13 GSC 月次差分: 新規 missing 26件のうち RENAMED 2件
+  // 旧 slug は DB に存在せず、同一 spot の新 slug が viewpoint（SEO 対象）・is_published=true で実在することを確認済み。
+  ["kyu-tokaido-sugi-namiki", "old-tokaido-road-ancient-cedars-east-end"],
+  ["dankazura-no-sandou", "tsuruoka-hachimangu-torii-sando"],
 ]);
