@@ -19,5 +19,11 @@ WanWalk の**公開Webサイト**（https://wanwalk.jp）。犬の散歩ルー�
 ## MCP
 - `.mcp.json`: supabase-wanwalk / vercel / playwright
 
+## 登録済みスキル（`.claude/skills/`）
+
+| スキル | トリガー語 | 内容 |
+|---|---|---|
+| commit-push-deploy | 「コミットして」「プッシュして」「デプロイして」 | commit→push→Vercel自動デプロイの統一フロー（git安全作法の正本は `~/.claude/skills/git-safe-commit/SKILL.md`） |
+
 ## 注意
 - SEO・sitemap・301 リダイレクトは移管時に整備済み。URL 構造を変える変更は旧 slug の 301 と GSC への影響を必ず確認（WanWalk の gsc-diff-monthly.md 参照）。
