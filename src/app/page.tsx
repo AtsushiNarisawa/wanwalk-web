@@ -112,7 +112,7 @@ export default async function WalksTopPage() {
       <section>
         <div className="relative w-full aspect-[16/9] md:aspect-[21/9]">
           <Image
-            src="https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/object/public/route-photos/sengokuhara_susuki/01.jpg"
+            src="https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/object/public/route-photos/hakone-sengokuhara-susuki-highland-walk/refetch_20260422/01.jpg"
             alt="仙石原すすき草原と箱根の山々"
             fill
             priority
