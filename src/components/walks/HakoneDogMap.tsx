@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 箱根 犬連れおでかけマップβ の地図（Leaflet）。
+ * 箱根 犬連れおでかけマップ の地図（Leaflet）。
  *
  * 既存 RouteMap.tsx（単一ルート密結合）は流用せず、DESIGN_TOKENS の DivIcon + Phosphor
  * パターンだけを継承した独立コンポーネント。施設を 4 グループ色分けピンで表示する。

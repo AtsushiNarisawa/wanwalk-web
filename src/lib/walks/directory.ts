@@ -1,5 +1,5 @@
 /**
- * 施設ディレクトリ（directory_places）のデータ層 — 箱根 犬連れおでかけマップβ。
+ * 施設ディレクトリ（directory_places）のデータ層 — 箱根 犬連れおでかけマップ。
  *
  * - 施設は directory_places_with_latlng ビュー（lat/lng 露出）から取得。
  * - 「ここから歩ける最寄りルート」は get_directory_nearest_routes RPC で

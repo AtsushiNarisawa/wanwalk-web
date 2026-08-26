@@ -12,7 +12,7 @@ import HakoneMapToggle from "@/components/walks/HakoneMapToggle";
  * 箱根 犬連れ「おでかけマップ」（一般公開・index 可）。
  *
  * ■ 公開の経緯（A6 / 2026-08-26）
- *   2026-08 まではリンク限定β（`?k=hkmap-2f8a91c47b3e` が無ければ 404・noindex・sitemap 非掲載）
+ *   2026-08 まではリンク限定の非公開版（`?k=hkmap-2f8a91c47b3e` が無ければ 404・noindex・sitemap 非掲載）
  *   として DMO・掲載施設にだけ配っていた。プレスリリース配信に合わせて公開ゲートを解除した。
  *   - `?k` の判定は撤去。**配布済みの `?k=…` 付き URL はそのまま 200 で開く**
  *     （余分なクエリは無視するだけ。リダイレクトもしない＝配った URL が壊れない）。
@@ -28,9 +28,9 @@ import HakoneMapToggle from "@/components/walks/HakoneMapToggle";
  * ■ 中立を設計で体現（HAKONE_DOGMAP_SPEC §10-6）
  *   ピン/カード/バッジ完全均一・PRバッジ無し・あいうえお順/地理順・運営者開示。
  */
-const PAGE_TITLE = "箱根 愛犬とおでかけマップ（β）";
+const PAGE_TITLE = "箱根 愛犬とおでかけマップ";
 const PAGE_DESCRIPTION =
-  "箱根で愛犬と泊まる・食べる・遊ぶ・温泉を楽しめる施設の地図。各施設から歩けるWanWalkの散歩ルートも一緒にご案内します（試験公開版）。";
+  "箱根で愛犬と泊まる・食べる・遊ぶ・温泉を楽しめる施設の地図。各施設から歩けるWanWalkの散歩ルートも一緒にご案内します。";
 
 export async function generateMetadata(): Promise<Metadata> {
   // OG 画像は /hakone と同じ芦ノ湖のヒーロー（取得できなければ buildOgMetadata の共通 fallback）。
@@ -86,22 +86,6 @@ export default async function HakoneDogMapPage({
 
       {/* ヘッダー */}
       <header style={{ marginBottom: 28 }}>
-        <span
-          style={{
-            display: "inline-block",
-            fontFamily: "var(--font-ww-sans)",
-            fontSize: 12,
-            fontWeight: 600,
-            letterSpacing: "0.08em",
-            color: "var(--color-ww-accent)",
-            backgroundColor: "var(--color-ww-accent-soft)",
-            borderRadius: "var(--radius-ww-sm)",
-            padding: "3px 10px",
-            marginBottom: 14,
-          }}
-        >
-          β版（試験公開）
-        </span>
         <h1
           style={{
             fontFamily: "var(--font-ww-serif)",

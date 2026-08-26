@@ -9,7 +9,7 @@ import { Path, MapPin } from "@phosphor-icons/react/dist/ssr";
  *
  * ⚠️ このトグルは UI（回遊導線）だけを担う。/hakone 側でこのトグルを出すかどうかは
  *   UI フラグ HAKONE_CROSSLINK_ENABLED が制御する（dog-map 側は常に両タブ表示）。
- *   ※ 2026-08 まで dog-map は ?k 限定の非公開βで、フラグを先に ON にすると
+ *   ※ 2026-08 まで dog-map は ?k 限定の非公開で、フラグを先に ON にすると
  *     公開ページから 404 へのリンクが出る関係だった。A6 でその依存は解消済み。
  *
  * ラベルは「さんぽ／おでかけ」だと利用者が混同するため使わず、
