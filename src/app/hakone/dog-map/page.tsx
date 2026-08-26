@@ -1,58 +1,71 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDirectoryPlaces } from "@/lib/walks/directory";
+import { getAreaBySlug } from "@/lib/walks/data";
+import { buildOgMetadata, toOgImage } from "@/lib/walks/og-meta";
 import HakoneDogMapView from "@/components/walks/HakoneDogMapView";
 import DirectoryRefTracker from "@/components/walks/DirectoryRefTracker";
 import HakoneOfficialBadge from "@/components/walks/HakoneOfficialBadge";
 import HakoneMapToggle from "@/components/walks/HakoneMapToggle";
 
 /**
- * 箱根 犬連れ「おでかけマップ」β（非公開・リンク限定）。
+ * 箱根 犬連れ「おでかけマップ」（一般公開・index 可）。
  *
- * ■ アクセス制限（リンクを知っている人だけ）
- *   - URL に秘密キー `?k=<ACCESS_KEY>` が無ければ 404（notFound）にする＝リンクそのものが鍵。
- *     共有リンク＝ `https://wanwalk.jp/hakone/dog-map?k=<ACCESS_KEY>`。
- *   - キーは server component 内でのみ参照（クライアントへは出さない）。
- *   - referrer:no-referrer で、外部リンク遷移時に Referer 経由でキーが漏れないようにする。
- *   - キーを変えれば即時に旧リンクを失効できる（ローテーション可）。
+ * ■ 公開の経緯（A6 / 2026-08-26）
+ *   2026-08 まではリンク限定β（`?k=hkmap-2f8a91c47b3e` が無ければ 404・noindex・sitemap 非掲載）
+ *   として DMO・掲載施設にだけ配っていた。プレスリリース配信に合わせて公開ゲートを解除した。
+ *   - `?k` の判定は撤去。**配布済みの `?k=…` 付き URL はそのまま 200 で開く**
+ *     （余分なクエリは無視するだけ。リダイレクトもしない＝配った URL が壊れない）。
+ *   - robots: index,follow ／ canonical: /hakone/dog-map ／ sitemap 掲載（A7）。
+ *   - `referrer: "no-referrer"` は据え置き（元は ?k を Referer に漏らさないための措置。
+ *     ゲート解除後の要否は CEO 判断待ち。外すと外部リンク先での流入元計測が変わる）。
  *
- * ■ 非公開βの担保（多層）
- *   - robots: noindex,nofollow（meta）／ sitemap 非登録 ／ グローバルナビ無し・内部リンク無し。
- *   ※ robots.txt の Disallow は入れない（Disallow するとクローラが noindex を読めず逆効果）。
+ * ■ OGP
+ *   /hakone と同じ芦ノ湖のヒーロー（areas.hakone-ashinoko.hero_image_url）を
+ *   共通ヘルパー toOgImage() + buildOgMetadata() で 1200x630 に整えて使う。
+ *   ※ 従来はサイト既定の fallback（山中湖）を継承していた＝箱根の記事に山中湖が出ていた。
  *
  * ■ 中立を設計で体現（HAKONE_DOGMAP_SPEC §10-6）
  *   ピン/カード/バッジ完全均一・PRバッジ無し・あいうえお順/地理順・運営者開示。
  */
-export const metadata: Metadata = {
-  title: "箱根 愛犬とおでかけマップ（β）",
-  description:
-    "箱根で愛犬と泊まる・食べる・遊ぶ・温泉を楽しめる施設の地図。各施設から歩けるWanWalkの散歩ルートも一緒にご案内します（試験公開版）。",
-  robots: { index: false, follow: false },
-  alternates: { canonical: undefined },
-  // 外部リンク遷移時に ?k=<キー> が Referer で漏れないようにする。
-  referrer: "no-referrer",
-};
+const PAGE_TITLE = "箱根 愛犬とおでかけマップ（β）";
+const PAGE_DESCRIPTION =
+  "箱根で愛犬と泊まる・食べる・遊ぶ・温泉を楽しめる施設の地図。各施設から歩けるWanWalkの散歩ルートも一緒にご案内します（試験公開版）。";
 
-// ?k / ?ref を読むため動的レンダリング。DB 取得は44行+RPC1回と軽量。
+export async function generateMetadata(): Promise<Metadata> {
+  // OG 画像は /hakone と同じ芦ノ湖のヒーロー（取得できなければ buildOgMetadata の共通 fallback）。
+  const area = await getAreaBySlug("hakone-ashinoko");
+
+  return {
+    title: PAGE_TITLE,
+    description: PAGE_DESCRIPTION,
+    robots: { index: true, follow: true },
+    alternates: { canonical: "/hakone/dog-map" },
+    // 配布済みの ?k 付きリンクを Referer に載せないための据え置き（A6 で要否を再評価）。
+    referrer: "no-referrer",
+    ...buildOgMetadata({
+      title: PAGE_TITLE,
+      description: PAGE_DESCRIPTION,
+      path: "/hakone/dog-map",
+      ogImage: toOgImage(area?.hero_image_url),
+      ogImageAlt: "箱根 愛犬とおでかけマップ - 愛犬と行ける箱根の施設",
+    }),
+  };
+}
+
+// ?ref を server の searchParams で読むため動的レンダリング。DB 取得は公開施設1クエリ+RPC1回と軽量。
+// ※ プレス流入スパイクを CDN で受けるための ISR 化（/hakone と同じ形）は CEO 判断待ち。
 export const dynamic = "force-dynamic";
-
-// 共有リンクの秘密キー（リンク限定アクセスの鍵）。
-// ※ セキュリティ上の機密ではなく「URLを知らない人に開かせない」ためのゲート。
-//   失効・更新したい場合はこの値を変えて再デプロイ（旧リンクは即 404 になる）。
-const ACCESS_KEY = "hkmap-2f8a91c47b3e";
 
 const REF_PATTERN = /^[a-z0-9][a-z0-9_-]{0,63}$/i;
 
 export default async function HakoneDogMapPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ref?: string; k?: string }>;
+  // 配布済みリンクの `?k=…` は読まずに無視する（付いていても通常表示）。
+  searchParams: Promise<{ ref?: string }>;
 }) {
-  const { ref, k } = await searchParams;
-
-  // リンク限定アクセス: 正しいキーが無ければ 404（存在を一切見せない）。
-  if (k !== ACCESS_KEY) notFound();
+  const { ref } = await searchParams;
 
   const places = await getDirectoryPlaces("hakone");
   const safeRef = typeof ref === "string" && REF_PATTERN.test(ref) ? ref : "";
@@ -65,11 +78,8 @@ export default async function HakoneDogMapPage({
       {safeRef && <DirectoryRefTracker refSlug={safeRef} surface="hakone_dogmap" />}
 
       {/* 2マップの相互回遊トグル（アクティブ＝犬連れスポット／散歩コース→/hakone）。
-          このページは上の `if (k !== ACCESS_KEY) notFound();` を通過した ?k 到達者だけが見るため、
-          トグルは UI フラグに関係なく常に両タブ表示でよい。
-          ※公開ゲート（?k 必須・notFound・robots noindex・sitemap 非掲載）は上部が authoritative。
-            トグルは UI だけで、公開制御には一切関与しない。
-          /hakone は公開ページ。referrer:no-referrer のため内部遷移でも ?k は Referer に漏れない。 */}
+          このページ自身が公開ページになった（A6）ため、トグルは UI フラグに関係なく常に両タブ表示。
+          ※ /hakone 側でトグルを出すかどうかは UI フラグ HAKONE_CROSSLINK_ENABLED が制御する。 */}
       <div style={{ marginBottom: 20 }}>
         <HakoneMapToggle active="spots" />
       </div>

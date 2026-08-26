@@ -86,8 +86,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       // 箱根 愛犬さんぽマップ ハブ（DMOバナー着地点）。
-      // /hakone/dog-map は ?k 解除（A6）後に A7 で別途追加する（現状 noindex）。
       url: `${baseUrl}/hakone`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      // 箱根 愛犬とおでかけマップ（犬連れ施設）。
+      // A6（?k ゲート解除・noindex 解除）とセットで A7 として追加（2026-08-26）。
+      url: `${baseUrl}/hakone/dog-map`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.8,
