@@ -13,6 +13,23 @@ type OgMetaInput = {
   ogImageAlt?: string;
 };
 
+/**
+ * areas.hero_image_url（Supabase Storage の原寸 object URL）を OG 用 1200x630 に変換する。
+ * 既に /render/image/ 形式ならそのまま使う。null/undefined のときは undefined を返し、
+ * buildOgMetadata 側の共通 fallback（山中湖）に委ねる。
+ *
+ * ※ /hakone と /hakone/dog-map の両方で使う共通ヘルパー（元は /hakone のローカル関数）。
+ */
+export function toOgImage(
+  heroBase: string | null | undefined
+): string | undefined {
+  if (!heroBase) return undefined;
+  return heroBase.includes("/render/image/")
+    ? heroBase
+    : heroBase.replace("/object/", "/render/image/") +
+        "?width=1200&height=630&resize=cover&quality=80";
+}
+
 // Next.js の openGraph は page-level で完全置換されるため、共通の type/siteName/locale/url/images を全ページで明示する。
 // twitter も同様に images を明示しないと layout の fallback が残る。
 export function buildOgMetadata({

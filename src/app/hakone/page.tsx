@@ -10,7 +10,7 @@ import GoogleMapEmbed from "@/components/walks/GoogleMapEmbed";
 import HakoneHubRefTracker from "@/components/walks/HakoneHubRefTracker";
 import HakoneMapToggle from "@/components/walks/HakoneMapToggle";
 import { HAKONE_CROSSLINK_ENABLED } from "@/lib/walks/flags";
-import { buildOgMetadata } from "@/lib/walks/og-meta";
+import { buildOgMetadata, toOgImage } from "@/lib/walks/og-meta";
 
 /**
  * 箱根 愛犬さんぽマップ（DMOバナー着地点・公開 indexable ハブ）。
@@ -24,14 +24,6 @@ import { buildOgMetadata } from "@/lib/walks/og-meta";
  * force-dynamic にしない（CDN キャッシュ・SEO を維持）。
  */
 export const revalidate = 86400;
-
-function toOgImage(heroBase: string | null | undefined): string | undefined {
-  if (!heroBase) return undefined; // buildOgMetadata が共通 fallback を使う
-  return heroBase.includes("/render/image/")
-    ? heroBase
-    : heroBase.replace("/object/", "/render/image/") +
-        "?width=1200&height=630&resize=cover&quality=80";
-}
 
 export async function generateMetadata(): Promise<Metadata> {
   const areas = await getHakoneAreasWithRoutes();

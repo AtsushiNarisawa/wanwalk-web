@@ -2,7 +2,7 @@
  * 施設ディレクトリ（directory_places）の型。
  *
  * 散歩ルート（official_routes / route_spots）から独立した「地域 × 犬連れ施設」ディレクトリ。
- * 箱根 犬連れおでかけマップβ（/hakone/dog-map）で使用。
+ * 箱根 犬連れおでかけマップ（/hakone/dog-map）で使用。
  *
  * ⚠️ 既存の SpotCategory(10) / DogPolicy とは別系統。dog_policy.size に "unknown"、
  *    status(ok/conditional)、dog_fee(文字列) を持つため専用型を切る（HAKONE_DOGMAP_SPEC §10-7）。

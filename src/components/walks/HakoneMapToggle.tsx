@@ -5,13 +5,12 @@ import { Path, MapPin } from "@phosphor-icons/react/dist/ssr";
  * 箱根 2マップの相互回遊トグル（散歩コース ⇄ 犬連れスポット）。
  *
  * - 「散歩コース」 = /hakone（公開・index 可の散歩ルートハブ）
- * - 「犬連れスポット」 = /hakone/dog-map（?k 限定の非公開マップ）
+ * - 「犬連れスポット」 = /hakone/dog-map（2026-08-26 の A6 で一般公開・index 可）
  *
- * ⚠️ このトグルは UI（回遊導線）だけを担う。/hakone/dog-map の公開ゲート
- *   （?k 必須・notFound()・robots noindex・sitemap 非掲載）とは無関係で、
- *   タブのリンクを描画しても dog-map は公開されない（?k 無しは依然 404＋noindex）。
- *   /hakone 側でこのトグルを出すかどうかは UI フラグ HAKONE_CROSSLINK_ENABLED が制御する
- *   （dog-map 側は ?k 到達者だけが見るため常に両タブ表示でよい）。
+ * ⚠️ このトグルは UI（回遊導線）だけを担う。/hakone 側でこのトグルを出すかどうかは
+ *   UI フラグ HAKONE_CROSSLINK_ENABLED が制御する（dog-map 側は常に両タブ表示）。
+ *   ※ 2026-08 まで dog-map は ?k 限定の非公開で、フラグを先に ON にすると
+ *     公開ページから 404 へのリンクが出る関係だった。A6 でその依存は解消済み。
  *
  * ラベルは「さんぽ／おでかけ」だと利用者が混同するため使わず、
  * 内容そのままの「散歩コース」「犬連れスポット」で統一（CEO 指示 2026-07-24）。

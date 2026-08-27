@@ -24,6 +24,11 @@ const ALLOWED_PATH_PATTERNS: RegExp[] = [
   /^\/routes\/[a-z0-9-]+$/,
   /^\/news$/,
   /^\/news\/[a-z0-9-]+$/,
+  // /hakone は ISR(revalidate=86400) なのに未登録で、on-demand 再生成が黙って
+  // skipped になっていた（DB を直しても最大24時間반映されない）。2026-08-28 に追加。
+  /^\/hakone$/,
+  // /hakone/dog-map は現状 force-dynamic だが、運用上まとめて叩けるよう許可しておく。
+  /^\/hakone\/dog-map$/,
   /^\/sitemap\.xml$/,
 ];
 
