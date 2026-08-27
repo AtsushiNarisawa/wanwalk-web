@@ -17,8 +17,12 @@ import HakoneMapToggle from "@/components/walks/HakoneMapToggle";
  *   - `?k` の判定は撤去。**配布済みの `?k=…` 付き URL はそのまま 200 で開く**
  *     （余分なクエリは無視するだけ。リダイレクトもしない＝配った URL が壊れない）。
  *   - robots: index,follow ／ canonical: /hakone/dog-map ／ sitemap 掲載（A7）。
- *   - `referrer: "no-referrer"` は据え置き（元は ?k を Referer に漏らさないための措置。
- *     ゲート解除後の要否は CEO 判断待ち。外すと外部リンク先での流入元計測が変わる）。
+ *   - referrer を "strict-origin-when-cross-origin" へ変更（2026-08-28）。
+ *     `no-referrer` は ?k を Referer に漏らさないための措置だったが、ゲート廃止で役目を終えた。
+ *     据え置くと施設の公式サイト側から見て WanWalk からの送客が「ダイレクト」に見えてしまい、
+ *     DMO・掲載施設に送客の価値を示せない。strict-origin-when-cross-origin なら外部へは
+ *     `https://wanwalk.jp/` というオリジンのみが渡り、パスもクエリも送られない
+ *     （配布済みの `?k=` も、DMO バナーの `?ref=` も漏れない）。
  *
  * ■ OGP
  *   /hakone と同じ芦ノ湖のヒーロー（areas.hakone-ashinoko.hero_image_url）を
@@ -41,8 +45,10 @@ export async function generateMetadata(): Promise<Metadata> {
     description: PAGE_DESCRIPTION,
     robots: { index: true, follow: true },
     alternates: { canonical: "/hakone/dog-map" },
-    // 配布済みの ?k 付きリンクを Referer に載せないための据え置き（A6 で要否を再評価）。
-    referrer: "no-referrer",
+    // 外部リンク先へは「https://wanwalk.jp/」のオリジンのみを渡す（パス・クエリは送らない）。
+    // 施設側の解析で WanWalk からの送客が「ダイレクト」に埋もれないようにするための変更。
+    // ?k= / ?ref= は含まれないので、旧ゲートの鍵が漏れる心配もない。
+    referrer: "strict-origin-when-cross-origin",
     ...buildOgMetadata({
       title: PAGE_TITLE,
       description: PAGE_DESCRIPTION,
