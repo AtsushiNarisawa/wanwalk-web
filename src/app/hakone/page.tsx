@@ -197,7 +197,6 @@ export default async function HakoneHubPage() {
         <HakoneAreaMapSection
           pins={mapPins}
           apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ""}
-          height={360}
           caption={mapCaption}
           mapsQuery="箱根"
           fallback={

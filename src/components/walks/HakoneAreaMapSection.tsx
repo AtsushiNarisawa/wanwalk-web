@@ -15,7 +15,7 @@
  * フォールバックは server component（GoogleMapEmbed）の描画結果を `fallback` prop で
  * 受け取る。こちらのバンドルへ引き込まないための作法。
  */
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { MapTrifold } from "@phosphor-icons/react";
 import type { HakoneAreaPin } from "./HakoneAreaGoogleMap";
@@ -41,11 +41,26 @@ function MapPlaceholder() {
   );
 }
 
+/**
+ * 地図の枠の高さ。
+ *
+ * デスクトップでは幅 1,152px に対して高さ 360px（3.2:1）だと、5エリア（南北 約7km・
+ * 東西 約8km）を fitBounds したとき**高さが制約**になり、横方向は 30km超（御殿場〜
+ * 小田原）まで映ってピンが中央に小さく固まった（2026-08-30 検分）。md 以上で背を高くして
+ * 縦横比を緩め、`isFractionalZoomEnabled` と合わせて寄せる。
+ *
+ * 1152px 幅での試算（padding 36/36/52/36）:
+ *   360px = zoom 12.0・表示 36.0km 幅（ピン占有 横22%）← 検分時の状態
+ *   520px = zoom 12.97・表示 18.4km 幅（ピン占有 横44%）← 採用
+ * これ以上高くしても寄りの改善は鈍り（600px でも横52%）、コース一覧が下へ押されるだけ。
+ * モバイルは 360px のまま（幅が狭いぶん元から素直に収まっており、縦スクロールも圧迫しない）。
+ */
+const FRAME_HEIGHT_CLASS = "h-[360px] md:h-[520px]";
+
 interface Props {
   pins: HakoneAreaPin[];
   /** NEXT_PUBLIC_GOOGLE_MAPS_API_KEY（未設定なら空文字＝フォールバック）。 */
   apiKey: string;
-  height?: number;
   caption: string;
   /** 「Googleマップで開く」外部リンクの検索語。 */
   mapsQuery: string;
@@ -56,7 +71,6 @@ interface Props {
 export default function HakoneAreaMapSection({
   pins,
   apiKey,
-  height = 360,
   caption,
   mapsQuery,
   fallback,
@@ -67,6 +81,11 @@ export default function HakoneAreaMapSection({
   //    ズレる（実測でエラーを踏んだ）。ビューポート判定は必ずマウント後の effect で行う。
   const [inView, setInView] = useState(false);
   const [failed, setFailed] = useState(false);
+
+  // 子（地図本体）は「スクリプト取得失敗」「認証失敗（gm_authFailure）」「初期化タイムアウト」の
+  // 3経路からこれを呼ぶ。identity を固定しないと子側の effect が毎レンダで張り直され、
+  // タイムアウトが永久にリセットされてしまうため useCallback で安定させる。
+  const handleLoadError = useCallback(() => setFailed(true), []);
 
   const usable = apiKey.length > 0 && pins.length > 0 && !failed;
 
@@ -106,9 +125,9 @@ export default function HakoneAreaMapSection({
     <div>
       <div
         ref={frameRef}
+        className={FRAME_HEIGHT_CLASS}
         style={{
           position: "relative",
-          height,
           overflow: "hidden",
           borderRadius: "var(--radius-ww-md)",
           border: "1px solid var(--color-ww-border-subtle)",
@@ -119,8 +138,7 @@ export default function HakoneAreaMapSection({
           <HakoneAreaGoogleMap
             pins={pins}
             apiKey={apiKey}
-            height={height}
-            onLoadError={() => setFailed(true)}
+            onLoadError={handleLoadError}
           />
         ) : (
           <MapPlaceholder />
