@@ -38,3 +38,28 @@ export const HAKONE_SUB_AREA_ORDER = [
   "hakone-sengokuhara",
   "hakone-ashinoko",
 ] as const;
+
+/**
+ * 箱根サブエリアの代表座標（/hakone「箱根エリアマップ」のピン位置）。
+ *
+ * 🔴 正本は Supabase `areas.center_point`（PostGIS geography）。ここはその写しであり、
+ *    表示専用。**エリアを増減した／`center_point` を動かしたときは、ここも必ず更新する。**
+ *    照合 SQL（最終照合 2026-08-30・6件すべて一致）:
+ *      select slug, ST_Y(center_point::geometry) as lat, ST_X(center_point::geometry) as lng
+ *        from areas where group_key = 'hakone' order by slug;
+ *
+ * DB から直接読まない理由: PostgREST は geography を WKB hex で返すため、view か RPC を
+ * 新設しないと lat/lng を取れない（＝匿名に露出する公開スキーマの面が増える）。表示専用の
+ * 6件のためにその面を増やすより、`HAKONE_SUB_AREA_ORDER` と同じ「定数で持つ」作法に揃える。
+ *
+ * ここに無い slug のエリアはピンを打たない（地図から静かに落ちるだけで、ページは壊れない）。
+ */
+export const HAKONE_AREA_CENTERS: Record<string, { lat: number; lng: number }> = {
+  "hakone-yumoto": { lat: 35.2328, lng: 139.1071 },
+  "hakone-miyanoshita": { lat: 35.238, lng: 139.045 },
+  "hakone-gora": { lat: 35.248, lng: 139.035 },
+  "hakone-sengokuhara": { lat: 35.27, lng: 139.0268 },
+  "hakone-ashinoko": { lat: 35.208, lng: 139.018 },
+  // 公開ルート0本のため現状 /hakone には描画されないが、正本に存在するので写しも持つ。
+  "hakone-shuhen": { lat: 35.209, lng: 139.049 },
+};

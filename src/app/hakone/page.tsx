@@ -7,9 +7,12 @@ import RouteCard from "@/components/walks/RouteCard";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import GoogleMapEmbed from "@/components/walks/GoogleMapEmbed";
+import HakoneAreaMapSection from "@/components/walks/HakoneAreaMapSection";
+import type { HakoneAreaPin } from "@/components/walks/HakoneAreaGoogleMap";
 import HakoneHubRefTracker from "@/components/walks/HakoneHubRefTracker";
 import HakoneMapToggle from "@/components/walks/HakoneMapToggle";
 import { HAKONE_CROSSLINK_ENABLED } from "@/lib/walks/flags";
+import { HAKONE_AREA_CENTERS } from "@/lib/walks/area-taxonomy";
 import { buildOgMetadata, toOgImage } from "@/lib/walks/og-meta";
 
 /**
@@ -24,6 +27,11 @@ import { buildOgMetadata, toOgImage } from "@/lib/walks/og-meta";
  * force-dynamic にしない（CDN キャッシュ・SEO を維持）。
  */
 export const revalidate = 86400;
+
+/** エリア別セクションのアンカー id（箱根エリアマップのピン → 同一ページ内のセクションへ）。 */
+function areaSectionId(slug: string): string {
+  return `area-${slug}`;
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const areas = await getHakoneAreasWithRoutes();
@@ -59,6 +67,25 @@ export default async function HakoneHubPage() {
       .hero_image_url ??
     areasWithRoutes[0]?.area.hero_image_url ??
     null;
+
+  // 箱根エリアマップのピン。**ページが実際に描画しているエリア**（＝公開ルートを持つエリア）
+  // から生成するので、キャプションの件数と地図の中身が常に一致し、エリアの増減にも追随する。
+  // 座標の正本は Supabase areas.center_point（写しは HAKONE_AREA_CENTERS・更新条件はそちらの注記参照）。
+  const mapPins: HakoneAreaPin[] = areasWithRoutes.flatMap(({ area, routes }) => {
+    const center = HAKONE_AREA_CENTERS[area.slug];
+    if (!center) return [];
+    return [
+      {
+        slug: area.slug,
+        name: area.name,
+        lat: center.lat,
+        lng: center.lng,
+        routeCount: routes.length,
+        href: `#${areaSectionId(area.slug)}`,
+      },
+    ];
+  });
+  const mapCaption = `箱根${areasWithRoutes.length}エリアの位置（地図：Googleマップ）`;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
@@ -164,12 +191,24 @@ export default async function HakoneHubPage() {
         >
           箱根エリアマップ
         </h2>
-        <GoogleMapEmbed
-          query="箱根"
-          title="箱根エリアの地図（Googleマップ）"
-          zoom={11}
+        {/* Maps JS API でエリアのピンを描く（案A）。キー未設定・読み込み失敗時は
+            従来の iframe 埋め込み（GoogleMapEmbed）へフォールバックし、
+            「Google由来写真の画面に Googleマップが1枚ある」条件を必ず維持する。 */}
+        <HakoneAreaMapSection
+          pins={mapPins}
+          apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ""}
           height={360}
-          caption="箱根5エリアの位置（地図：Googleマップ）"
+          caption={mapCaption}
+          mapsQuery="箱根"
+          fallback={
+            <GoogleMapEmbed
+              query="箱根"
+              title="箱根エリアの地図（Googleマップ）"
+              zoom={11}
+              height={360}
+              caption={mapCaption}
+            />
+          }
         />
       </section>
 
@@ -178,7 +217,11 @@ export default async function HakoneHubPage() {
 
       {/* エリア × コース（地理順・湯本→宮ノ下→強羅→仙石原→芦ノ湖） */}
       {areasWithRoutes.map(({ area, routes }, areaIndex) => (
-        <section key={area.id} style={{ marginBottom: 48 }}>
+        <section
+          key={area.id}
+          id={areaSectionId(area.slug)}
+          style={{ marginBottom: 48, scrollMarginTop: 24 }}
+        >
           <div
             style={{
               display: "flex",
