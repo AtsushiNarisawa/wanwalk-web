@@ -325,30 +325,105 @@ export async function getRouteAreaInfo(
   };
 }
 
-function parseRouteLocation(route: Record<string, unknown>): OfficialRoute {
-  const r = route as Record<string, unknown>;
-  const startLoc = r.start_location as string | null;
-  let start_lat = 0;
-  let start_lng = 0;
-  if (startLoc && typeof startLoc === "string") {
-    const match = startLoc.match(/POINT\(([^ ]+) ([^)]+)\)/);
-    if (match) {
-      start_lng = parseFloat(match[1]);
-      start_lat = parseFloat(match[2]);
+/**
+ * EWKB（PostGIS 拡張 WKB）の16進文字列から Point の座標を取り出す。
+ *
+ * バイト構成:
+ *   [0]     バイトオーダー（01 = little endian / 00 = big endian）
+ *   [1..4]  ジオメトリ型（下位が幾何型・上位ビットが Z/M/SRID の拡張フラグ）
+ *   [5..8]  SRID（0x20000000 ビットが立っているときだけ存在。4326 = E6100000）
+ *   以降    X（経度）→ Y（緯度）の順に倍精度浮動小数点8バイト × 2
+ *
+ * 🔴 X が経度・Y が緯度。取り違えると日本（緯度 24〜46 / 経度 123〜146）の
+ *    ルートが緯度139度＝北極海の彼方を指す。順序は変えないこと。
+ */
+function parseEwkbHexPoint(hex: string): { lat: number; lng: number } | null {
+  // byteOrder(1) + type(4) + X(8) + Y(8) = 21 バイト = 42 桁が最小
+  if (hex.length < 42 || hex.length % 2 !== 0 || !/^[0-9a-fA-F]+$/.test(hex)) {
+    return null;
+  }
+
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  }
+  const view = new DataView(bytes.buffer);
+
+  const byteOrder = view.getUint8(0);
+  if (byteOrder !== 0 && byteOrder !== 1) return null;
+  const littleEndian = byteOrder === 1;
+
+  const geomType = view.getUint32(1, littleEndian);
+  if ((geomType & 0x0fffffff) !== 1) return null; // Point 以外は扱わない
+  const hasSrid = (geomType & 0x20000000) !== 0;
+
+  const offset = 5 + (hasSrid ? 4 : 0);
+  if (bytes.length < offset + 16) return null;
+
+  const lng = view.getFloat64(offset, littleEndian);
+  const lat = view.getFloat64(offset + 8, littleEndian);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng };
+}
+
+/**
+ * PostGIS の点ジオメトリ（official_routes.start_location 等）を { lat, lng } に解釈する。
+ *
+ * 🔴 PostgREST が geography / geometry 列をそのまま select して返すのは
+ *    **EWKB の16進文字列**（例: "0101000020E61000001E5036E58A616140…"）であって、
+ *    "POINT(lng lat)" という WKT 文字列ではない。旧実装は WKT と GeoJSON しか
+ *    見ておらず、全ルートで start_lat / start_lng が 0 に落ちていた
+ *    （→ ルート詳細の Googleマップ埋め込みが一度も描画されず、JSON-LD の geo も欠落。
+ *      2026-08-30 修正）。
+ *
+ * 受け付ける形式は3つ:
+ *   1. EWKB / WKB 16進文字列 … PostgREST の実際の応答
+ *   2. WKT / EWKT 文字列 … RPC や ST_AsText 経由、将来の形式変更に備えて維持
+ *   3. GeoJSON オブジェクト { coordinates: [lng, lat] } … 同上
+ *
+ * 解釈できなければ null を返す（呼び出し側が 0 の sentinel に落とす）。
+ */
+export function parseGeoPoint(
+  value: unknown
+): { lat: number; lng: number } | null {
+  if (value == null) return null;
+
+  if (typeof value === "string") {
+    const s = value.trim();
+    // WKT / EWKT: "POINT(lng lat)" / "SRID=4326;POINT(lng lat)"
+    const wkt = s.match(/POINT\s*\(\s*([-\d.eE+]+)\s+([-\d.eE+]+)\s*\)/);
+    if (wkt) {
+      const lng = parseFloat(wkt[1]);
+      const lat = parseFloat(wkt[2]);
+      return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
     }
-  } else if (startLoc && typeof startLoc === "object") {
-    const geo = startLoc as unknown as { coordinates: [number, number] };
-    if (geo.coordinates) {
-      start_lng = geo.coordinates[0];
-      start_lat = geo.coordinates[1];
+    return parseEwkbHexPoint(s);
+  }
+
+  if (typeof value === "object") {
+    // GeoJSON も EWKB と同じく coordinates は [経度, 緯度] の順
+    const coords = (value as { coordinates?: unknown }).coordinates;
+    if (Array.isArray(coords) && coords.length >= 2) {
+      const lng = Number(coords[0]);
+      const lat = Number(coords[1]);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
     }
   }
+
+  return null;
+}
+
+function parseRouteLocation(route: Record<string, unknown>): OfficialRoute {
+  const r = route as Record<string, unknown>;
+  const point = parseGeoPoint(r.start_location);
 
   const { start_location: _sl, ...rest } = r;
   return {
     ...rest,
-    start_lat,
-    start_lng,
+    // 解釈できなかったときは 0（sentinel）。routes/[slug] の hasGmap が
+    // 0,0（null island）を除外する前提と合わせている。
+    start_lat: point?.lat ?? 0,
+    start_lng: point?.lng ?? 0,
     distance_meters: Number(r.distance_meters),
   } as OfficialRoute;
 }
