@@ -16,7 +16,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "mcp-remote",
+        "mcp-remote@0.1.43",
         "https://mcp.vercel.com"
       ],
       "env": {}
