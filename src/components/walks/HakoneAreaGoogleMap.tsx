@@ -123,14 +123,20 @@ function shortLabel(name: string): string {
 interface Props {
   pins: HakoneAreaPin[];
   apiKey: string;
-  /** Maps JS の読み込み・認証に失敗したときに親へ知らせる（親が iframe へ倒す）。 */
+  /** Maps JS の読み込み・認証に失敗したときに親へ知らせる（親が下層の iframe を残す）。 */
   onLoadError: () => void;
+  /**
+   * タイルを描き終えたときに親へ知らせる。親はこれを受けて初めて下層の iframe を外す。
+   * 認証に失敗した場合 tilesloaded は発火しないので、下層が外れることはない。
+   */
+  onPainted: () => void;
 }
 
 export default function HakoneAreaGoogleMap({
   pins,
   apiKey,
   onLoadError,
+  onPainted,
 }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -210,22 +216,9 @@ export default function HakoneAreaGoogleMap({
     setSelected(slug);
   }, []);
 
-  if (loadError) return null; // フォールバック（iframe 埋め込み）は親が出す。
-
-  if (!isLoaded) {
-    return (
-      <div
-        className="w-full h-full flex items-center justify-center"
-        style={{
-          backgroundColor: "var(--color-ww-bg-secondary)",
-          color: "var(--color-ww-text-tertiary)",
-          fontSize: 13,
-        }}
-      >
-        地図を読み込み中...
-      </div>
-    );
-  }
+  // 読み込み中・失敗時は何も描かない。親が常設している下層の Google マップ埋め込み
+  // （iframe）がそのまま見えているので、空白にもならず C5 も途切れない。
+  if (loadError || !isLoaded) return null;
 
   const selectedPin = pins.find((p) => p.slug === selected) ?? null;
 
@@ -236,6 +229,9 @@ export default function HakoneAreaGoogleMap({
       zoom={11}
       options={MAP_OPTIONS}
       onLoad={handleLoad}
+      // 初回のタイル描画完了。ここで初めて親が下層の iframe を外す（＝見た目の入れ替え）。
+      // 認証失敗時は発火しないため、下層が外れて空箱になることはない。
+      onTilesLoaded={onPainted}
     >
       {pins.map((pin) => {
         const isSelected = pin.slug === selected;

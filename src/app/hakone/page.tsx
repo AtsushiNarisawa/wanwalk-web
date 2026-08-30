@@ -6,7 +6,6 @@ import { getHakoneAreasWithRoutes } from "@/lib/walks/data";
 import RouteCard from "@/components/walks/RouteCard";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
-import GoogleMapEmbed from "@/components/walks/GoogleMapEmbed";
 import HakoneAreaMapSection from "@/components/walks/HakoneAreaMapSection";
 import type { HakoneAreaPin } from "@/components/walks/HakoneAreaGoogleMap";
 import HakoneHubRefTracker from "@/components/walks/HakoneHubRefTracker";
@@ -191,23 +190,17 @@ export default async function HakoneHubPage() {
         >
           箱根エリアマップ
         </h2>
-        {/* Maps JS API でエリアのピンを描く（案A）。キー未設定・読み込み失敗時は
-            従来の iframe 埋め込み（GoogleMapEmbed）へフォールバックし、
-            「Google由来写真の画面に Googleマップが1枚ある」条件を必ず維持する。 */}
+        {/* 二層構造。下層＝APIキー不要の Google マップ埋め込み（SSR の HTML に常設・課金ゼロ）、
+            上層＝ビューポート到達後に読み込む Maps JS のピン付き地図（案A）。
+            上層が出ない条件（キー未設定・未到達・認証失敗など）ではすべて下層が見え続けるので、
+            「Google由来写真の画面に Googleマップが1枚ある」条件が途切れない。 */}
         <HakoneAreaMapSection
           pins={mapPins}
           apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ""}
           caption={mapCaption}
           mapsQuery="箱根"
-          fallback={
-            <GoogleMapEmbed
-              query="箱根"
-              title="箱根エリアの地図（Googleマップ）"
-              zoom={11}
-              height={360}
-              caption={mapCaption}
-            />
-          }
+          embedZoom={11}
+          embedTitle="箱根エリアの地図（Googleマップ）"
         />
       </section>
 
