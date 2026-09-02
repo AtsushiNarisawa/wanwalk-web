@@ -288,6 +288,14 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "sazambichi-koshu-toire",
   "yuuhodou-no-takadai-byuu",
   "zaimokuza-kaigan-chusha-jo",
+  // --- 2026-09-02 宮城野早川さくら散歩のルート線引き直しに伴う spot 削除 2件 ---
+  // hakone-gora-miyagino-sakura-walk を堤防の遊歩道経由に引き直し、経路から外れた spot を DB から削除。
+  // 削除前は spot 7件 → 現在 5件。両 slug とも route_spots に存在せず、同一 spot の新 slug も無い（RENAMED 不可）。
+  // - miyagino-kyo-fukin（宮城野橋 桜並木折り返し・viewpoint）: 削除直前まで /spots で 200 配信されていた実在ページ
+  // - hayakawa-dandan-no-seki-eria（早川 段々の堰エリア・landmark）: landmark は dddfa52 で
+  //   NON_SEO_SPOT_CATEGORIES 入りしており既に 404。念のため 410 化して Google からの削除を早める
+  "hayakawa-dandan-no-seki-eria",
+  "miyagino-kyo-fukin",
 ]);
 
 // リネームされた slug の旧→新マップ。middleware で 301 redirect される。
