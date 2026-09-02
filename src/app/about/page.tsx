@@ -140,7 +140,7 @@ export default async function AboutPage() {
               textAlign: "right",
             }}
           >
-            ※ 2026年5月時点
+            ※ 件数はデータベースから自動集計（24時間ごとに更新）
           </p>
         </section>
 
@@ -296,6 +296,16 @@ export default async function AboutPage() {
             <FeatureItem title="箱根DMOサポート">
               箱根DMO（箱根町観光協会）のサポートのもと、
               箱根エリアを中心に高品質なルート情報を提供しています。
+              箱根は運営チームが実店舗を構える地元エリアであり、WanWalkがもっとも情報を厚く持つ場所です。
+              散歩コースは{" "}
+              <Link href="/hakone" style={{ color: "var(--color-ww-accent)", fontWeight: 500 }}>
+                箱根 愛犬さんぽマップ
+              </Link>
+              に、愛犬と行ける宿・カフェ・観光施設は{" "}
+              <Link href="/hakone/dog-map" style={{ color: "var(--color-ww-accent)", fontWeight: 500 }}>
+                箱根 愛犬とおでかけマップ
+              </Link>
+              にまとめています。
             </FeatureItem>
           </ul>
         </section>
@@ -487,6 +497,8 @@ export default async function AboutPage() {
               "犬連れカフェ",
               "ドッグラン",
               "犬連れ観光",
+              "箱根 犬連れ散歩コース",
+              "箱根で愛犬と行ける施設",
             ],
             areaServed: {
               "@type": "Country",
