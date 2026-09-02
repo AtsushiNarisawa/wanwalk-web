@@ -41,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
     null;
 
   const title = `箱根 愛犬さんぽマップ｜犬連れで歩ける散歩コース${totalRoutes}本`;
-  const description = `箱根（神奈川県）で愛犬と歩ける散歩コース${totalRoutes}本を、箱根湯本・宮ノ下・強羅・仙石原・芦ノ湖の5エリアからご紹介。各コースに駐車場・犬連れスポット・体験ストーリー付き。箱根町・箱根DMOと連携した公式版です。`;
+  const description = `箱根（神奈川県）で愛犬と歩ける散歩コース${totalRoutes}本を、箱根湯本・宮ノ下・強羅・仙石原・芦ノ湖の5エリアからご紹介。各コースに駐車場・犬連れスポット・体験ストーリー付き。箱根DMOの後援を受けて制作しています。`;
 
   return {
     title,
@@ -136,7 +136,7 @@ export default async function HakoneHubPage() {
           箱根（神奈川県）で愛犬と歩ける散歩コースは
           <span className="ww-numeric">{totalRoutes}</span>本。
           箱根湯本・宮ノ下・強羅・仙石原・芦ノ湖の5エリアから、駐車場・犬連れスポット・体験ストーリー付きでご紹介します。
-          箱根町・箱根DMOと連携した公式版です。
+          箱根DMOの後援を受けて制作しています。
         </p>
       </header>
 

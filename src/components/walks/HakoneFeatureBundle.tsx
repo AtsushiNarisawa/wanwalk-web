@@ -96,7 +96,7 @@ export default async function HakoneFeatureBundle() {
           <span className="ww-numeric">{totalAreas}</span>
           エリア・全
           <span className="ww-numeric">{totalRoutes}</span>
-          本）。箱根町・箱根DMOと連携した公式版です。
+          本）。箱根DMOの後援を受けて制作しています。
         </p>
         <span
           className="inline-flex items-center gap-1 mt-4"
