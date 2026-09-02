@@ -7,6 +7,7 @@ import HakoneDogMapView from "@/components/walks/HakoneDogMapView";
 import DirectoryRefTracker from "@/components/walks/DirectoryRefTracker";
 import HakoneOfficialBadge from "@/components/walks/HakoneOfficialBadge";
 import HakoneMapToggle from "@/components/walks/HakoneMapToggle";
+import HakoneRouteLinks from "@/components/walks/HakoneRouteLinks";
 
 /**
  * 箱根 犬連れ「おでかけマップ」（一般公開・index 可）。
@@ -141,6 +142,12 @@ export default async function HakoneDogMapPage({
 
       {/* 帰属（箱根全山＝箱根DMO が主体・WanWalk が制作）。運営者開示は下部フッターで別途。 */}
       <HakoneOfficialBadge />
+
+      {/* 箱根の各散歩コースへ返すテキストリンク索引（2026-09-02）。
+          施設カードの最寄りコースリンクは既定の畳み込み表示では HTML に出ないため、
+          サーバー側で常に出る索引を別に持つ（詳細は HakoneRouteLinks の冒頭コメント）。
+          バッジ（DMO 名義）より下に置き、WanWalk 自身のコンテンツとして分離する。 */}
+      <HakoneRouteLinks />
 
       {/* 運営者開示・免責 */}
       <footer

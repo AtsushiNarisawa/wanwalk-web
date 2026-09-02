@@ -9,12 +9,14 @@ import {
   parseCartParam,
 } from "@/lib/walks/filter-routes";
 import SupportedBadge from "@/components/walks/SupportedBadge";
+import HakoneDogMapLink from "@/components/walks/HakoneDogMapLink";
 import ShareMenu from "@/components/walks/ShareMenu";
 import TrustByline from "@/components/walks/TrustByline";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import WalkInAppCTA from "@/components/walks/WalkInAppCTA";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { formatDistance } from "@/lib/walks/format";
+import { isHakoneAreaSlug } from "@/lib/walks/area-taxonomy";
 import {
   ORG_REF,
   webPageSchema,
@@ -300,6 +302,11 @@ export default async function AreaDetailPage({
           ))}
         </section>
       )}
+
+      {/* 箱根のエリアだけ、犬連れ施設マップ /hakone/dog-map への文脈リンクを出す
+          （箱根関連ページ同士の相互リンク・2026-09-02）。
+          DMO 名義はこのページに持ち込まない（公開ページは SupportedBadge = 後援表記のみ）。 */}
+      {isHakoneAreaSlug(area.slug) && <HakoneDogMapLink />}
 
       <WalksAppCTA sourcePage="area_detail" />
 

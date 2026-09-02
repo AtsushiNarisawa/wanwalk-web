@@ -502,6 +502,79 @@ export const getHakoneAreasWithRoutes = cache(
   }
 );
 
+// /hakone/dog-map（箱根 愛犬とおでかけマップ）から箱根の各散歩コースへ返す
+// テキストリンク索引 (HakoneRouteLinks) 専用の軽量取得。
+//
+// 設計:
+// - dog-map は force-dynamic（?ref を毎回読む）ため、リクエストごとに走る。
+//   getHakoneAreasWithRoutes() はエリア数ぶん getRoutesByAreaId() を呼ぶ（1+N クエリ）ので
+//   ここでは使わず、エリア1回 + ルート1回の **合計2クエリ** に抑える。
+// - 取得列はテキストリンクに要る分だけ（写真・description は引かない）。
+// - PostgREST の nested embed フィルタは過去にバグ実績があるため使わない（commit e269e98）。
+//   エリアIDを引いてから .in("area_id", ids) で絞り、JS 側でも is_published を再フィルタする。
+// - 並びは HAKONE_SUB_AREA_ORDER（湯本→宮ノ下→強羅→仙石原→芦ノ湖）、エリア内はコース名順。
+// - 公開ルート0本のエリアは返さない（空セクション・リンク切れ防止。/areas/{slug} は0本で404）。
+export interface HakoneRouteLinkItem {
+  id: string;
+  name: string;
+  slug: string;
+  distance_meters: number | string | null;
+  estimated_minutes: number | null;
+}
+
+export interface HakoneAreaRouteLinks {
+  areaName: string;
+  areaSlug: string;
+  routes: HakoneRouteLinkItem[];
+}
+
+export const getHakoneRouteLinks = cache(
+  async (): Promise<HakoneAreaRouteLinks[]> => {
+    const { data: areas, error: areaError } = await supabase
+      .from("areas")
+      .select("id, name, slug")
+      .eq("group_key", "hakone")
+      .not("slug", "is", null);
+
+    if (areaError || !areas || areas.length === 0) return [];
+
+    const { data: routes, error: routeError } = await supabase
+      .from("official_routes")
+      .select("id, area_id, name, slug, distance_meters, estimated_minutes, is_published")
+      .in(
+        "area_id",
+        areas.map((a) => a.id as string)
+      )
+      .eq("is_published", true)
+      .order("name");
+
+    if (routeError || !routes) return [];
+
+    const orderIndex = (slug: string): number => {
+      const i = (HAKONE_SUB_AREA_ORDER as readonly string[]).indexOf(slug);
+      return i < 0 ? 999 : i;
+    };
+
+    return areas
+      .map((a) => ({
+        areaName: a.name as string,
+        areaSlug: a.slug as string,
+        routes: routes
+          // server 側で絞り済みだが、getHakoneAreasWithRoutes と同じく JS 側でも再確認する。
+          .filter((r) => r.area_id === a.id && r.is_published === true)
+          .map((r) => ({
+            id: r.id as string,
+            name: r.name as string,
+            slug: r.slug as string,
+            distance_meters: (r.distance_meters ?? null) as number | string | null,
+            estimated_minutes: (r.estimated_minutes ?? null) as number | null,
+          })),
+      }))
+      .filter((g) => g.routes.length > 0)
+      .sort((a, b) => orderIndex(a.areaSlug) - orderIndex(b.areaSlug));
+  }
+);
+
 export async function getRoutePinsWithPhotos(
   routeId: string
 ): Promise<import("@/types/walks").RoutePinWithPhoto[]> {

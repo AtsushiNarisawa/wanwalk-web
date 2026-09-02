@@ -63,3 +63,24 @@ export const HAKONE_AREA_CENTERS: Record<string, { lat: number; lng: number }> =
   // 公開ルート0本のため現状 /hakone には描画されないが、正本に存在するので写しも持つ。
   "hakone-shuhen": { lat: 35.209, lng: 139.049 },
 };
+
+/**
+ * 箱根グループのエリア slug 一覧（DB `areas.group_key='hakone'` の写し）。
+ * 正本は Supabase。最終照合 2026-09-02（6件すべて一致）:
+ *   select slug from areas where group_key = 'hakone' order by slug;
+ *
+ * `HAKONE_AREA_CENTERS` が同じ6件を持つため、そこから導出して二重定義を作らない。
+ * エリアを増減したときは `HAKONE_AREA_CENTERS` を直せば、この一覧も追随する。
+ */
+export const HAKONE_AREA_SLUGS: readonly string[] = Object.keys(HAKONE_AREA_CENTERS);
+
+/**
+ * このエリアが箱根グループかどうか（/hakone/dog-map への文脈リンクの出し分けに使う）。
+ *
+ * DB から `group_key` を読み直さない理由: ルート詳細・エリア詳細の既存クエリは
+ * `areas(id, name, slug, prefecture, description)` で列を絞っており、
+ * リンク1本のために選択列と RSC ペイロードを増やしたくないため。
+ */
+export function isHakoneAreaSlug(slug: string | null | undefined): boolean {
+  return !!slug && HAKONE_AREA_SLUGS.includes(slug);
+}
