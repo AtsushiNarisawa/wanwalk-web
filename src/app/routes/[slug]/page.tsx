@@ -81,7 +81,7 @@ function buildRouteFaq(
   } else if (parkingSpots.length > 0) {
     q2Answer = `コース上の駐車場目印: ${parkingSpots.slice(0, 2).join("・")}。`;
   } else {
-    q2Answer = "公式の駐車場情報は登録されていません。最寄りの有料駐車場をご利用ください。";
+    q2Answer = "公式の駐車場情報は登録されていません。お出かけ前に最寄りの駐車場をご確認ください。";
   }
 
   // Q3: ベストシーズン（DB値をそのまま使用・CEO監修済）
@@ -163,8 +163,8 @@ export async function generateMetadata({
   // タイトルを slug 単位で上書き。route.name（h1・パンくず・構造化データ）は変更しないため表示崩れなし。
   // 効果は 6月末 GSC ベンチマークで観測。
   const TITLE_OVERRIDES: Record<string, string> = {
-    "nasu-minamigaoka-ranch": "南ヶ丘牧場 犬連れ散歩｜入場・駐車場無料の那須高原牧場",
-    "miura-kurihama-hana": "くりはま花の国 犬連れ散歩｜入園無料・花畑100万本",
+    "nasu-minamigaoka-ranch": "南ヶ丘牧場 犬連れ散歩｜那須連山を望む高原牧場とガーンジィ牛",
+    "miura-kurihama-hana": "くりはま花の国 犬連れ散歩｜春はポピー・秋はコスモス100万本",
     "yokohama-sankeien-honmoku-promenade": "三溪園 犬連れ散歩｜庭園の外周ループは犬OK 横浜本牧",
     "izu-shuzenji-onsen": "修善寺温泉 犬連れ散歩｜竹林の小径と渓流の橋めぐり",
     "tokyo-kasai-rinkai-park-loop": "葛西臨海公園 犬連れ散歩｜海・芝生・大観覧車を一周",
