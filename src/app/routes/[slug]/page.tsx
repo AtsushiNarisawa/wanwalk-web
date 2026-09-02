@@ -22,12 +22,16 @@ import RouteItinerary from "@/components/walks/RouteItinerary";
 import SeasonHighlight from "@/components/walks/SeasonHighlight";
 import RelatedRoutes from "@/components/walks/RelatedRoutes";
 import AreaRouteLinks from "@/components/walks/AreaRouteLinks";
+import HakoneDogMapLink from "@/components/walks/HakoneDogMapLink";
 import TrustByline from "@/components/walks/TrustByline";
 import SubmissionCredit from "@/components/walks/SubmissionCredit";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import WalkInAppCTA from "@/components/walks/WalkInAppCTA";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { formatDistance } from "@/lib/walks/format";
+import { isHakoneAreaSlug } from "@/lib/walks/area-taxonomy";
+import RouteParking from "@/components/walks/RouteParking";
+import { buildParkingInfo, stripTrailingPeriod } from "@/lib/walks/parking";
 import {
   ORG_REF,
   webPageSchema,
@@ -69,24 +73,19 @@ function buildRouteFaq(
     q1Answer = `${route.name}のコース散歩自体は犬連れで歩けます（${sizeLabel}）。ただし${ngNames.join("・")}など内部・境内が犬同伴不可のスポットがあります。門前・参道・外観からの散策をお楽しみください。`;
   }
 
-  // Q2: 駐車場
-  const parkingSpots = spots
-    .filter((s) => s.category === "parking")
-    .map((s) => s.name)
-    .filter((n, i, arr) => arr.indexOf(n) === i);
-  let q2Answer: string;
-  if (petInfo?.parking) {
-    const supplement = parkingSpots.length > 0 ? `（コース上の駐車場目印: ${parkingSpots.slice(0, 2).join("・")}）` : "";
-    q2Answer = `${petInfo.parking}。${supplement}`.trim();
-  } else if (parkingSpots.length > 0) {
-    q2Answer = `コース上の駐車場目印: ${parkingSpots.slice(0, 2).join("・")}。`;
-  } else {
-    q2Answer = "公式の駐車場情報は登録されていません。お出かけ前に最寄りの駐車場をご確認ください。";
-  }
+  // Q2: 駐車場（2026-09-02 改修）。
+  // ・質問文は route.name（詩的なコース名）ではなく地名を使う＝「〇〇 駐車場」の検索語に噛み合わせる
+  // ・回答は「どこにあるか（pet_info.parking）＋コースのどちら側か・そこから歩き出せるか」
+  // ・末尾句点は endWithPeriod で正規化（旧実装は「…（70台）。。」と句点が重なっていた）
+  const parking = buildParkingInfo(route, spots);
+  const q2Answer =
+    [parking.parkingText, parking.structureText].filter(Boolean).join("") ||
+    "公式の駐車場情報は登録されていません。お出かけ前に最寄りの駐車場をご確認ください。";
 
   // Q3: ベストシーズン（DB値をそのまま使用・CEO監修済）
+  // DB値に末尾「。」を持つものがあり（2件）、そのままだと「…快適。です。」になるため句点を落として連結する。
   const q3Answer = petInfo?.best_season
-    ? `${route.name}のベストシーズンは、${petInfo.best_season}です。`
+    ? `${route.name}のベストシーズンは、${stripTrailingPeriod(petInfo.best_season)}です。`
     : `${route.name}は通年で犬連れ散歩を楽しめます。`;
 
   // Q4: カート走行可否（cart_notes 冒頭の結論語と前置きの重複を避ける + 末尾に句点を補う）
@@ -105,7 +104,8 @@ function buildRouteFaq(
   );
   const faqs: FaqEntry[] = [
     { "@type": "Question", name: `${route.name}は犬連れで散歩できますか？`, acceptedAnswer: { "@type": "Answer", text: q1Answer } },
-    { "@type": "Question", name: `${route.name}に駐車場はありますか？`, acceptedAnswer: { "@type": "Answer", text: q2Answer } },
+    // ⚠️ 駐車場の質問文だけ地名（parking.placeName）を使う。他のQは犬連れクエリで好調なため route.name のまま。
+    { "@type": "Question", name: `${parking.placeName}に駐車場はありますか？`, acceptedAnswer: { "@type": "Answer", text: q2Answer } },
     { "@type": "Question", name: `${route.name}のベストシーズンはいつですか？`, acceptedAnswer: { "@type": "Answer", text: q3Answer } },
     { "@type": "Question", name: `${route.name}はベビーカーやペットカートで歩けますか？`, acceptedAnswer: { "@type": "Answer", text: q4Answer } },
   ];
@@ -248,6 +248,12 @@ export default async function RouteDetailPage({
   const isSubmission = route.origin === "submission";
   const distanceLabel = formatDistance(route.distance_meters);
   const petInfo = route.pet_info;
+  // 駐車場は専用セクションで答える（見出し＋本文）。FAQ（buildRouteFaq）と同じ関数を使い、
+  // 画面の文言と JSON-LD の回答文を一致させる（2026-09-02）。
+  const parking = buildParkingInfo(route, spots);
+  // 犬連れメモ（PetInfoGrid）からは駐車場を外す。同じ文が同一ページに二度出るのを避けるため。
+  // 公開93本すべて parking 以外のキーを持つため、これで犬連れメモが消えるルートは無い（DB実測）。
+  const petInfoWithoutParking = petInfo ? { ...petInfo, parking: undefined } : null;
   const elevationGainFromPet = petInfo?.elevation_gain
     ? Number(String(petInfo.elevation_gain).replace(/[^0-9.-]/g, "")) || null
     : null;
@@ -432,7 +438,7 @@ export default async function RouteDetailPage({
             滞在目安は約{route.estimated_minutes}分、
             {difficultyLabels[route.difficulty_level]}コースで、
             {route.cart_friendly ? "カート走行可。" : ""}
-            {petInfo?.parking ? `駐車場: ${petInfo.parking}。` : ""}
+            {parking.parkingText ? `駐車場: ${parking.parkingText}` : ""}
             {spots.length > 0 ? `園内に${spots.length}件の見どころがあります。` : ""}
           </>
         ) : (
@@ -440,7 +446,7 @@ export default async function RouteDetailPage({
             「{route.name}」は、{route.areas.name}にある距離{distanceLabel}・所要約{route.estimated_minutes}分の犬連れ散歩コースです。
             {difficultyLabels[route.difficulty_level]}コースで、
             {route.cart_friendly ? "カート走行可。" : ""}
-            {petInfo?.parking ? `駐車場: ${petInfo.parking}。` : ""}
+            {parking.parkingText ? `駐車場: ${parking.parkingText}` : ""}
             {spots.length > 0 ? `コース上に${spots.length}件の犬連れスポットがあります。` : ""}
           </>
         )}
@@ -560,11 +566,16 @@ export default async function RouteDetailPage({
         </section>
       )}
 
+      {/* 駐車場（2026-09-02 新設）。「〇〇 駐車場」で来た読者に画面上でも見出し付きで答える。
+          GSC 6-8月で駐車場クエリ 1,892表示・1クリック。従来は可視の見出しが無く、
+          pet_info の駐車場は犬連れメモの小ラベルに埋もれていた。 */}
+      <RouteParking info={parking} />
+
       {/* 犬連れメモ（施策④ アイコングリッド）。
           pet_info はキー単位で空にする運用があるため、petInfo が非nullでも
           実際に描画する項目が0件なら見出しだけの空枠になる。
           hasPetInfoContent で中身の有無を判定してから見出しごと非表示にする（2026-08-03）。 */}
-      {petInfo && hasPetInfoContent(petInfo) && (
+      {petInfoWithoutParking && hasPetInfoContent(petInfoWithoutParking) && (
         <section style={{ marginBottom: 48 }}>
           <h2
             style={{
@@ -578,7 +589,7 @@ export default async function RouteDetailPage({
           >
             犬連れメモ
           </h2>
-          <PetInfoGrid petInfo={petInfo} />
+          <PetInfoGrid petInfo={petInfoWithoutParking} />
         </section>
       )}
 
@@ -637,6 +648,11 @@ export default async function RouteDetailPage({
       {/* 同エリア全コースのテキストリンク索引（鎌倉内部リンク救済・2026-06-04）
           兄弟6本以上のエリアのみ描画。沈んでいる高表示ページに内部リンクを均等配分する。 */}
       <AreaRouteLinks currentRoute={route} />
+
+      {/* 箱根のコースだけ、犬連れ施設マップ /hakone/dog-map への文脈リンクを出す
+          （箱根関連ページ同士の相互リンク・2026-09-02）。
+          DMO 名義はこのページに持ち込まない（公開ページは SupportedBadge = 後援表記のみ）。 */}
+      {isHakoneAreaSlug(route.areas.slug) && <HakoneDogMapLink />}
 
       {/* CTA */}
       <div style={{ marginTop: 48 }}>
