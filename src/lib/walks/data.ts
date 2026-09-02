@@ -260,7 +260,15 @@ export function toItinerarySpot(s: RouteSpot): RouteItinerarySpot {
     description: s.description,
     category: s.category,
     photo_url: s.photo_url,
-    photo_metadata: s.photo_metadata,
+    // photo_metadata は DB 上 Places 取得時の証跡（photos[].photo_reference /
+    // place_id / source_name / source_lat,lng）を丸ごと持つ jsonb。そのまま渡すと
+    // Client Component の RSC ペイロードに全部載り、公開 HTML に出てしまう
+    // （2026-09-02 実測: 93本中63本のルートページに photo_reference が露出。
+    //   昇仙峡では旧施設名の「無料」が HTML に残っていた）。
+    // 型どおり、描画で実際に使う image_position だけに絞る。証跡は DB 側に残す。
+    photo_metadata: s.photo_metadata
+      ? { image_position: s.photo_metadata.image_position }
+      : null,
     seasonal_notes: s.seasonal_notes,
     distance_from_start: s.distance_from_start,
     spot_order: s.spot_order,
