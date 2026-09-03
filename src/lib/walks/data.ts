@@ -618,19 +618,18 @@ export async function getRoutePinsWithPhotos(
 
 // --- Spot functions ---
 
+// route_spots.location も official_routes.start_location と同じ geography 型で、
+// PostgREST は EWKB の16進文字列を返す。旧実装は WKT（"POINT(lng lat)"）だけを見ていたため
+// 全スポットで lat / lng が null に落ちていた（→ /spots/[slug] の JSON-LD geo が全件欠落）。
+// official_routes 側で 2026-08-30 に直した parseGeoPoint をそのまま再利用する（2026-09-03）。
 function parseSpotLocation(s: Record<string, unknown>): RouteSpot {
-  const loc = s.location as string | null;
-  let lat: number | null = null;
-  let lng: number | null = null;
-  if (loc && typeof loc === "string") {
-    const m = loc.match(/POINT\(([^ ]+) ([^)]+)\)/);
-    if (m) {
-      lng = parseFloat(m[1]);
-      lat = parseFloat(m[2]);
-    }
-  }
+  const point = parseGeoPoint(s.location);
   const { location: _loc, ...rest } = s;
-  return { ...rest, lat, lng } as RouteSpot;
+  return {
+    ...rest,
+    lat: point?.lat ?? null,
+    lng: point?.lng ?? null,
+  } as RouteSpot;
 }
 
 export async function getAllSpots(): Promise<

@@ -23,6 +23,7 @@ import { getAllSpotSlugs, getSpotBySlug } from "@/lib/walks/data";
 import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
 import type { SpotCategory } from "@/types/walks";
 import SupportedBadge from "@/components/walks/SupportedBadge";
+import GoogleMapEmbed from "@/components/walks/GoogleMapEmbed";
 import ShareMenu from "@/components/walks/ShareMenu";
 import TrustByline from "@/components/walks/TrustByline";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
@@ -149,6 +150,19 @@ export default async function SpotDetailPage({
   //    （2026-08-02 CEO 確定・2026-08-03 誘導文も対象と確定）。JSON-LD は本文と同じ扱いで、
   //    条件や誘導文を書くと検索結果・AI 回答に転載される。散歩側（route_spots）には誘導先の
   //    公式URLが実質存在しない（website_url 充足率 1/602）ため、誘導文自体が不誠実だった。
+  // 地図（2026-09-03）。スポットページはルート詳細の旅程テキストと本文が同一で、
+  // 写真も地図も無く差別化要素が無かった（CEO 指摘）。座標は全スポットが DB に持つため、
+  // 追加コストゼロで固有の情報を出せる唯一の要素として地図を置く。
+  // 方式はルート詳細と同じ GoogleMapEmbed（output=embed の公開埋め込み・APIキー不要・課金ゼロ）。
+  // parseRouteLocation と同様、解釈できなかったときの 0,0（null island）は明示的に除外する。
+  const hasGeo =
+    typeof spot.lat === "number" &&
+    typeof spot.lng === "number" &&
+    Number.isFinite(spot.lat) &&
+    Number.isFinite(spot.lng) &&
+    spot.lat !== 0 &&
+    spot.lng !== 0;
+
   const faqItems: { q: string; a: string }[] = [];
   if (spot.pet_friendly) {
     faqItems.push({
@@ -320,6 +334,30 @@ export default async function SpotDetailPage({
           </section>
         )}
 
+        {/* 地図。座標が取れないスポットではセクションごと出さない（空枠を作らない） */}
+        {hasGeo && (
+          <section style={{ marginBottom: 32 }}>
+            <h2
+              className="ww-serif"
+              style={{
+                fontFamily: "var(--font-ww-serif)",
+                fontSize: 18,
+                fontWeight: 600,
+                color: "var(--color-ww-text)",
+                marginBottom: 16,
+              }}
+            >
+              {spot.name}の場所
+            </h2>
+            <GoogleMapEmbed
+              query={`${spot.lat},${spot.lng}`}
+              title={`${spot.name}の場所（Googleマップ）`}
+              zoom={15}
+              height={280}
+            />
+          </section>
+        )}
+
         {/* 犬連れ情報セクションは撤去（2026-08-03 CEO 確定）。
             従来この欄は DB の dog_policy を一切描画せず、`dog_policy が非 null` を表示条件にした
             固定の「公式サイト/現地でご確認ください」文言を出すだけだった。散歩側（route_spots）には
@@ -477,7 +515,10 @@ export default async function SpotDetailPage({
             description: spot.description ?? undefined,
             author: ORG_REF,
             publisher: ORG_REF,
-            ...(spot.lat && spot.lng
+            // geo は本文の地図と同じ hasGeo で判定する（0,0 の null island を出さない）。
+            // 2026-09-03 まで parseSpotLocation が EWKB を読めず lat/lng が全件 null
+            // だったため、この geo は一度も出力されていなかった。
+            ...(hasGeo
               ? {
                   geo: {
                     "@type": "GeoCoordinates",
