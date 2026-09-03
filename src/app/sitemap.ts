@@ -6,6 +6,7 @@ import {
   getSpotsByCategory,
 } from "@/lib/walks/data";
 import { getAllNewsArticles } from "@/lib/news";
+import { LOW_DEMAND_NOINDEX_SPOT_SLUGS } from "@/lib/noindex-spot-slugs";
 
 // /spots/category/{cat} の対象カテゴリ + ページネーション設定。
 // 1 ページあたりの件数は /spots/category/[category]/page.tsx の PER_PAGE と揃える。
@@ -143,8 +144,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
+  // noindex にしたスポットページ（2026-09-03・GSC 実測で需要なしと判定した48件）は
+  // sitemap にも載せない。「sitemap で送っておいて noindex」は不整合なので合わせる。
+  // 台帳から slug を外せば自動で sitemap にも戻る（src/lib/noindex-spot-slugs.ts）。
   const spotPages: MetadataRoute.Sitemap = spotSlugs
     .filter(isValidSlug)
+    .filter((slug) => !LOW_DEMAND_NOINDEX_SPOT_SLUGS.has(slug))
     .map((slug) => ({
       url: `${baseUrl}/spots/${slug}`,
       lastModified: new Date(),

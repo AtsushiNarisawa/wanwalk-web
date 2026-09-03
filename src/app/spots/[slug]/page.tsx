@@ -21,6 +21,7 @@ import {
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
 import { getAllSpotSlugs, getSpotBySlug } from "@/lib/walks/data";
 import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
+import { LOW_DEMAND_NOINDEX_SPOT_SLUGS } from "@/lib/noindex-spot-slugs";
 import type { SpotCategory } from "@/types/walks";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import GoogleMapEmbed from "@/components/walks/GoogleMapEmbed";
@@ -109,9 +110,17 @@ export async function generateMetadata({
     SPOT_TITLE_OVERRIDES[slug] ??
     `${dogBadge}${spot.name}${catLabel}｜${spot.area_name}の犬連れスポット`;
   const ogImage = `https://wanwalk.jp/api/og/spots/${slug}`;
+  // 需要が確認できなかったスポットページは noindex にする（2026-09-03）。
+  // ページも内部リンクも残すので follow: true。対象 slug と判断根拠・戻し方は
+  // src/lib/noindex-spot-slugs.ts に台帳としてまとめてある。
+  // 書き方は routes/[slug] の SUBMISSION_NOINDEX_SLUGS と同じ形に揃えている。
+  const robots = LOW_DEMAND_NOINDEX_SPOT_SLUGS.has(slug)
+    ? { index: false, follow: true }
+    : undefined;
   return {
     title,
     description: desc,
+    ...(robots ? { robots } : {}),
     alternates: { canonical: `/spots/${slug}` },
     ...buildOgMetadata({
       title,
