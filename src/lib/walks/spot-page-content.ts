@@ -113,6 +113,54 @@ export function buildRoutePositionText(args: {
 const META_TARGET_LENGTH = 120;
 
 /**
+ * spot_page_body から meta を作るときの上限。
+ * 本文は編集部が「検索者の問いへの答え」を冒頭に置いて書いているので、テンプレを挟まず
+ * 冒頭から文単位で詰める。110 は詰める側の上限、120 は「駐車場あり。」を足したあとの上限。
+ */
+const BODY_META_TARGET_LENGTH = 110;
+const BODY_META_MAX_WITH_PARKING = 120;
+const PARKING_SUFFIX = "駐車場あり。";
+
+/** 句点で文に割る（末尾の句点は保持する）。実データに「！」「？」は無い。 */
+function splitSentences(text: string): string[] {
+  return text
+    .split("。")
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0)
+    .map((t) => `${t}。`);
+}
+
+/**
+ * spot_page_body 起点の meta。テンプレは一切挟まない。
+ *
+ * なぜ（2026-09-03 本番実測）:
+ *   /spots/hasedera-monzen は「長谷寺 犬連れ」で 212表示 0クリック。本文の第2文・第3文
+ *   （境内へは入れない／歩けるのは山門の手前まで）こそが検索者の問いへの答えなのに、
+ *   テンプレを並べたあと第1文だけを足して終わっており、答えがスニペットに届いていなかった。
+ *
+ * 規則:
+ *   - 冒頭から句点単位で詰める。110字を超える文は足さない＝文の途中では絶対に切らない
+ *   - 1文目だけは上限を超えても入れる（切らずに1文で打ち切る）
+ *   - 詰め終わって余裕があり駐車場があれば「駐車場あり。」を足す（120字を超えるなら足さない）
+ *   - 料金語を含む文は飛ばす（本文は編集部が書くので現状ゼロだが、将来の混入に備える）
+ */
+function buildMetaFromSpotPageBody(body: string, hasParking: boolean): string | null {
+  const sentences = splitSentences(body).filter((t) => !hasPriceWord(t));
+  if (sentences.length === 0) return null;
+
+  let desc = sentences[0];
+  for (const s of sentences.slice(1)) {
+    if (desc.length + s.length > BODY_META_TARGET_LENGTH) break;
+    desc += s;
+  }
+
+  if (hasParking && desc.length + PARKING_SUFFIX.length <= BODY_META_MAX_WITH_PARKING) {
+    desc += PARKING_SUFFIX;
+  }
+  return desc;
+}
+
+/**
  * meta description。そのスポット固有の素材を組み立てて作る。
  *
  * 旧実装は `${エリア}の${カテゴリ}「${名前}」。${犬連れOK}${description.slice(0,80)}` で、
@@ -131,13 +179,22 @@ const META_TARGET_LENGTH = 120;
  *
  * 駐車場は「あり」の事実だけ。台数・料金は meta に出さない
  * （feedback_parking_details_avoid_in_meta / 料金は全面禁止）。
+ *
+ * 2026-09-03 追加: spot_page_body が入っているスポットでは、下のテンプレ組み立てを
+ * 一切使わず buildMetaFromSpotPageBody に委ねる（編集部が書いた「答え」を冒頭から
+ * そのまま届けるため）。NULL のスポットは従来どおりテンプレ生成。
  */
 export function buildSpotMetaDescription(args: {
   name: string;
   areaName: string;
   categoryLabel?: string | null;
   petFriendly: boolean;
-  /** spot_page_body ?? description。素材として先頭1文だけ使う。 */
+  /**
+   * route_spots.spot_page_body。入っていればテンプレを使わず、この本文の冒頭から
+   * 文単位で meta を作る（編集部が書いた答えをスニペットに届けるため）。
+   */
+  spotPageBody?: string | null;
+  /** route_spots.description。テンプレ生成で素材が薄いときの穴埋めに先頭1文だけ使う。 */
   bodyText?: string | null;
   landscapeFeature?: string | null;
   activitySuggestions?: readonly string[] | null;
@@ -153,6 +210,13 @@ export function buildSpotMetaDescription(args: {
     routeName,
     hasParking,
   } = args;
+
+  // spot_page_body があるスポットは、テンプレを組み立てずに本文の冒頭を使う。
+  const editorialBody = args.spotPageBody?.trim();
+  if (editorialBody) {
+    const fromBody = buildMetaFromSpotPageBody(editorialBody, Boolean(hasParking));
+    if (fromBody) return fromBody;
+  }
 
   const feature = sanitizeText(args.landscapeFeature);
   const activities = sanitizeList(args.activitySuggestions).slice(0, 2);

@@ -268,6 +268,102 @@ describe("buildSpotMetaDescription", () => {
     });
   });
 
+  // spot_page_body 起点の meta（2026-09-03 本番実測で追加）。
+  // /spots/hasedera-monzen は「長谷寺 犬連れ」で212表示0クリック。本文の第2・第3文こそが
+  // 検索者の問いへの答えなのに、テンプレを並べたあと第1文だけ足して終わっていた。
+  describe("spot_page_body があるときは本文の冒頭から文単位で作る", () => {
+    // 実データ（route_spots.spot_page_body）の冒頭。
+    const hasederaBody =
+      "鎌倉・長谷寺の門前エリアです。はじめにお伝えすると、長谷寺の境内へは愛犬と一緒に入ることができません。" +
+      "愛犬と過ごせるのは山門の手前まで、門前の参道の区間になります。" +
+      "観音山の中腹に立つ長谷寺は、高さ約9.18mの十一面観音菩薩立像で知られ、境内は本堂から見晴台まで段差のある立体的なつくりです。";
+
+    const base = {
+      name: "長谷寺 門前",
+      areaName: "鎌倉",
+      categoryLabel: "景観ポイント",
+      petFriendly: false,
+      bodyText: "観音山の中腹に立ち、十一面観音菩薩立像で名高い長谷寺の門前エリア。",
+      landscapeFeature: "長谷寺の山門と参道",
+      activitySuggestions: ["門前から参拝", "参道の花を楽しむ"],
+      routeName: "長谷寺・大仏コース",
+      hasParking: true,
+    };
+
+    it("テンプレを挟まず、検索者の問いへの答え（第2・第3文）が meta に載る", () => {
+      const d = buildSpotMetaDescription({ ...base, spotPageBody: hasederaBody });
+      expect(d.startsWith("鎌倉・長谷寺の門前エリアです。")).toBe(true);
+      expect(d).toContain("長谷寺の境内へは愛犬と一緒に入ることができません。");
+      expect(d).toContain("愛犬と過ごせるのは山門の手前まで、門前の参道の区間になります。");
+      // テンプレの断片は混ざらない
+      expect(d).not.toContain("見どころは");
+      expect(d).not.toContain("過ごし方は、");
+      expect(d).not.toContain("の途中にあります");
+      expect(d).not.toContain("景観ポイント「長谷寺 門前」");
+    });
+
+    it("文の途中で切れず、110字前後（駐車場込みで120字以内）に収まる", () => {
+      const d = buildSpotMetaDescription({ ...base, spotPageBody: hasederaBody });
+      expect(d.endsWith("。")).toBe(true);
+      expect(d.length).toBeLessThanOrEqual(120);
+      // 上限を超える第4文は入らない
+      expect(d).not.toContain("観音山の中腹に立つ長谷寺は");
+    });
+
+    it("余裕があれば末尾に「駐車場あり。」を足す／120字を超えるなら足さない", () => {
+      const withP = buildSpotMetaDescription({ ...base, spotPageBody: hasederaBody });
+      expect(withP.endsWith("駐車場あり。")).toBe(true);
+
+      const noP = buildSpotMetaDescription({
+        ...base,
+        spotPageBody: hasederaBody,
+        hasParking: false,
+      });
+      expect(noP.endsWith("駐車場あり。")).toBe(false);
+      expect(noP.endsWith("。")).toBe(true);
+
+      // 詰めた結果が 115字なら「駐車場あり。」(6字) を足すと 121字＝足さない
+      const long = "あ".repeat(114) + "。";
+      const d = buildSpotMetaDescription({ ...base, spotPageBody: long, hasParking: true });
+      expect(d.length).toBe(115);
+      expect(d).not.toContain("駐車場あり。");
+    });
+
+    it("1文が110字を超える body は、その1文だけを返し途中で切らない", () => {
+      const oneLongSentence = "あ".repeat(180) + "。";
+      const d = buildSpotMetaDescription({
+        ...base,
+        spotPageBody: oneLongSentence,
+        hasParking: true,
+      });
+      expect(d).toBe(oneLongSentence); // 181字。切らない・駐車場も足さない
+      expect(d.endsWith("。")).toBe(true);
+      expect(d.length).toBe(181);
+    });
+
+    it("body が NULL のときは従来のテンプレ生成に落ちる", () => {
+      const d = buildSpotMetaDescription({ ...base, spotPageBody: null });
+      expect(d.startsWith("鎌倉の景観ポイント「長谷寺 門前」。")).toBe(true);
+      expect(d).toContain("見どころは長谷寺の山門と参道。");
+      expect(d).toContain("過ごし方は、門前から参拝・参道の花を楽しむなど。");
+
+      // 空文字・空白のみも NULL と同じ扱い
+      expect(buildSpotMetaDescription({ ...base, spotPageBody: "" })).toBe(d);
+      expect(buildSpotMetaDescription({ ...base, spotPageBody: "   " })).toBe(d);
+      expect(buildSpotMetaDescription({ ...base })).toBe(d);
+    });
+
+    it("料金語を含む文は飛ばす（将来の混入に備えた防御・現状の実データは0件）", () => {
+      const d = buildSpotMetaDescription({
+        ...base,
+        spotPageBody: "湖畔の砂浜です。駐車場は有料です。愛犬と水際で過ごせます。",
+        hasParking: false,
+      });
+      expect(d).toBe("湖畔の砂浜です。愛犬と水際で過ごせます。");
+      expect(hasPriceWord(d)).toBe(false);
+    });
+  });
+
   it("meta に料金語を出さない", () => {
     const d = buildSpotMetaDescription({
       name: "ポーラ美術館 森の遊歩道",
