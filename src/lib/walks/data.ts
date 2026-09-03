@@ -10,6 +10,8 @@ import type {
   RouteAreaInfo,
   RouteItinerarySpot,
   RouteMapSpot,
+  AreaSpotLink,
+  SpotCategory,
 } from "@/types/walks";
 import { HAKONE_SUB_AREA_ORDER } from "./area-taxonomy";
 
@@ -776,10 +778,15 @@ export const getSpotsByCategory = cache(
 );
 
 export async function getSpotBySlug(slug: string): Promise<SpotWithRoute | null> {
+  // 2026-09-03: 親ルートの distance_meters / estimated_minutes / pet_info を追加取得。
+  // スポットページの「ルート内の位置」「行き方（駐車場）」で使う。pet_info は jsonb だが
+  // 駐車場文字列しか読まない（同伴条件・料金は描画しない・spot-page-content.ts でガード）。
+  // このページは Server Component で、spot を丸ごと Client Component に渡してはいないため
+  // RSC ペイロード漏れ（2026-08-04）の対象外。
   const { data, error } = await supabase
     .from("route_spots")
     .select(
-      "*, official_routes!inner(name, slug, cart_friendly, is_published, areas!inner(name, slug))"
+      "*, official_routes!inner(name, slug, cart_friendly, is_published, distance_meters, estimated_minutes, pet_info, areas!inner(name, slug))"
     )
     .eq("slug", slug)
     .eq("official_routes.is_published", true)
@@ -791,9 +798,14 @@ export async function getSpotBySlug(slug: string): Promise<SpotWithRoute | null>
     name: string;
     slug: string;
     cart_friendly: boolean;
+    distance_meters: number | string | null;
+    estimated_minutes: number | null;
+    pet_info: Record<string, unknown> | null;
     areas: { name: string; slug: string };
   };
   const parsed = parseSpotLocation(data as Record<string, unknown>);
+  const totalMeters = Number(route.distance_meters);
+  const parking = route.pet_info?.parking;
   return {
     ...parsed,
     slug: data.slug as string,
@@ -801,8 +813,47 @@ export async function getSpotBySlug(slug: string): Promise<SpotWithRoute | null>
     route_slug: route.slug,
     area_name: route.areas.name,
     area_slug: route.areas.slug,
+    route_distance_meters: Number.isFinite(totalMeters) ? totalMeters : null,
+    route_estimated_minutes: route.estimated_minutes ?? null,
+    route_parking: typeof parking === "string" ? parking : null,
   } as SpotWithRoute;
 }
+
+/**
+ * 同じエリアの他スポット（内部リンク用）。2026-09-03 追加。
+ *
+ * スポットページからの内部リンクはこれまで親ルート1本だけで、横（同一エリアの他スポット）
+ * へのリンクがゼロだった。SEO 上も回遊上も行き止まりなので、名前＋カテゴリの一覧を出す。
+ *
+ * NON_SEO カテゴリを除外するのは必須。/spots/{slug} は該当カテゴリで notFound() を返すため、
+ * 除外しないと 404 へのリンクを量産する。noindex 対象の除外は呼び出し側（page.tsx）で行う
+ * （台帳 LOW_DEMAND_NOINDEX_SPOT_SLUGS がクライアント側の定数のため）。
+ * その分を見越して limit は多めに取り、絞り込みは呼び出し側で行う。
+ */
+export const getAreaSpotLinks = cache(async function getAreaSpotLinks(
+  areaSlug: string,
+  excludeSlug: string
+): Promise<AreaSpotLink[]> {
+  const { data, error } = await supabase
+    .from("route_spots")
+    .select(
+      "slug, name, category, official_routes!inner(is_published, areas!inner(slug))"
+    )
+    .eq("official_routes.is_published", true)
+    .eq("official_routes.areas.slug", areaSlug)
+    .not("slug", "is", null)
+    .neq("slug", excludeSlug)
+    .not("category", "in", `(${NON_SEO_CATEGORIES_ARR.join(",")})`)
+    .order("name")
+    .limit(60);
+
+  if (error || !data) return [];
+  return data.map((s) => ({
+    slug: s.slug as string,
+    name: s.name as string,
+    category: (s.category as SpotCategory | null) ?? null,
+  }));
+});
 
 export async function getRoutesBySpotRouteId(
   routeId: string

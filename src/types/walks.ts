@@ -142,6 +142,11 @@ export interface RouteSpot {
   slug: string | null;
   name: string;
   description: string | null;
+  /**
+   * スポット単体ページ専用の本文（2026-09-03 追加）。NULL のときは description に
+   * フォールバックする。/routes/{slug} の旅程では使わない＝ここだけの固有文。
+   */
+  spot_page_body: string | null;
   landscape_feature: string | null;
   activity_suggestions: string[] | null;
   seasonal_notes: Record<string, string> | null;
@@ -195,4 +200,16 @@ export interface SpotWithRoute extends RouteSpot {
   route_slug: string;
   area_name: string;
   area_slug: string;
+  // 親ルートの文脈（2026-09-03 追加）。「ルート内の位置」「行き方（駐車場）」用。
+  route_distance_meters: number | null;
+  route_estimated_minutes: number | null;
+  /** official_routes.pet_info->>'parking' の生値。描画前に sanitizeParking を通すこと。 */
+  route_parking: string | null;
+}
+
+/** 同じエリアの他スポットへの内部リンク1件分（/spots/{slug} 下部の回遊）。 */
+export interface AreaSpotLink {
+  slug: string;
+  name: string;
+  category: SpotCategory | null;
 }

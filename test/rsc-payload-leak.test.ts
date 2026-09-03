@@ -119,6 +119,8 @@ describe("toItinerarySpot / toMapSpot は非表示フィールドを一切含ま
     slug: "test-spot",
     name: "テストスポット",
     description: "説明文",
+    // スポット単体ページ専用の本文（2026-09-03 追加）。/routes 側の旅程では使わない。
+    spot_page_body: "スポットページ専用の本文",
     landscape_feature: "渓谷",
     activity_suggestions: ["撮影"],
     seasonal_notes: { spring: "桜が見頃" },
@@ -158,6 +160,8 @@ describe("toItinerarySpot / toMapSpot は非表示フィールドを一切含ま
     expect(keys).not.toContain("website_url");
     expect(keys).not.toContain("tips");
     expect(keys).not.toContain("pet_friendly");
+    // spot_page_body は /spots/{slug} 専用。旅程に混ぜると重複解消の意味が無くなる。
+    expect(keys).not.toContain("spot_page_body");
   });
 
   it("toItinerarySpot は画面表示に使うフィールドをすべて保持する", () => {

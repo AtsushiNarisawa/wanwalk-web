@@ -19,7 +19,15 @@ import {
   ArrowRight,
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react/dist/lib/types";
-import { getAllSpotSlugs, getSpotBySlug } from "@/lib/walks/data";
+import { getAllSpotSlugs, getSpotBySlug, getAreaSpotLinks } from "@/lib/walks/data";
+import { formatSpotDistance, formatDistance } from "@/lib/walks/format";
+import {
+  buildSpotMetaDescription,
+  buildRoutePositionText,
+  sanitizeText,
+  sanitizeList,
+  sanitizeParking,
+} from "@/lib/walks/spot-page-content";
 import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
 import { LOW_DEMAND_NOINDEX_SPOT_SLUGS } from "@/lib/noindex-spot-slugs";
 import type { SpotCategory } from "@/types/walks";
@@ -91,8 +99,23 @@ export async function generateMetadata({
   const cat = spot.category
     ? CATEGORY_CONFIG[spot.category as SpotCategory]?.label
     : "";
-  const dogFriendly = spot.pet_friendly ? "犬連れOK" : "";
-  const desc = `${spot.area_name}の${cat}「${spot.name}」。${dogFriendly}${spot.description?.slice(0, 80) ?? ""}`;
+  // meta description（2026-09-03 刷新）。
+  // 旧: `${エリア}の${カテゴリ}「${名前}」。${犬連れOK}${description.slice(0,80)}`。
+  // description は /routes/{slug} の旅程と一字一句同じなので meta まで重複していたうえ、
+  // 素の slice で 80 字目に文が切れていた。固有素材（見どころ・過ごし方・親ルート・
+  // 駐車場の有無）を文単位で組み立てる方式に置き換える。料金語・同伴条件のガードは
+  // spot-page-content.ts 側で一元的にかける。
+  const desc = buildSpotMetaDescription({
+    name: spot.name,
+    areaName: spot.area_name,
+    categoryLabel: cat || null,
+    petFriendly: spot.pet_friendly,
+    bodyText: spot.spot_page_body ?? spot.description,
+    landscapeFeature: spot.landscape_feature,
+    activitySuggestions: spot.activity_suggestions,
+    routeName: spot.route_name,
+    hasParking: Boolean(sanitizeParking(spot.route_parking, spot.route_slug)),
+  });
 
   const catLabel = cat ? `（${cat}）` : "";
   const dogBadge = spot.pet_friendly ? "犬OK " : "";
@@ -171,6 +194,39 @@ export default async function SpotDetailPage({
     Number.isFinite(spot.lng) &&
     spot.lat !== 0 &&
     spot.lng !== 0;
+
+  // 本文（2026-09-03）。spot_page_body があればそれ、無ければ description。
+  // description は /routes/{slug} の旅程と一字一句同じなので、編集部が spot_page_body を
+  // 入れたスポットからこのページ固有の本文に差し替わる。/routes 側（RouteItinerary）は
+  // 従来どおり description のまま＝旅程の文言は一切変えない。
+  const bodyText = spot.spot_page_body ?? spot.description;
+
+  // 「愛犬と歩く」（2026-09-03）。landscape_feature / activity_suggestions は DB にありながら
+  // Web のどこにも描画されていなかった列。ここで初めて画面に出るため、料金語ガードを通す
+  // （実データに「広大な無料ドッグラン」があり、素通しにすると料金語が新たに露出する）。
+  // 両方とも空ならセクションごと出さない＝空枠を作らない。
+  const landscapeFeature = sanitizeText(spot.landscape_feature);
+  const activitySuggestions = sanitizeList(spot.activity_suggestions);
+  const hasWalkSection = Boolean(landscapeFeature) || activitySuggestions.length > 0;
+
+  // 「行き方」（2026-09-03）。親ルートの pet_info->>'parking'（公開100本すべて充填済み）。
+  // 料金語を含むのは実測でポーラ美術館の1本だけで、そこは CEO の明示的な例外として通す。
+  const parking = sanitizeParking(spot.route_parking, spot.route_slug);
+
+  // ルート内の位置（2026-09-03）。distance_from_start は全 416 件充填済み。
+  const routePosition = buildRoutePositionText({
+    distanceFromStart: spot.distance_from_start,
+    routeDistanceMeters: spot.route_distance_meters,
+    estimatedMinutes: spot.route_estimated_minutes,
+    formatSpotDistance,
+    formatDistance,
+  });
+
+  // 同じエリアの他スポット（2026-09-03）。従来このページからの内部リンクは親ルート1本だけで、
+  // 横の回遊がゼロだった。noindex 台帳の slug はリンク先から外す（評価を流す先にしない）。
+  const areaSpotLinks = (await getAreaSpotLinks(spot.area_slug, slug))
+    .filter((s) => !LOW_DEMAND_NOINDEX_SPOT_SLUGS.has(s.slug))
+    .slice(0, 6);
 
   const faqItems: { q: string; a: string }[] = [];
   if (spot.pet_friendly) {
@@ -328,8 +384,8 @@ export default async function SpotDetailPage({
           />
         </div>
 
-        {/* 説明文 */}
-        {spot.description && (
+        {/* 説明文（spot_page_body があればそちら・無ければ description） */}
+        {bodyText && (
           <section style={{ marginBottom: 32 }}>
             <p
               style={{
@@ -338,8 +394,74 @@ export default async function SpotDetailPage({
                 color: "var(--color-ww-text)",
               }}
             >
-              {spot.description}
+              {bodyText}
             </p>
+          </section>
+        )}
+
+        {/* 愛犬と歩く。landscape_feature も activity_suggestions も無いスポットでは
+            セクションごと出さない（見出しだけの空枠を作らない）。 */}
+        {hasWalkSection && (
+          <section style={{ marginBottom: 32 }}>
+            <h2
+              className="ww-serif"
+              style={{
+                fontFamily: "var(--font-ww-serif)",
+                fontSize: 18,
+                fontWeight: 600,
+                color: "var(--color-ww-text)",
+                marginBottom: 16,
+              }}
+            >
+              愛犬と歩く
+            </h2>
+            {landscapeFeature && (
+              <p
+                style={{
+                  fontSize: 15,
+                  lineHeight: 1.8,
+                  color: "var(--color-ww-text)",
+                  marginBottom: activitySuggestions.length > 0 ? 16 : 0,
+                }}
+              >
+                {landscapeFeature}
+              </p>
+            )}
+            {activitySuggestions.length > 0 && (
+              <ul
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  listStyle: "none",
+                  padding: 0,
+                  margin: 0,
+                }}
+              >
+                {activitySuggestions.map((a) => (
+                  <li
+                    key={a}
+                    className="flex items-start gap-2"
+                    style={{
+                      fontSize: 14,
+                      lineHeight: 1.75,
+                      color: "var(--color-ww-text)",
+                    }}
+                  >
+                    <Dog
+                      size={16}
+                      weight="regular"
+                      style={{
+                        color: "var(--color-ww-accent)",
+                        flexShrink: 0,
+                        marginTop: 4,
+                      }}
+                    />
+                    <span>{a}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         )}
 
@@ -364,6 +486,44 @@ export default async function SpotDetailPage({
               zoom={15}
               height={280}
             />
+          </section>
+        )}
+
+        {/* 行き方。親ルートの駐車場（official_routes.pet_info->>'parking'）。
+            値が無い、または料金語ガードで落ちたときはセクションごと出さない。
+            料金は「無料」「有料」の別も含めて書かない（2026-09-02 CEO 決定）。
+            例外はポーラ美術館の駐車場のみで、そこは既存文言のまま通す。 */}
+        {parking && (
+          <section style={{ marginBottom: 32 }}>
+            <h2
+              className="ww-serif"
+              style={{
+                fontFamily: "var(--font-ww-serif)",
+                fontSize: 18,
+                fontWeight: 600,
+                color: "var(--color-ww-text)",
+                marginBottom: 16,
+              }}
+            >
+              行き方
+            </h2>
+            <div
+              className="flex items-start gap-2"
+              style={{ fontSize: 14, lineHeight: 1.75 }}
+            >
+              <Car
+                size={16}
+                weight="regular"
+                style={{
+                  color: "var(--color-ww-accent)",
+                  flexShrink: 0,
+                  marginTop: 5,
+                }}
+              />
+              <span style={{ color: "var(--color-ww-text)" }}>
+                駐車場：{parking}
+              </span>
+            </div>
           </section>
         )}
 
@@ -476,7 +636,78 @@ export default async function SpotDetailPage({
               style={{ color: "var(--color-ww-text-tertiary)" }}
             />
           </Link>
+          {/* ルート内の位置（2026-09-03）。distance_from_start とルートの総距離・所要時間から
+              「起点から◯◯地点」を出す。距離表記は DESIGN_TOKENS §9（区間は m/km 切替・
+              総距離は常に km）。distance_from_start が無いスポットでは行ごと出さない。 */}
+          {routePosition && (
+            <p
+              className="numeric"
+              style={{
+                marginTop: 12,
+                fontSize: 13,
+                lineHeight: 1.75,
+                color: "var(--color-ww-text-secondary)",
+              }}
+            >
+              {routePosition}
+            </p>
+          )}
         </section>
+
+        {/* 同じエリアの他のスポット。0件ならセクションごと出さない。 */}
+        {areaSpotLinks.length > 0 && (
+          <section style={{ marginBottom: 32 }}>
+            <h2
+              className="ww-serif"
+              style={{
+                fontFamily: "var(--font-ww-serif)",
+                fontSize: 18,
+                fontWeight: 600,
+                color: "var(--color-ww-text)",
+                marginBottom: 16,
+              }}
+            >
+              {spot.area_name}の他のスポット
+            </h2>
+            <ul
+              className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+              style={{ listStyle: "none", padding: 0, margin: 0 }}
+            >
+              {areaSpotLinks.map((s) => {
+                const c = s.category ? CATEGORY_CONFIG[s.category] : null;
+                return (
+                  <li key={s.slug}>
+                    <Link
+                      href={`/spots/${s.slug}`}
+                      className="flex items-center justify-between gap-3 transition-colors"
+                      style={{
+                        padding: "12px 16px",
+                        border: "1px solid var(--color-ww-border-subtle)",
+                        borderRadius: "var(--radius-ww-md)",
+                        color: "var(--color-ww-text)",
+                      }}
+                    >
+                      <span style={{ fontSize: 14, fontWeight: 500 }}>
+                        {s.name}
+                      </span>
+                      {c && (
+                        <span
+                          style={{
+                            fontSize: 12,
+                            color: "var(--color-ww-text-secondary)",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {c.label}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
 
         {/* Tips */}
         {spot.tips && (
@@ -521,7 +752,8 @@ export default async function SpotDetailPage({
                   ? "Store"
                   : "TouristAttraction",
             name: spot.name,
-            description: spot.description ?? undefined,
+            // 本文と同じフォールバック（spot_page_body ?? description）。
+            description: bodyText ?? undefined,
             author: ORG_REF,
             publisher: ORG_REF,
             // geo は本文の地図と同じ hasGeo で判定する（0,0 の null island を出さない）。
@@ -577,7 +809,7 @@ export default async function SpotDetailPage({
             webPageSchema({
               path: `/spots/${slug}`,
               name: spot.name,
-              description: spot.description,
+              description: bodyText,
               datePublished: spotDates.created_at,
               dateModified: spotDates.updated_at,
               primaryImage: spot.photo_url,
