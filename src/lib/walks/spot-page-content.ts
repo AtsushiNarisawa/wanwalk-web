@@ -168,7 +168,11 @@ export function buildSpotMetaDescription(args: {
   const candidates: (string | null)[] = [
     dogSentence,
     feature ? `見どころは${feature}。` : null,
-    activities.length > 0 ? `${activities.join("・")}ができます。` : null,
+    // 「〜ができます」は付けない。activity_suggestions には名詞止め（「砂浜で記念撮影」）と
+    // 動詞止め（「東京湾を眺める」「参道の花を楽しむ」）が混在しており、接尾辞を機械的に
+    // 足すと「東京湾を眺めるができます」と壊れる（2026-09-03 Preview 実測で発覚）。
+    // 「〜など。」は両方に自然に付き、直前の「見どころは◯◯。」とも並びが揃う。
+    activities.length > 0 ? `過ごし方は、${activities.join("・")}など。` : null,
     routeName ? `${routeName}の途中にあります。` : null,
     hasParking ? "駐車場あり。" : null,
   ];

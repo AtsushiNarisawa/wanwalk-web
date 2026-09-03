@@ -142,7 +142,7 @@ describe("buildSpotMetaDescription", () => {
     });
     expect(d.startsWith("河口湖・山中湖の景観ポイント「本栖湖 湖畔の砂浜」。愛犬と一緒に立ち寄れます。")).toBe(true);
     expect(d).toContain("見どころは砂浜。");
-    expect(d).toContain("愛犬と水遊び・砂浜で記念撮影ができます。");
+    expect(d).toContain("過ごし方は、愛犬と水遊び・砂浜で記念撮影など。");
     expect(d.length).toBeLessThanOrEqual(140);
   });
 
@@ -196,6 +196,76 @@ describe("buildSpotMetaDescription", () => {
     expect(d).toContain("芦ノ湖畔遊歩道");
     expect(d.endsWith("。")).toBe(true);
     expect(d.length).toBeGreaterThan(40);
+  });
+
+  // 2026-09-03 Preview 実測で発覚した文法バグの退行テスト。
+  // activity_suggestions には名詞止めと動詞止めが混在しており、旧実装の
+  // 「${items}ができます。」は動詞止めで「東京湾を眺めるができます」と壊れていた。
+  describe("activity_suggestions の語尾（名詞止め・動詞止めの両方で自然な日本語になる）", () => {
+    const base = {
+      name: "潮風公園",
+      areaName: "お台場・豊洲",
+      categoryLabel: "公園・自然",
+      petFriendly: true,
+      bodyText: "東京湾に面した細長い公園。",
+      landscapeFeature: "芝生広場と東京湾",
+      routeName: "お台場海浜公園コース",
+      hasParking: true,
+    };
+
+    it("動詞で終わる項目（実データ /spots/shiokaze-koen）", () => {
+      const d = buildSpotMetaDescription({
+        ...base,
+        activitySuggestions: ["芝生で休憩", "東京湾を眺める"],
+      });
+      expect(d).toContain("過ごし方は、芝生で休憩・東京湾を眺めるなど。");
+      expect(d).not.toContain("眺めるができます");
+      expect(d).not.toContain("ができます");
+    });
+
+    it("動詞で終わる項目（実データ /spots/hasedera-monzen）", () => {
+      const d = buildSpotMetaDescription({
+        ...base,
+        name: "長谷寺 門前",
+        areaName: "鎌倉",
+        petFriendly: false,
+        landscapeFeature: "長谷寺の山門と参道",
+        activitySuggestions: ["門前から参拝", "参道の花を楽しむ"],
+      });
+      expect(d).toContain("過ごし方は、門前から参拝・参道の花を楽しむなど。");
+      expect(d).not.toContain("楽しむができます");
+      expect(d).not.toContain("ができます");
+    });
+
+    it("名詞で終わる項目（実データ /spots/kohan-no-sunahama）", () => {
+      const d = buildSpotMetaDescription({
+        ...base,
+        name: "本栖湖 湖畔の砂浜",
+        areaName: "河口湖・山中湖",
+        landscapeFeature: "砂浜",
+        activitySuggestions: ["愛犬と水遊び", "砂浜で記念撮影"],
+      });
+      expect(d).toContain("過ごし方は、愛犬と水遊び・砂浜で記念撮影など。");
+      expect(d).not.toContain("ができます");
+    });
+
+    it("名詞止めと動詞止めが混在しても壊れない", () => {
+      const d = buildSpotMetaDescription({
+        ...base,
+        activitySuggestions: ["砂浜で記念撮影", "東京湾を眺める"],
+      });
+      expect(d).toContain("過ごし方は、砂浜で記念撮影・東京湾を眺めるなど。");
+      expect(d.endsWith("。")).toBe(true);
+    });
+
+    it("1件だけでも自然（区切り文字が浮かない）", () => {
+      const d = buildSpotMetaDescription({
+        ...base,
+        activitySuggestions: ["東京湾を眺める"],
+      });
+      expect(d).toContain("過ごし方は、東京湾を眺めるなど。");
+      expect(d).not.toContain("・など");
+    });
   });
 
   it("meta に料金語を出さない", () => {
