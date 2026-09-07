@@ -23,6 +23,7 @@ import SeasonHighlight from "@/components/walks/SeasonHighlight";
 import RelatedRoutes from "@/components/walks/RelatedRoutes";
 import AreaRouteLinks from "@/components/walks/AreaRouteLinks";
 import HakoneDogMapLink from "@/components/walks/HakoneDogMapLink";
+import HakoneDogMapPromo from "@/components/walks/HakoneDogMapPromo";
 import TrustByline from "@/components/walks/TrustByline";
 import SubmissionCredit from "@/components/walks/SubmissionCredit";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
@@ -652,7 +653,14 @@ export default async function RouteDetailPage({
       {/* 箱根のコースだけ、犬連れ施設マップ /hakone/dog-map への文脈リンクを出す
           （箱根関連ページ同士の相互リンク・2026-09-02）。
           DMO 名義はこのページに持ち込まない（公開ページは SupportedBadge = 後援表記のみ）。 */}
-      {isHakoneAreaSlug(route.areas.slug) && <HakoneDogMapLink />}
+      {isHakoneAreaSlug(route.areas.slug) ? (
+        <HakoneDogMapLink />
+      ) : (
+        // 箱根「以外」のコースから /hakone/dog-map への送客導線（2026-09-07 CEO決定）。
+        // WanWalk=DogHub運営という位置づけを踏まえ、箱根以外の読者を箱根へ送客する。
+        // 箱根自体のSEOはDogHubの集客とfoodを取り合うため強化しない＝この導線は逆方向専用。
+        <HakoneDogMapPromo />
+      )}
 
       {/* CTA */}
       <div style={{ marginTop: 48 }}>
