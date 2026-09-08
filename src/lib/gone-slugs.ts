@@ -296,6 +296,20 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   //   NON_SEO_SPOT_CATEGORIES 入りしており既に 404。念のため 410 化して Google からの削除を早める
   "hayakawa-dandan-no-seki-eria",
   "miyagino-kyo-fukin",
+  // --- 2026-09-08 須雲川 石畳の自然探勝歩道のルート線引き直しに伴う spot 削除 3件 ---
+  // 箱根DMO の指摘で hakone-yumoto-sugumogawa のルート線が実在の須雲川自然探勝歩道から約1.5km 離れた
+  // 場所に引かれていたことが判明し、OSM の実ノード／実ウェイで引き直した。経路から外れた spot を DB から削除
+  // （spot は 6件 → 6件だが、うち3件を差し替え）。3件とも route_spots に存在せず、同一 spot の新 slug も無い（RENAMED 不可）。
+  // - sugumogawa-yuhodo-iriguchi（須雲川 鉄橋下のトンネル・viewpoint）: 新しい線の周辺に tunnel の道が0本で再設置不可
+  // - sukumogawa-keiryu-byu（須雲川 清流ビューポイント・viewpoint）: bbox 内に tourism=viewpoint が0件・Places にも該当なし
+  // - sukumogawa-marukibashi（須雲川 丸木橋・viewpoint）: 橋は2本実在するが surface=cobblestone で「丸木」の裏が取れない
+  "sugumogawa-yuhodo-iriguchi",
+  "sukumogawa-keiryu-byu",
+  "sukumogawa-marukibashi",
+  // 上記 sukumogawa-marukibashi の消滅で RENAMED_SPOT_SLUGS の ["marukibashi", "sukumogawa-marukibashi"]
+  // （2026-05-07 D-1 追加）が 301 → 404 の壊れた連鎖になったため、2026-05-07 Stage B の前例
+  //（redirect 先 404 を避けるべく GONE_SPOT_SLUGS へ移動）に倣い marukibashi も 410 側へ移した。
+  "marukibashi",
 ]);
 
 // リネームされた slug の旧→新マップ。middleware で 301 redirect される。
@@ -326,7 +340,7 @@ export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
   ["anakuchi", "jogasaki-anakuchi"],
   ["shuzenji", "izu-shuzenji-temple"],
   ["iwadatami", "nagatoro-iwadatami"],
-  ["marukibashi", "sukumogawa-marukibashi"],
+  // ["marukibashi", "sukumogawa-marukibashi"], → redirect 先が 2026-09-08 のルート線引き直しで消滅したため GONE_SPOT_SLUGS へ移動（410）
   ["sengataki", "karuizawa-sengataki-falls"],
   // 2026-05-07 D-3 追加: GSC 過去90日 × DB JOIN で missing 検出 → 現 DB に同一 spot の新 slug が存在
   ["houboku-no-gaanjii-ushi", "hoboku-eria"],
