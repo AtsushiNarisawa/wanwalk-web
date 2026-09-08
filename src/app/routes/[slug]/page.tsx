@@ -44,6 +44,40 @@ export const revalidate = 86400;
 
 type FaqEntry = { "@type": "Question"; name: string; acceptedAnswer: { "@type": "Answer"; text: string } };
 
+// Q1（犬連れ可否）NG判定の根拠チェック（2026-09-08 CEO決定）。
+// route_spots.pet_friendly の DB既定値が false のため、確認していない（dog_policy未記載の）
+// スポットが自動的に「犬同伴不可」扱いになっていた（公開ルートの pet_friendly=false・
+// parking/restroom除く110件中、dog_policyに根拠ありは0件・descriptionに根拠ありは22件＝
+// 残り88件・80%は根拠なし。実例: 昭和記念公園「花の丘」「イチョウ並木」が公式には禁止区域
+// でないのに犬同伴不可と誤記されていた）。「確認していないこと」を『入れない』と書かないため、
+// description に犬同伴不可の根拠が明記されているスポットだけを NG として扱う。
+// 否定語（不可・禁止等）の直前10文字以内に「犬」「ペット」が現れる場合のみ根拠ありとする
+// 条件を追加（無条件だと「自転車進入禁止」「岩場は急峻で立ち入り不可」等、犬と無関係の
+// 禁止表現まで拾ってしまうことを実データ照合で確認済み・2026-09-08）。
+// 将来的には dog_policy に status を持たせ、description の文字列判定に頼らず機械的に
+// 判定できるようにするのが望ましい。
+const NG_EVIDENCE_RE = /(犬|ペット)[^。]{0,10}(不可|禁止|ご遠慮|入れません|入場できません)/;
+// 寺社（境内・門前という語がそのまま当てはまる）とそれ以外（公園・美術館・展望台等、
+// 境内という語が不自然な施設）を名称で判定し、Q1 の文言を分ける（2026-09-08 CEO決定）。
+const TEMPLE_SHRINE_RE = /(寺|神社|宮|院|大師|観音|不動|稲荷|八幡)/;
+
+function buildNgClause(ngSpots: import("@/types/walks").RouteSpot[]): string {
+  const templeSpots = ngSpots.filter((s) => TEMPLE_SHRINE_RE.test(s.name));
+  const otherSpots = ngSpots.filter((s) => !TEMPLE_SHRINE_RE.test(s.name));
+  const parts: string[] = [];
+  if (templeSpots.length > 0) {
+    const names = templeSpots.slice(0, 2).map((s) => s.name).join("・");
+    const etc = templeSpots.length > 2 ? "など" : "";
+    parts.push(`${names}${etc}は境内が犬同伴不可のため、外観・門前からの拝観でお楽しみください。`);
+  }
+  if (otherSpots.length > 0) {
+    const names = otherSpots.slice(0, 2).map((s) => s.name).join("・");
+    const etc = otherSpots.length > 2 ? "など" : "";
+    parts.push(`${names}${etc}は犬同伴不可のため、周辺の散策をお楽しみください。`);
+  }
+  return parts.map((p, i) => (i === 0 ? `ただし${p}` : `また、${p}`)).join("");
+}
+
 function buildRouteFaq(
   route: import("@/types/walks").RouteWithArea,
   spots: import("@/types/walks").RouteSpot[],
@@ -56,8 +90,9 @@ function buildRouteFaq(
   const INFRA_CATEGORIES = new Set(["parking", "restroom", "water_station", "landmark"]);
   const visitableSpots = requiredSpots.filter((s) => !INFRA_CATEGORIES.has(s.category ?? ""));
   const okCount = visitableSpots.filter((s) => s.pet_friendly === true).length;
-  const ngSpots = visitableSpots.filter((s) => s.pet_friendly === false);
-  const ngNames = ngSpots.slice(0, 2).map((s) => s.name);
+  const ngSpots = visitableSpots.filter(
+    (s) => s.pet_friendly === false && NG_EVIDENCE_RE.test(s.description ?? "")
+  );
 
   // Q1: 犬連れ可否（pet_friendly比率で動的）
   const sizeLabel = isArea
@@ -69,9 +104,9 @@ function buildRouteFaq(
   } else if (ngSpots.length === 0) {
     q1Answer = `はい、${route.name}は犬連れで楽しめます。${sizeLabel}で、コース上の見どころスポット${visitableSpots.length}箇所すべてが犬連れOKです。リード着用でお楽しみください。`;
   } else if (ngSpots.length < visitableSpots.length / 2) {
-    q1Answer = `はい、${route.name}の散歩自体は犬連れOKです。${sizeLabel}で、${okCount}箇所のスポットを愛犬と楽しめます。ただし${ngNames.join("・")}は内部・境内が犬同伴不可のため、外観・門前からの拝観でお楽しみください。`;
+    q1Answer = `はい、${route.name}の散歩自体は犬連れOKです。${sizeLabel}で、${okCount}箇所のスポットを愛犬と楽しめます。${buildNgClause(ngSpots)}`;
   } else {
-    q1Answer = `${route.name}のコース散歩自体は犬連れで歩けます（${sizeLabel}）。ただし${ngNames.join("・")}など内部・境内が犬同伴不可のスポットがあります。門前・参道・外観からの散策をお楽しみください。`;
+    q1Answer = `${route.name}のコース散歩自体は犬連れで歩けます（${sizeLabel}）。${buildNgClause(ngSpots)}`;
   }
 
   // Q2: 駐車場（2026-09-02 改修）。
