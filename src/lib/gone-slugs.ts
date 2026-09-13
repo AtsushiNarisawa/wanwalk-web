@@ -310,6 +310,15 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   // （2026-05-07 D-1 追加）が 301 → 404 の壊れた連鎖になったため、2026-05-07 Stage B の前例
   //（redirect 先 404 を避けるべく GONE_SPOT_SLUGS へ移動）に倣い marukibashi も 410 側へ移した。
   "marukibashi",
+  // --- 2026-09-14 高麗山公園（湘南平）のルート線引き直しに伴う spot 削除 1件 ---
+  // shonan-komayama-park-loop のルート線が8スポットを直線で結んだだけで、南の谷の森の上を横切っていた。
+  // OSM の実在の尾根道（湘南平→浅間山→八俵山→高麗山 山頂で折り返し）で引き直し、ルート名を
+  // 「高麗山公園（湘南平） 尾根道ルート」に変更（CEO 決定・slug は据え置き）。経路から外した spot を DB から削除
+  // （spot 8件 → 7件。DB 適用は proposals/shonan_komayama_line_redraw_2026_09_13.sql）。同一 spot の新 slug は無い（RENAMED 不可）。
+  // - komayama-park-childrens-forest（高麗山公園 子供の森・park）: 湘南平から車道（OSM に歩道のタグ無し）を片道約570m
+  //   下った先にあり、尾根道からの山道のつながりが無い。平塚市公式で子供の森キャンプ場が倒木により使用中止（2026-09-09 更新）
+  //   ※ noindex-spot-slugs.ts にも同じ slug が残るが、middleware の 410 が先に返るため実害なし
+  "komayama-park-childrens-forest",
 ]);
 
 // リネームされた slug の旧→新マップ。middleware で 301 redirect される。
