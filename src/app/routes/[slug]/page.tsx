@@ -95,14 +95,27 @@ function buildRouteFaq(
   );
 
   // Q1: 犬連れ可否（pet_friendly比率で動的）
+  //
+  // 2026-09-16 CEO決定（段階1）: 犬の同伴条件の細部はどのページにも載せない
+  // （[[feedback_no_dog_condition_details_on_site]]）。ここには2つの記述があった。
+  //  (1)「リード着用でお楽しみください。」＝リードの要否＝載せない対象に名指しされている
+  //  (2)「見どころスポット◯箇所すべてが犬連れOKです。」＝スポット単位の可否の断定
+  // (2) は (1) を単に消すと「無条件で全スポット犬連れOK」というより強い断定に化ける
+  // （[[feedback_removing_condition_can_create_false_permission]]）。加えてこの断定は
+  // 数えているのが okCount ではなく visitableSpots.length のため、pet_friendly=false の
+  // スポットまで「犬連れOK」に含めていた（2026-09-16 実測: この枝に入る80ルート中29本・
+  // 計72スポット。熱海 糸川は5箇所すべてが false なのに「5箇所すべてが犬連れOK」と配信）。
+  // よって可否はルート単位の包括表現だけで言い、スポットは件数の事実だけを述べる
+  // （[[feedback_unverified_is_not_prohibited]] 「可否は包括で言う」。2026-09-08 に
+  // 「入れない」側へ適用した同じ規範を、「入れる」側にも適用する）。
   const sizeLabel = isArea
     ? `滞在目安は約${route.estimated_minutes}分の園内散策コース`
     : `距離${distanceLabel}・所要約${route.estimated_minutes}分のコース`;
   let q1Answer: string;
   if (visitableSpots.length === 0) {
-    q1Answer = `はい、${route.name}は犬連れで散歩できる${isArea ? "施設" : "ルート"}です。${sizeLabel}です。リード着用でお楽しみください。`;
+    q1Answer = `はい、${route.name}は犬連れで散歩できる${isArea ? "施設" : "ルート"}です。${sizeLabel}です。`;
   } else if (ngSpots.length === 0) {
-    q1Answer = `はい、${route.name}は犬連れで楽しめます。${sizeLabel}で、コース上の見どころスポット${visitableSpots.length}箇所すべてが犬連れOKです。リード着用でお楽しみください。`;
+    q1Answer = `はい、${route.name}は犬連れで楽しめます。${sizeLabel}で、コース上には見どころスポットが${visitableSpots.length}箇所あります。`;
   } else if (ngSpots.length < visitableSpots.length / 2) {
     q1Answer = `はい、${route.name}の散歩自体は犬連れOKです。${sizeLabel}で、${okCount}箇所のスポットを愛犬と楽しめます。${buildNgClause(ngSpots)}`;
   } else {
@@ -125,14 +138,21 @@ function buildRouteFaq(
     : `${route.name}は通年で犬連れ散歩を楽しめます。`;
 
   // Q4: カート走行可否（cart_notes 冒頭の結論語と前置きの重複を避ける + 末尾に句点を補う）
+  //
+  // 2026-09-16 CEO決定（段階1）: 末尾の「抱っこ移動やキャリーバッグをご検討ください。」を落とす。
+  // キャリーの要否は載せない対象（[[feedback_no_dog_condition_details_on_site]]）。
+  // 落とすと cart_notes 未登録ルート（公開93本中1本・chichibu-minoyama-park-loop）で
+  // フォールバック「段差や未舗装区間が多いため、」が受け手を失って文が途切れるため、
+  // 単体で完結する「…多いためです。」に直す。路面の事実（cart_notes）は残す＝
+  // 「向かない」側の記述なので外れても実害の向きが逆（同メモリ／08-03 CEOルール）。
   const cartNotes = route.cart_notes?.trim() ?? "";
   const cleanedCartNotes = cartNotes.replace(/^カート(非推奨|推奨)。?\s*/, "").trim();
   const ensurePunct = (s: string) => (s && !/[。．\.!?！？、]$/.test(s) ? `${s}。` : s);
   const cartTail = ensurePunct(cartNotes) || "舗装メインで走行可能です。";
-  const cleanedCartTail = ensurePunct(cleanedCartNotes) || "段差や未舗装区間が多いため、";
+  const cleanedCartTail = ensurePunct(cleanedCartNotes) || "段差や未舗装区間が多いためです。";
   const q4Answer = route.cart_friendly
     ? `はい、${route.name}はベビーカーやペットカートで散歩できます。${cartTail}`
-    : `${route.name}はベビーカー・ペットカートでの散歩には向きません。${cleanedCartTail}抱っこ移動やキャリーバッグをご検討ください。`;
+    : `${route.name}はベビーカー・ペットカートでの散歩には向きません。${cleanedCartTail}`;
 
   // Q5: 犬連れOKカフェ・レストラン（0件なら省略）
   const dogOkCafes = spots.filter(
