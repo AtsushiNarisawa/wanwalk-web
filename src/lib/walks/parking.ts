@@ -90,7 +90,7 @@ export function buildParkingInfo(
   if (startSpot) {
     const startBase = parkingBaseName(startSpot.name);
     const endBase = endSpot ? parkingBaseName(endSpot.name) : "";
-    // 「一碧湖 駐車場」と「一碧湖 駐車場（ゴール）」のように実体が同じなら周回コース扱い。
+    // 「一碧湖 駐車場」と「一碧湖 駐車場（ゴール）」のように実体が同じなら出発地点に戻るコースとして扱う（周回か往復かは判定できないので断定しない）。
     const startKey = parkingCompareKey(startSpot.name);
     const endKey = endSpot ? parkingCompareKey(endSpot.name) : "";
     const isLoop = Boolean(endKey) && (endKey.includes(startKey) || startKey.includes(endKey));
@@ -98,7 +98,7 @@ export function buildParkingInfo(
     //    「この付近に停めて歩き出す目印」も含まれるため、コース構造の事実だけを述べる。
     structureText = `コースは${startBase}から歩き出します。`;
     if (isLoop) {
-      structureText += "歩き終えると出発地点に戻る周回コースです。";
+      structureText += "歩き終えると出発地点に戻ります。";
     } else if (endBase) {
       structureText += `ゴールは${endBase}です。`;
     }
