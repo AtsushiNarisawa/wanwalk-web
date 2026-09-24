@@ -319,6 +319,15 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   //   下った先にあり、尾根道からの山道のつながりが無い。平塚市公式で子供の森キャンプ場が倒木により使用中止（2026-09-09 更新）
   //   ※ noindex-spot-slugs.ts にも同じ slug が残るが、middleware の 410 が先に返るため実害なし
   "komayama-park-childrens-forest",
+  // --- 2026-09-24 城ヶ崎ピクニカルコースのルート線引き直しに伴う spot の付け替え 1件 ---
+  // izu-jogasaki-picnical のルート線が、伊豆半島ジオパーク／伊東観光協会が告知する通行規制区間
+  //（ふたまた〜ぼら納屋・迂回路なし）を 381m なぞっており、出発から 119m で行き止まりになっていた。
+  // 発着を規制区間の外の市営門脇駐車場へ移して引き直し（3,520m/70分 → 2,370m/47分。
+  // DB 適用は proposals/jogasaki_line_redraw_2026_09_24_step1_update.sql）。
+  // - bora-naya-chusha-jo-izu-jogasaki（ぼら納屋駐車場・parking）: 行は消さず門脇駐車場として作り替えたため
+  //   slug が kadowaki-chushajo-izu-jogasaki に変わった。ただし**別の駐車場**なので 301 は張らない（CEO 決定・410）。
+  //   ぼら納屋駐車場そのものは規制区間の外に実在するが、そこから遊歩道に入ると 119m で規制区間に突き当たる
+  "bora-naya-chusha-jo-izu-jogasaki",
 ]);
 
 // リネームされた slug の旧→新マップ。middleware で 301 redirect される。
