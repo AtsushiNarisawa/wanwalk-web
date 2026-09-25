@@ -392,4 +392,6 @@ export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
   // 旧 slug は DB に存在せず、同一 spot の新 slug が viewpoint（SEO 対象）・is_published=true で実在することを確認済み。
   ["kyu-tokaido-sugi-namiki", "old-tokaido-road-ancient-cedars-east-end"],
   ["dankazura-no-sandou", "tsuruoka-hachimangu-torii-sando"],
+  // 2026-09-25 由比ガ浜ルート短縮（国道134号 海側歩道の通行止め）で spot を削除。同じ座標・同じ公園の spot へ 301
+  ["inamuragasaki-kaihin-koen", "inamuragasaki-koen-tembo-dai"],
 ]);
