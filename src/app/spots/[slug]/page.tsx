@@ -125,10 +125,10 @@ export async function generateMetadata({
   // h1・パンくず・構造化データは spot.name のままなので表示崩れなし。検索語は「犬連れ」に統一（CEO 合意・routes と同方針）。
   // 内容は監査済み spot.description / route meta_description にトレース可能（誠実性: 境内不可は明記し隠さない）。
   const SPOT_TITLE_OVERRIDES: Record<string, string> = {
-    "hasedera-monzen": "長谷寺 犬連れ｜境内はペット不可・門前と見晴台の鎌倉さんぽ",
+    "hasedera-monzen": "長谷寺 犬連れ｜境内はキャリーやカートに入れて・門前から由比ヶ浜へ",
     "yokohama-hamma-heddo": "横浜ハンマーヘッド 犬連れ｜犬専用水飲み場のある複合施設",
     "hakone-jinja-keidai": "箱根神社 犬連れ｜杉並木の参道を歩く芦ノ湖さんぽ",
-    "kotokuin-kamakura-daibutsu": "鎌倉大仏（高徳院）犬連れ｜境内はペット不可・大仏ハイキングの道",
+    "kotokuin-kamakura-daibutsu": "鎌倉大仏（高徳院）犬連れ｜境内はケージやバッグに入れて・大仏ハイキングの道",
   };
   const title =
     SPOT_TITLE_OVERRIDES[slug] ??
