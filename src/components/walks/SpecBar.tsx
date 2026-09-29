@@ -49,7 +49,7 @@ export default function SpecBar({
       <SpecItem
         icon={<Mountains size={24} weight="regular" />}
         value={elevationGain != null ? `+${elevationGain}m` : "—"}
-        label="高低差"
+        label="のぼり"
       />
       <SpecItem
         icon={<ChartLineUp size={24} weight="regular" />}
