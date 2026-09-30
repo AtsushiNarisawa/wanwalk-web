@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
+import HakonePromoTracker, {
+  type HakonePromoTrackingProps,
+} from "@/components/walks/HakonePromoTracker";
 
 /**
  * 箱根「以外」のルート詳細から /hakone/dog-map（箱根 愛犬とおでかけマップ）へ送客する常設導線。
@@ -26,60 +29,78 @@ import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
  * ■ 見た目
  *   AreaRouteLinks / HakoneDogMapLink と同じ「borderTop + 明朝24px の h2」パターン。
  *   新しい様式は作らない。
+ *
+ * ■ 置き場所と計測（2026-09-30 CEO承認）
+ *   9/7〜9/29 の実測で、箱根以外のコース詳細の閲覧者1,261人のうち最下部に届いたのは約23%、
+ *   dog-map へ移ったのは約12人（約1%）。最下部（RelatedRoutes・AreaRouteLinks の下）から
+ *   各ページの「そのページ固有の情報を読み終えた位置」へ上げ、エリア詳細・スポット詳細にも広げた。
+ *   ・ルート詳細: 犬連れメモの直後（placement=after_pet_info）
+ *   ・エリア詳細: コース一覧の直後（placement=after_route_list）
+ *   ・スポット詳細: スポット情報（Tips）の直後（placement=after_spot_info）
+ *   ページの途中に置くため、上の余白は取らず下に余白を取る（前のセクションが marginBottom を持つ）。
+ *   計測は HakonePromoTracker（クライアント）が hakone_promo_view / hakone_promo_click を送る。
  */
-export default function HakoneDogMapPromo() {
+export default function HakoneDogMapPromo({
+  bottomGap = 48,
+  ...tracking
+}: HakonePromoTrackingProps & {
+  /** 導線の下に空ける余白（px）。ページの section 間隔に合わせる。 */
+  bottomGap?: number;
+}) {
   return (
-    <nav
-      aria-labelledby="hakone-dogmap-promo-heading"
-      style={{
-        marginTop: 48,
-        paddingTop: 40,
-        borderTop: "1px solid var(--color-ww-border-subtle)",
-      }}
-    >
-      <h2
-        id="hakone-dogmap-promo-heading"
-        className="ww-serif"
+    <HakonePromoTracker {...tracking}>
+      <nav
+        aria-labelledby="hakone-dogmap-promo-heading"
         style={{
-          fontFamily: "var(--font-ww-serif)",
-          fontSize: 24,
-          fontWeight: 600,
-          color: "var(--color-ww-text)",
-          letterSpacing: "0.01em",
-          marginBottom: 12,
+          marginBottom: bottomGap,
+          paddingTop: 40,
+          borderTop: "1px solid var(--color-ww-border-subtle)",
         }}
       >
-        箱根で愛犬とおでかけ
-      </h2>
-      <p
-        style={{
-          fontFamily: "var(--font-ww-sans)",
-          fontSize: 15,
-          lineHeight: 1.85,
-          color: "var(--color-ww-text-secondary)",
-          maxWidth: 720,
-          margin: "0 0 16px",
-        }}
-      >
-        愛犬と泊まれる宿やカフェなど、箱根で愛犬と過ごせる施設を地図から探せます。
-      </p>
-      <Link
-        href="/hakone/dog-map"
-        className="inline-flex items-center gap-1"
-        style={{
-          fontFamily: "var(--font-ww-sans)",
-          fontSize: 15,
-          fontWeight: 600,
-          color: "var(--color-ww-accent)",
-          letterSpacing: "0.02em",
-          borderBottom: "1px solid var(--color-ww-accent)",
-          paddingBottom: 2,
-          textDecoration: "none",
-        }}
-      >
-        箱根 愛犬とおでかけマップを見る
-        <ArrowRight size={14} weight="regular" />
-      </Link>
-    </nav>
+        <h2
+          id="hakone-dogmap-promo-heading"
+          className="ww-serif"
+          style={{
+            fontFamily: "var(--font-ww-serif)",
+            fontSize: 24,
+            fontWeight: 600,
+            color: "var(--color-ww-text)",
+            letterSpacing: "0.01em",
+            marginBottom: 12,
+          }}
+        >
+          箱根で愛犬とおでかけ
+        </h2>
+        <p
+          style={{
+            fontFamily: "var(--font-ww-sans)",
+            fontSize: 15,
+            lineHeight: 1.85,
+            color: "var(--color-ww-text-secondary)",
+            maxWidth: 720,
+            margin: "0 0 16px",
+          }}
+        >
+          愛犬と泊まれる宿やカフェなど、箱根で愛犬と過ごせる施設を地図から探せます。
+        </p>
+        <Link
+          href="/hakone/dog-map"
+          className="inline-flex items-center gap-1"
+          style={{
+            fontFamily: "var(--font-ww-sans)",
+            fontSize: 15,
+            fontWeight: 600,
+            color: "var(--color-ww-accent)",
+            letterSpacing: "0.02em",
+            borderBottom: "1px solid var(--color-ww-accent)",
+            paddingBottom: 2,
+            textDecoration: "none",
+          }}
+        >
+          箱根 愛犬とおでかけマップを見る
+          <ArrowRight size={14} weight="regular" />
+        </Link>
+      </nav>
+    </HakonePromoTracker>
   );
 }

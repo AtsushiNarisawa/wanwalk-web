@@ -10,6 +10,7 @@ import {
 } from "@/lib/walks/filter-routes";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import HakoneDogMapLink from "@/components/walks/HakoneDogMapLink";
+import HakoneDogMapPromo from "@/components/walks/HakoneDogMapPromo";
 import ShareMenu from "@/components/walks/ShareMenu";
 import TrustByline from "@/components/walks/TrustByline";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
@@ -248,6 +249,17 @@ export default async function AreaDetailPage({
           <p>このエリアにはまだ公開ルートがありません。</p>
           <p style={{ fontSize: 14, marginTop: 8 }}>近日公開予定です</p>
         </div>
+      )}
+
+      {/* 箱根「以外」のエリアから /hakone/dog-map への送客導線（2026-09-30 CEO承認）。
+          このページの本体であるコース一覧を見終えた直後に置く（FAQ より上）。
+          箱根のエリアは従来どおりページ下部の HakoneDogMapLink だけ。 */}
+      {!isHakoneAreaSlug(area.slug) && (
+        <HakoneDogMapPromo
+          sourcePage="area_detail"
+          placement="after_route_list"
+          areaSlug={area.slug}
+        />
       )}
 
       {/* 可視FAQ（JSON-LD FAQPage と同一ソース） */}

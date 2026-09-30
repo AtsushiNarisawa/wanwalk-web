@@ -51,7 +51,10 @@ export type TrackEventName =
   | "outbound_click" // 施設公式サイトへの外部クリック（送客の真実のソース）
   | "directory_route_click" // 施設カード → 最寄りルート（内部リンク）
   | "directory_qr_landing" // ホテルQR（?ref=）からの着地
-  | "directory_correction_click"; // 施設情報の修正・削除依頼（アグリゲーター型の必須動線）
+  | "directory_correction_click" // 施設情報の修正・削除依頼（アグリゲーター型の必須動線）
+  // 箱根「以外」のページ → /hakone/dog-map の送客導線（HakoneDogMapPromo・2026-09-30）
+  | "hakone_promo_view" // 導線が画面に入った（1ページ1回）
+  | "hakone_promo_click"; // 導線のリンクを押した
 
 type EventParams = Record<string, string | number | boolean | undefined | null>;
 

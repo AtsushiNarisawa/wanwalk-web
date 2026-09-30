@@ -29,6 +29,7 @@ import {
   sanitizeParking,
 } from "@/lib/walks/spot-page-content";
 import { NON_SEO_SPOT_CATEGORIES } from "@/types/walks";
+import { isHakoneAreaSlug } from "@/lib/walks/area-taxonomy";
 import { LOW_DEMAND_NOINDEX_SPOT_SLUGS } from "@/lib/noindex-spot-slugs";
 import type { SpotCategory } from "@/types/walks";
 import SupportedBadge from "@/components/walks/SupportedBadge";
@@ -37,6 +38,7 @@ import ShareMenu from "@/components/walks/ShareMenu";
 import TrustByline from "@/components/walks/TrustByline";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import WalkInAppCTA from "@/components/walks/WalkInAppCTA";
+import HakoneDogMapPromo from "@/components/walks/HakoneDogMapPromo";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import {
   ORG_REF,
@@ -731,6 +733,21 @@ export default async function SpotDetailPage({
               {spot.tips}
             </p>
           </section>
+        )}
+
+        {/* 箱根「以外」のスポットから /hakone/dog-map への送客導線（2026-09-30 CEO承認）。
+            判定は所属ルートのエリア（spot.area_slug）。スポット固有の情報（本文・行き方・
+            通るルート・同エリアの他スポット・Tips）を読み終えた直後、アプリ導線の前に置く。
+            インフラ系カテゴリ・存在しない slug は上で notFound()、410 は middleware で
+            ページ描画前に返るため、ここには到達しない。 */}
+        {!isHakoneAreaSlug(spot.area_slug) && (
+          <HakoneDogMapPromo
+            sourcePage="spot_detail"
+            placement="after_spot_info"
+            spotSlug={slug}
+            areaSlug={spot.area_slug}
+            bottomGap={32}
+          />
         )}
 
         <div className="py-8">
