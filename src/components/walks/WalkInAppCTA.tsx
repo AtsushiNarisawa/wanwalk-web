@@ -32,10 +32,8 @@ export default function WalkInAppCTA({
       className="walk-in-app-cta"
       style={{
         display: "flex",
-        alignItems: "center",
         justifyContent: "space-between",
         gap: 20,
-        flexWrap: "wrap",
         backgroundColor: "var(--color-ww-bg-secondary)",
         border: "1px solid var(--color-ww-border-subtle)",
         borderRadius: "var(--radius-ww-md)",
@@ -49,7 +47,7 @@ export default function WalkInAppCTA({
           alignItems: "center",
           gap: 14,
           minWidth: 0,
-          flex: "1 1 auto",
+          flex: "1 1 0",
         }}
       >
         <span
@@ -97,7 +95,6 @@ export default function WalkInAppCTA({
         style={{
           display: "flex",
           flexDirection: "column",
-          alignItems: "flex-end",
           gap: 8,
           flexShrink: 0,
         }}
@@ -112,9 +109,11 @@ export default function WalkInAppCTA({
       </div>
 
       <style>{`
+        .walk-in-app-cta { align-items: center; }
+        .walk-in-app-cta__actions { align-items: center; }
         @media (max-width: 639px) {
-          .walk-in-app-cta { flex-direction: column; align-items: flex-start; gap: 14px; }
-          .walk-in-app-cta__actions { align-items: flex-start; align-self: stretch; }
+          .walk-in-app-cta { flex-direction: column; align-items: stretch; gap: 14px; }
+          .walk-in-app-cta__actions { align-items: flex-start; }
         }
       `}</style>
     </section>

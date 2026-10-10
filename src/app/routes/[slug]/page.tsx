@@ -465,7 +465,7 @@ export default async function RouteDetailPage({
       )}
 
       {/* E-E-A-T: 運営・編集バイライン（誰が編集し、いつ更新したか）＋実走報告（決定19） */}
-      <div style={{ marginTop: 20 }}>
+      <div style={{ marginTop: 20, marginBottom: 24 }}>
         <TrustByline
           updatedAt={route.updated_at}
           lastWalkedAt={route.last_walked_at}
