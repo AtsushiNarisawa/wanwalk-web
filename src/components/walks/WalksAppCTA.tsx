@@ -53,6 +53,7 @@ export default function WalksAppCTA({
           color: "var(--color-ww-text)",
           letterSpacing: "0.02em",
           lineHeight: 1.4,
+          textWrap: "balance",
         }}
       >
         {title}
