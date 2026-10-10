@@ -73,11 +73,39 @@ export type ParkingInfo = {
   parkingText: string;
   /** コースのどちら側にあるか・そこから歩き出せるか */
   structureText: string;
+  /** 「駐車場までナビ」の目的地。駐車場スポットが無ければ null（ボタンを出さない） */
+  navTarget: ParkingNavTarget | null;
 };
+
+export type ParkingNavTarget = { lat: number; lng: number };
+
+/**
+ * ナビの目的地: category='parking' かつ spot_type='start' のスポット。
+ * 無ければ category='parking' の最初のスポット（spot_order 順・end も可）。
+ * ⚠️ official_routes.start_location は駐車場とは限らないため使わない。
+ * lat/lng は getRouteSpots（route_spots_with_latlng）が解析済みの値をそのまま使う。
+ */
+export function pickParkingNavTarget(
+  spots: Pick<RouteSpot, "category" | "spot_type" | "spot_order" | "lat" | "lng">[]
+): ParkingNavTarget | null {
+  const valid = spots
+    .filter(
+      (s) =>
+        s.category === "parking" &&
+        typeof s.lat === "number" &&
+        typeof s.lng === "number" &&
+        Number.isFinite(s.lat) &&
+        Number.isFinite(s.lng) &&
+        !(s.lat === 0 && s.lng === 0)
+    )
+    .sort((a, b) => a.spot_order - b.spot_order);
+  const picked = valid.find((s) => s.spot_type === "start") ?? valid[0];
+  return picked ? { lat: picked.lat as number, lng: picked.lng as number } : null;
+}
 
 export function buildParkingInfo(
   route: Pick<RouteWithArea, "slug" | "name" | "pet_info">,
-  spots: Pick<RouteSpot, "name" | "category" | "spot_type">[]
+  spots: Pick<RouteSpot, "name" | "category" | "spot_type" | "spot_order" | "lat" | "lng">[]
 ): ParkingInfo {
   const placeName = routePlaceName(route);
   const parkingText = endWithPeriod(route.pet_info?.parking);
@@ -108,5 +136,5 @@ export function buildParkingInfo(
     structureText = `コースのゴールは${parkingBaseName(endSpot.name)}です。`;
   }
 
-  return { placeName, parkingText, structureText };
+  return { placeName, parkingText, structureText, navTarget: pickParkingNavTarget(spots) };
 }

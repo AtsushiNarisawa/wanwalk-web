@@ -1,5 +1,6 @@
 import { Car } from "@phosphor-icons/react/dist/ssr";
 import type { ParkingInfo } from "@/lib/walks/parking";
+import ParkingNavButton from "./ParkingNavButton";
 
 /**
  * ルート詳細の「駐車場」可視セクション（2026-09-02）。
@@ -9,8 +10,16 @@ import type { ParkingInfo } from "@/lib/walks/parking";
  * ⚠️ 料金・金額は書かない（「無料」「有料」の別も書かない）。台数も足さない。
  *    表示するのは DB の pet_info.parking とコース構造だけ。
  */
-export default function RouteParking({ info }: { info: ParkingInfo }) {
-  if (!info.parkingText && !info.structureText) return null;
+export default function RouteParking({
+  info,
+  routeSlug,
+}: {
+  info: ParkingInfo;
+  routeSlug: string;
+}) {
+  const hasText = Boolean(info.parkingText || info.structureText);
+  // 文は無いが駐車場スポットはある場合は、見出しとボタンだけ出す。
+  if (!hasText && !info.navTarget) return null;
 
   return (
     <section style={{ marginBottom: 48 }}>
@@ -26,6 +35,7 @@ export default function RouteParking({ info }: { info: ParkingInfo }) {
       >
         {info.placeName}の駐車場
       </h2>
+      {hasText && (
       <div
         style={{
           backgroundColor: "var(--color-ww-bg-secondary)",
@@ -74,6 +84,15 @@ export default function RouteParking({ info }: { info: ParkingInfo }) {
           )}
         </div>
       </div>
+      )}
+      {info.navTarget && (
+        <ParkingNavButton
+          lat={info.navTarget.lat}
+          lng={info.navTarget.lng}
+          routeSlug={routeSlug}
+          hasCardAbove={hasText}
+        />
+      )}
     </section>
   );
 }

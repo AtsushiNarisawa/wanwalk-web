@@ -54,7 +54,9 @@ export type TrackEventName =
   | "directory_correction_click" // 施設情報の修正・削除依頼（アグリゲーター型の必須動線）
   // 箱根「以外」のページ → /hakone/dog-map の送客導線（HakoneDogMapPromo・2026-09-30）
   | "hakone_promo_view" // 導線が画面に入った（1ページ1回）
-  | "hakone_promo_click"; // 導線のリンクを押した
+  | "hakone_promo_click" // 導線のリンクを押した
+  // ルート詳細「駐車場までナビ」ボタン（Googleマップ・2026-10-10）
+  | "parking_nav_click";
 
 type EventParams = Record<string, string | number | boolean | undefined | null>;
 

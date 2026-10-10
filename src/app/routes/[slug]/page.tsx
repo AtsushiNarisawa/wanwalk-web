@@ -625,7 +625,7 @@ export default async function RouteDetailPage({
       {/* 駐車場（2026-09-02 新設）。「〇〇 駐車場」で来た読者に画面上でも見出し付きで答える。
           GSC 6-8月で駐車場クエリ 1,892表示・1クリック。従来は可視の見出しが無く、
           pet_info の駐車場は犬連れメモの小ラベルに埋もれていた。 */}
-      <RouteParking info={parking} />
+      <RouteParking info={parking} routeSlug={route.slug} />
 
       {/* 犬連れメモ（施策④ アイコングリッド）。
           pet_info はキー単位で空にする運用があるため、petInfo が非nullでも
