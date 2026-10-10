@@ -28,7 +28,9 @@ export type SourcePage =
   | "about"
   // 箱根 愛犬さんぽマップ ハブ（/hakone・DMOバナー着地点）。
   // source_page は GA4 登録済ディメンション。新値を載せるだけ（新規登録不要）。
-  | "hakone_hub";
+  | "hakone_hub"
+  // 推薦の募集ページ（/contribute）。
+  | "contribute";
 
 export type ShareChannel = "native" | "copy" | "x" | "facebook" | "line";
 

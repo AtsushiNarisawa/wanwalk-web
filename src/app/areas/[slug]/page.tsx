@@ -204,8 +204,8 @@ export default async function AreaDetailPage({
       <WalkInAppCTA
         sourcePage="area_detail"
         placement="area_detail_walk"
-        title="このエリアの散歩をアプリで歩く"
-        subcopy="GPSで現在地を確認しながら、愛犬との散歩を記録できます。"
+        title="このエリアで見つけた道を、推薦する"
+        subcopy="アプリで散歩を記録し、良い道は編集部へ推薦できます。採用された道は、公式ルートとして掲載されます。"
       />
 
       {routes.length > 0 ? (

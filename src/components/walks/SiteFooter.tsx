@@ -108,6 +108,7 @@ export default function SiteFooter() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               <li><Link href="/about" style={linkStyle}>WanWalkについて</Link></li>
               <li><Link href="/news" style={linkStyle}>お知らせ</Link></li>
+              <li><Link href="/contribute" style={linkStyle}>推薦の募集について</Link></li>
               <li><Link href="/terms" style={linkStyle}>利用規約</Link></li>
               <li><Link href="/privacy" style={linkStyle}>プライバシーポリシー</Link></li>
               <li><FooterAppLink /></li>

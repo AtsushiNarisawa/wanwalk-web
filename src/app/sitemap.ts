@@ -107,6 +107,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
+      // 推薦の募集ページ（2026-10-11 公開・index 化）。
+      url: `${baseUrl}/contribute`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
       url: `${baseUrl}/news`,
       lastModified: new Date(),
       changeFrequency: "weekly",

@@ -24,10 +24,9 @@ type Props = {
 export default function WalkInAppCTA({
   sourcePage = "route_detail",
   placement = "route_detail_walk",
-  title = "このルートをアプリで歩く",
-  // LAYER1_NAV_SPEC §13: 記録訴求（日米で死亡実証）→ ナビ訴求へ。
-  // 価値ステートメント（WANWALK_STRATEGY.md 正本）準拠。「取りこぼす」は使わない。
-  subcopy = "知らない土地でも、見どころや愛犬と入れるお店を見逃さないよう、現地ではアプリが静かに道案内します。",
+  title = "この道を、アプリで記録する",
+  // 2026-10-11 CEO決定：記録＋実走報告の訴求（7/22 決定14でナビ訴求は廃止）。
+  subcopy = "歩いた道筋が、愛犬との散歩の記録として残ります。道や駐車場の変化に気づいたら、編集部へ報告もできます。",
   marginBottom = 32,
 }: Props) {
   return (

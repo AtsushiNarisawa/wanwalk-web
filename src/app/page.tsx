@@ -469,8 +469,10 @@ export default async function WalksTopPage() {
             />
             <FeaturePillar
               icon={<DeviceMobile size={28} weight="regular" />}
-              title="アプリで記録"
-              body="WanWalkアプリならGPSで散歩を自動記録。歩いたルートをそのまま残せます。"
+              title="歩いた道を、推薦する"
+              body="アプリで記録した散歩道は、編集部へ推薦できます。採用された道は、ここに公式ルートとして並びます。"
+              linkHref="/contribute"
+              linkLabel="推薦の募集について"
             />
           </div>
         </section>
@@ -654,10 +656,14 @@ function FeaturePillar({
   icon,
   title,
   body,
+  linkHref,
+  linkLabel,
 }: {
   icon: React.ReactNode;
   title: string;
   body: string;
+  linkHref?: string;
+  linkLabel?: string;
 }) {
   return (
     <div className="text-center">
@@ -694,6 +700,16 @@ function FeaturePillar({
       >
         {body}
       </p>
+      {linkHref && linkLabel && (
+        <p style={{ marginTop: 12 }}>
+          <Link
+            href={linkHref}
+            style={{ fontSize: 13, color: "var(--color-ww-accent)", textDecoration: "none" }}
+          >
+            {linkLabel}
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DeviceMobile } from "@phosphor-icons/react/dist/ssr";
 import AppStoreBadge from "./AppStoreBadge";
 import type { SourcePage } from "@/lib/analytics";
@@ -6,9 +7,21 @@ type Props = {
   sourcePage?: SourcePage;
   /** GA4 app_store_badge_click の placement。既定 walks_app_cta（既存ページ後方互換）。 */
   placement?: string;
+  /** 見出し。既定は共通文言。 */
+  title?: string;
+  /** 説明文。既定は共通文言。 */
+  description?: string;
+  /** バッジ下の「推薦の募集について」リンクを出すか。/contribute 自身では false。 */
+  showContributeLink?: boolean;
 };
 
-export default function WalksAppCTA({ sourcePage = "home", placement = "walks_app_cta" }: Props) {
+export default function WalksAppCTA({
+  sourcePage = "home",
+  placement = "walks_app_cta",
+  title = "WanWalkアプリ、App Store で配信中",
+  description = "愛犬との散歩道を記録し、良い道は編集部へ推薦できます。採用された道は、公式ルートとして全国に届きます。",
+  showContributeLink = true,
+}: Props) {
   return (
     <section
       className="text-center"
@@ -42,7 +55,7 @@ export default function WalksAppCTA({ sourcePage = "home", placement = "walks_ap
           lineHeight: 1.4,
         }}
       >
-        WanWalkアプリ、App Store で配信中
+        {title}
       </h2>
       <p
         className="mx-auto mb-8"
@@ -53,10 +66,19 @@ export default function WalksAppCTA({ sourcePage = "home", placement = "walks_ap
           color: "var(--color-ww-text-secondary)",
         }}
       >
-        散歩ルートをGPSで自動記録。
-        歩いた距離や時間を振り返りながら、愛犬との時間を残せます。
+        {description}
       </p>
       <AppStoreBadge sourcePage={sourcePage} placement={placement} height={48} />
+      {showContributeLink && (
+        <p style={{ marginTop: 16 }}>
+          <Link
+            href="/contribute"
+            style={{ fontSize: 13, color: "var(--color-ww-accent)", textDecoration: "none" }}
+          >
+            推薦の募集について
+          </Link>
+        </p>
+      )}
     </section>
   );
 }

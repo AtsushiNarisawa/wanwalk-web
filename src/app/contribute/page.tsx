@@ -1,16 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Path, MapPin, SealCheck } from "@phosphor-icons/react/dist/ssr";
+import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import { buildOgMetadata } from "@/lib/walks/og-meta";
 import { getSiteStats } from "@/lib/walks/stats";
 
 // 常設の募集ページ（決定4/9）。締切のない資産ページ。季節が変わってもパスは使い回す（/contribute 固定）。
-//
-// 公開段取り（2026-07-22 CEO 判断）: v1 配信までは noindex＋nav未リンクで待機し、配信日に
-// index 化＋nav リンク＋アプリDL CTA（CTA復活）を一斉に有効化する。
-// → 本ファイルでは robots:noindex を付与し、アプリDL CTA はまだ設置しない（休眠アプリへ誘導しない原則）。
-// → sitemap.ts にも未登録（配信時に staticPages へ追加する）。
 export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,8 +17,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title,
     description,
-    // v1 配信までは検索露出させない（配信日に解除）。
-    robots: { index: false, follow: false },
     alternates: { canonical: "/contribute" },
     ...buildOgMetadata({
       title: "愛犬と歩いた道を、次の誰かへ",
@@ -204,7 +198,15 @@ export default async function ContributePage() {
           </p>
         </section>
 
-        {/* CTA（アプリDL・推薦導線）は v1 配信時に CTA復活で追加する（配信後ルール） */}
+        <div style={{ marginBottom: 48 }}>
+          <WalksAppCTA
+            sourcePage="contribute"
+            placement="contribute_bottom"
+            title="推薦は、WanWalkアプリから"
+            description="アプリで散歩を記録すると、その道をそのまま推薦できます。推薦は18歳以上の方に限らせていただいています。"
+            showContributeLink={false}
+          />
+        </div>
 
         <SupportedBadge />
       </div>
