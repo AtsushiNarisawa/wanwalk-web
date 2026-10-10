@@ -378,9 +378,10 @@ export default async function SpotDetailPage({
           placement="spot_detail_walk"
           title="アプリで愛犬との散歩を記録する"
           subcopy="GPSで現在地を確認しながら、歩いた距離や時間を残せます。"
+          marginBottom={24}
         />
 
-        <div style={{ margin: "24px 0" }}>
+        <div style={{ margin: "0 0 24px" }}>
           <TrustByline
             updatedAt={spotDates.updated_at}
             scopeNote="掲載内容は公開情報をもとに整備し、随時見直しています。"
