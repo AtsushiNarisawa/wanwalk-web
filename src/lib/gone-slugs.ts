@@ -328,6 +328,16 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   //   slug が kadowaki-chushajo-izu-jogasaki に変わった。ただし**別の駐車場**なので 301 は張らない（CEO 決定・410）。
   //   ぼら納屋駐車場そのものは規制区間の外に実在するが、そこから遊歩道に入ると 119m で規制区間に突き当たる
   "bora-naya-chusha-jo-izu-jogasaki",
+  // --- 2026-10-12 旧「本牧緑道と三溪園外堀さんぽ」の作り直しに伴う spot 3件（CEO 決定・410）---
+  // 三溪園保勝会の指摘で、線の一部と spot が三溪園の敷地内・「外堀」「本牧緑道」は実在の裏付けなしと判明。
+  // 本牧市民公園と本牧臨海公園の周回（yokohama-honmoku-park-hasseiden）に作り直した。
+  // - sankeien-sanjuunoto-wo-nozomu-sotobori（三溪園 三重塔を望む外堀）: 園内のため spot 削除
+  // - sankei-en-minamimonzen（三溪園 南門前）: 位置は駐車場・紹介文の「海岸門」は園内の門。spot 削除
+  // - hommoku-shimin-koen-dogguran（本牧市民公園ドッグラン）: 行を「本牧市民公園 芝生広場」に作り替え
+  //   slug は honmoku-shimin-koen-shibafu-hiroba に変わった（別の主題のため 301 は張らない）
+  "sankeien-sanjuunoto-wo-nozomu-sotobori",
+  "sankei-en-minamimonzen",
+  "hommoku-shimin-koen-dogguran",
 ]);
 
 // リネームされた slug の旧→新マップ。middleware で 301 redirect される。
@@ -394,4 +404,11 @@ export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
   ["dankazura-no-sandou", "tsuruoka-hachimangu-torii-sando"],
   // 2026-09-25 由比ガ浜ルート短縮（国道134号 海側歩道の通行止め）で spot を削除。同じ座標・同じ公園の spot へ 301
   ["inamuragasaki-kaihin-koen", "inamuragasaki-koen-tembo-dai"],
+]);
+
+// /routes/{slug} のリネーム旧→新マップ。middleware で 301 redirect される。
+// 2026-10-12: 旧「本牧緑道と三溪園外堀さんぽ」を三溪園保勝会の指摘で作り直し、
+//   名前を「本牧市民公園と八聖殿の丘さんぽ」に改めた（同じルート行・CEO 決定で 301）。
+export const RENAMED_ROUTE_SLUGS: ReadonlyMap<string, string> = new Map([
+  ["yokohama-sankeien-honmoku-promenade", "yokohama-honmoku-park-hasseiden"],
 ]);

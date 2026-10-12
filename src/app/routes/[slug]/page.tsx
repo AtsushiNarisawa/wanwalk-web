@@ -221,7 +221,6 @@ export async function generateMetadata({
   const TITLE_OVERRIDES: Record<string, string> = {
     "nasu-minamigaoka-ranch": "南ヶ丘牧場 犬連れ散歩｜那須連山を望む高原牧場とガーンジィ牛",
     "miura-kurihama-hana": "くりはま花の国 犬連れ散歩｜春はポピー・秋はコスモス100万本",
-    "yokohama-sankeien-honmoku-promenade": "三溪園 犬連れ散歩｜庭園の外周ループは犬OK 横浜本牧",
     "izu-shuzenji-onsen": "修善寺温泉 犬連れ散歩｜竹林の小径と渓流の橋めぐり",
     "tokyo-kasai-rinkai-park-loop": "葛西臨海公園 犬連れ散歩｜海・芝生・大観覧車を一周",
     "kawaguchiko-saiko-nenba": "西湖いやしの里根場 犬連れ散歩｜富士山と茅葺き集落",

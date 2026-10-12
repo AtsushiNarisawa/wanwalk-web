@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GONE_SPOT_SLUGS, RENAMED_SPOT_SLUGS } from "@/lib/gone-slugs";
+import { GONE_SPOT_SLUGS, RENAMED_ROUTE_SLUGS, RENAMED_SPOT_SLUGS } from "@/lib/gone-slugs";
 
 // /spots/{slug}, /routes/{slug}, /areas/{slug} に対する 301/410 ハンドリング:
 // (1) /spots: RENAMED_SPOT_SLUGS に該当する旧 slug は新 slug へ 301 redirect
 //     → GSC で稼いでいる検索インプレッション・クリックを新 slug に引き継げる
+// (1b) /routes: RENAMED_ROUTE_SLUGS に該当する旧 slug は新 slug へ 301 redirect
 // (2) /spots: GONE_SPOT_SLUGS に該当する slug は 410 Gone を返して Google からの削除を加速
 //     → 404 でも最終的には削除されるが、410 は「明示的に削除された」とみなされ削除が早い
 // (3) 全 dynamic セグメント: 非ASCII / 過長 slug は 410 Gone
@@ -43,6 +44,15 @@ export function middleware(request: NextRequest) {
   // (3) 非ASCII / 過長 slug は全 segment 共通で 410
   if (slug.length > MAX_SLUG_LENGTH || !VALID_SLUG.test(slug)) {
     return goneResponse();
+  }
+
+  if (segment === "routes") {
+    // (1b) ルートのリネーム → 301 redirect
+    const renamedRoute = RENAMED_ROUTE_SLUGS.get(slug);
+    if (renamedRoute) {
+      const target = new URL(`/routes/${renamedRoute}`, request.url);
+      return NextResponse.redirect(target, 301);
+    }
   }
 
   if (segment === "spots") {

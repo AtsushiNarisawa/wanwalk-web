@@ -19,6 +19,12 @@ describe("middleware 301/410", () => {
     expect(r.headers.get("location")).toContain("/spots/odawara-jo-tenshukaku");
   });
 
+  it("RENAMED ルート → 301 で新 slug へ", () => {
+    const r = run("/routes/yokohama-sankeien-honmoku-promenade");
+    expect(r.status).toBe(301);
+    expect(r.headers.get("location")).toContain("/routes/yokohama-honmoku-park-hasseiden");
+  });
+
   it("非ASCII slug → 410", () => {
     expect(run("/spots/" + encodeURIComponent("日本語スポット")).status).toBe(410);
   });
