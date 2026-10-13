@@ -11,6 +11,9 @@ function run(pathname: string) {
 describe("middleware 301/410", () => {
   it("GONE スポット → 410", () => {
     expect(run("/spots/buna-no-mori").status).toBe(410);
+    // 2026-10-13 鶴岡八幡宮の境内 spot を削除
+    expect(run("/spots/tsurugaoka-hachimangu").status).toBe(410);
+    expect(run("/spots/hataage-benzaiten-shrine").status).toBe(410);
   });
 
   it("RENAMED スポット → 301 で新 slug へ", () => {

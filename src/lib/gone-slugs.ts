@@ -341,6 +341,11 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   // --- 2026-10-13 強羅あじさい散歩コース（hakone-gora-ajisai）の作り直しに伴う spot 1件（CEO 決定・410）---
   // 線と spot が箱根美術館（公式にペット不可・庭園含む）の敷地内だったため spot 削除。
   "hakone-museum-of-art-mossy-garden",
+  // --- 2026-10-13 鶴岡八幡宮〜小町通り（kamakura-tsurugaoka-komachi）の是正に伴う spot 2件（CEO 決定・410）---
+  // 鶴岡八幡宮の境内は犬の立ち入り禁止（2025-03 公式告知）。線が三の鳥居から本宮の裏まで境内を往復していたため、
+  // 線を三の鳥居の手前で折り返しにし、境内の中の spot を削除した。
+  "hataage-benzaiten-shrine",
+  "tsurugaoka-hachimangu",
 ]);
 
 // リネームされた slug の旧→新マップ。middleware で 301 redirect される。
