@@ -338,6 +338,9 @@ export const GONE_SPOT_SLUGS: ReadonlySet<string> = new Set([
   "sankeien-sanjuunoto-wo-nozomu-sotobori",
   "sankei-en-minamimonzen",
   "hommoku-shimin-koen-dogguran",
+  // --- 2026-10-13 強羅あじさい散歩コース（hakone-gora-ajisai）の作り直しに伴う spot 1件（CEO 決定・410）---
+  // 線と spot が箱根美術館（公式にペット不可・庭園含む）の敷地内だったため spot 削除。
+  "hakone-museum-of-art-mossy-garden",
 ]);
 
 // リネームされた slug の旧→新マップ。middleware で 301 redirect される。
