@@ -415,6 +415,9 @@ export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
   // 2026-10-15 井の頭池周遊コースをエリア型からルート型へ（CEO 決定）。ゴールを駐車場に変えたため
   // 「七井橋（ゴール）」spot を削除。同じ座標・同じ橋の spot へ 301
   ["nanai-kyo", "nanai-kyo-tokyo-inokashira"],
+  // 2026-10-15 葛原岡・大仏ハイキングで同じ座標に重なっていた spot 2件を1つに（CEO 決定）。
+  // 「高徳院 仁王門前（ゴール）」（写真なし）を削除し、同じ門前の spot をゴールにした。同じ座標・同じ門前へ 301
+  ["nagatani-eki-homen", "kotokuin-kamakura-daibutsu"],
 ]);
 
 // /routes/{slug} のリネーム旧→新マップ。middleware で 301 redirect される。
