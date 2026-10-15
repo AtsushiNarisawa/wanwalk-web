@@ -20,6 +20,10 @@ describe("middleware 301/410", () => {
     const r = run("/spots/odawara-shiro-tenshukaku");
     expect(r.status).toBe(301);
     expect(r.headers.get("location")).toContain("/spots/odawara-jo-tenshukaku");
+    // 2026-10-15 井の頭池周遊コースのルート型化で削除した「七井橋（ゴール）」
+    const r2 = run("/spots/nanai-kyo");
+    expect(r2.status).toBe(301);
+    expect(r2.headers.get("location")).toContain("/spots/nanai-kyo-tokyo-inokashira");
   });
 
   it("RENAMED ルート → 301 で新 slug へ", () => {

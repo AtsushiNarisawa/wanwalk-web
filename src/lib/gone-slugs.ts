@@ -412,6 +412,9 @@ export const RENAMED_SPOT_SLUGS: ReadonlyMap<string, string> = new Map([
   ["dankazura-no-sandou", "tsuruoka-hachimangu-torii-sando"],
   // 2026-09-25 由比ガ浜ルート短縮（国道134号 海側歩道の通行止め）で spot を削除。同じ座標・同じ公園の spot へ 301
   ["inamuragasaki-kaihin-koen", "inamuragasaki-koen-tembo-dai"],
+  // 2026-10-15 井の頭池周遊コースをエリア型からルート型へ（CEO 決定）。ゴールを駐車場に変えたため
+  // 「七井橋（ゴール）」spot を削除。同じ座標・同じ橋の spot へ 301
+  ["nanai-kyo", "nanai-kyo-tokyo-inokashira"],
 ]);
 
 // /routes/{slug} のリネーム旧→新マップ。middleware で 301 redirect される。
